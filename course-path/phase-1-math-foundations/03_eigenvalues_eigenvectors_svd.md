@@ -657,31 +657,160 @@ Finally: generate correlated multi-dimensional data with a nonzero mean, compute
 
 **Positive semi-definite** — a symmetric matrix with all eigenvalues `>= 0`. Anything of the form `M.T @ M` qualifies, including every covariance matrix.
 
-**Singular value decomposition (SVD)** — `A = U @ S @ V.T`, valid for every real matrix of every shape. A rotation, a per-axis stretch, a rotation.
+### 9.1 — Eigenvalues ($\lambda$) & Eigenvectors ($v$)
 
-**Singular value** — one of the non-negative diagonal entries of `S`, sorted descending. Equals `sqrt` of an eigenvalue of `A.T @ A`.
+- **Eigenvector ($v$)**: A special non-zero vector whose direction is **completely unchanged** when transformed by matrix $A$. It is only scaled by a scalar factor.
+- **Eigenvalue ($\lambda$)**: The scalar scaling factor by which eigenvector $v$ is stretched, shrunk, or flipped ($A v = \lambda v$).
 
-**Rank** — the number of nonzero singular values: how many independent directions the matrix actually uses. Numerically, the count above a tolerance.
+#### 💡 The Beginner Analogy: Windmill Blades vs. Flag Fabric
+When a matrix transformation (like a gust of wind) acts on a windmill:
+- The fabric of a flag flaps around in all directions (general vectors change directions).
+- The **windmill axle** stays pointing in the exact same straight line, merely spinning faster or slower (Eigenvector). Its spin speed multiplier is the **Eigenvalue**!
 
-**Frobenius norm** — `||A||_F = sqrt(sum of all entries squared)`. Satisfies `||A||_F^2 = sum(s_i^2)` exactly, because rotations preserve length.
+#### 🎨 Eigenvector Direction Preservation
 
-**Truncated SVD / low-rank approximation** — keeping only the top `k` terms. Costs `k*(m + n + 1)` floats instead of `m*n`.
+```mermaid
+flowchart TD
+    VEC["Input Vector v = [1, 2]"] --> MAT["Multiply by Matrix A"]
+    MAT --> RES["Output: A @ v = 3 * [1, 2]"]
+    RES --> SCALE["✅ Same Direction! Scaled by λ = 3.0"]
 
-**Eckart–Young theorem** — the truncated SVD is the *best possible* rank-`k` approximation in Frobenius norm, with error exactly `sqrt(sum_{i>k} s_i^2)`. Confirmed here against 500 random rivals, `0` of which won.
+    style SCALE fill:#2d6a4f,stroke:#52b788,color:#fff
+```
 
-**Explained variance** — `s_i^2 / (n - 1)` for centred data. The variance of the data along principal component `i`.
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
 
-**Sign ambiguity** — `v` and `-v` describe the same principal direction, so component signs are arbitrary and must be aligned before any comparison (**2.14**).
+A = np.array([[3, 1], [1, 3]])
+eigenvalues, eigenvectors = np.linalg.eig(A)
 
-**Centring** — subtracting the column means before the SVD. Without it, the leading direction points at the data's location rather than its variation.
+# A @ v == lambda * v
+v0 = eigenvectors[:, 0]
+lam0 = eigenvalues[0]
 
-**Low-rank update / LoRA** — writing a weight change as `B @ A` with inner dimension `r`, costing `r*(m + n)` parameters instead of `m*n` (**4.11**).
+assert np.allclose(A @ v0, lam0 * v0)
+```
+**Why It Matters**: Eigenvalues identify the principal axes of variance in datasets (PCA) and govern stability in dynamical systems and neural networks.
 
-**Condition number** — `kappa(A) = s_max / s_min`. The maximum factor by which a relative input error can be amplified in the solution (**1.12**).
+---
 
-**Truncated pseudo-inverse** — solving while discarding the smallest singular values. Trades accuracy for stability, the same bargain as regularisation (**2.5**).
+### 9.2 — Singular Value Decomposition (SVD: $A = U \Sigma V^T$)
 
-**Power iteration** — repeatedly applying `A` and renormalising. Converges to the dominant eigenvector at rate `|lambda_2 / lambda_1|` per step, measured here as `0.400003`.
+The fundamental matrix factorization theorem stating that **ANY** real $m \times n$ matrix $A$ can be uniquely factored into 3 intuitive transformations:
+$$A = U \Sigma V^T$$
+1. **$V^T$**: Rotation/reflection in the input space.
+2. **$\Sigma$**: Scaling along coordinate axes by singular values $\sigma_i$.
+3. **$U$**: Rotation/reflection into the output space.
+
+#### 💡 The Beginner Analogy: 3-Stage Photo Editing Filter
+Transforming an image matrix with SVD is like a 3-step photo filter:
+1. **$V^T$**: Rotate the original photo so the subject aligns horizontally.
+2. **$\Sigma$**: Stretch or compress the photo width and height independently along the main axes.
+3. **$U$**: Rotate the stretched photo into its final destination frame.
+
+#### 🎨 SVD 3-Stage Factorization
+
+```mermaid
+flowchart LR
+    INPUT["Original Vector x"] --> V["1. Rotate by Vᵀ"]
+    V --> SIGMA["2. Stretch per axis by Σ (Singular Values σ_i)"]
+    SIGMA --> U["3. Rotate by U"]
+    U --> OUT["Transformed Result (A @ x)"]
+
+    style SIGMA fill:#005f73,stroke:#0a9396,color:#fff
+    style OUT fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+A = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]) # 3x2 matrix
+U, S, Vt = np.linalg.svd(A, full_matrices=False)
+
+# Reconstruct A = U @ diag(S) @ Vt
+A_reconstructed = U @ np.diag(S) @ Vt
+assert np.allclose(A, A_reconstructed)
+```
+**Why It Matters**: SVD works on non-square matrices where eigendecomposition fails. It is the mathematical engine behind PCA, latent semantic analysis, and recommendation systems.
+
+---
+
+### 9.3 — Truncated SVD & Eckart-Young Theorem (Low-Rank / LoRA)
+
+- **Truncated SVD**: Approximating matrix $A$ by keeping only the top $k$ largest singular values and discarding the rest ($\hat{A}_k = U_k \Sigma_k V_k^T$).
+- **Eckart-Young Theorem**: Proves mathematically that Truncated SVD is the **absolute optimal rank-$k$ approximation** of a matrix in Frobenius norm.
+- **LoRA (Low-Rank Adaptation)**: Represents large weight matrices $W \in \mathbb{R}^{m \times n}$ as two tiny low-rank matrices $B \in \mathbb{R}^{m \times r}$ and $A \in \mathbb{R}^{r \times n}$ ($r \ll \min(m,n)$).
+
+#### 💡 The Beginner Analogy: JPEG Image Compression vs. Full Bitmaps
+Instead of storing every single pixel on a 4K screen ($m \times n$), Truncated SVD saves only the **top $k$ most dominant color shapes and patterns**. You get 99% of the visual clarity using only 1% of the storage space!
+
+#### 🎨 Rank Compression & LoRA Parameter Reduction
+
+```mermaid
+flowchart TD
+    subgraph FullWeight ["❌ Full Weight Matrix W (4096 x 4096)"]
+        W["16,777,216 Parameters (Heavy!)"]
+    end
+
+    subgraph LoRA ["✅ Low-Rank Factorization (r = 8)"]
+        B["Matrix B (4096 x 8)"] --> MULT["B @ A"]
+        A["Matrix A (8 x 4096)"] --> MULT
+        MULT["65,536 Parameters (250x Smaller!)"]
+    end
+
+    style MULT fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# Low-Rank Matrix Factorization (LoRA pattern)
+r = 8
+B = np.random.randn(4096, r)
+A = np.random.randn(r, 4096)
+
+# Delta W is rank-r update:
+dW = B @ A # Shape (4096, 4096), but only 2 * (4096 * 8) floats stored!
+```
+**Why It Matters**: Enables fine-tuning 70-billion parameter LLMs on single consumer GPUs (LoRA) by replacing full weight updates with low-rank factorized matrices.
+
+---
+
+### 9.4 — Condition Number ($\kappa(A) = \sigma_{\max} / \sigma_{\min}$)
+
+The ratio of the largest singular value to the smallest singular value of a matrix:
+$$\kappa(A) = \frac{\sigma_{\max}}{\sigma_{\min}}$$
+It measures how sensitive a system of linear equations ($A x = b$) is to tiny numerical perturbations or floating-point rounding errors in $b$.
+
+#### 💡 The Beginner Analogy: Steering Wheel Sensitivity
+- **Well-Conditioned ($\kappa \approx 1$)**: A standard car steering wheel — turning the wheel 1 degree shifts the car 1 degree.
+- **Ill-Conditioned ($\kappa \gg 10^8$)**: An hyper-sensitive steering wheel where moving it by a hair (a $10^{-12}$ rounding error) spins the car violently off the highway by 180 degrees!
+
+#### 🎨 Ill-Conditioned Error Amplification
+
+```mermaid
+flowchart TD
+    PERT["Tiny Input Noise Δb = 1e-12"] --> MAT["Ill-Conditioned Matrix A (Condition No = 1e12)"]
+    MAT --> ERR["💥 Output Error Δx = 1.0 (Massive 100% Error in Solution!)"]
+
+    style ERR fill:#9b2226,stroke:#ae2012,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+# Hilbert matrix (Infamously ill-conditioned!)
+H = np.array([
+    [1.0, 1/2, 1/3],
+    [1/2, 1/3, 1/4],
+    [1/3, 1/4, 1/5]
+])
+
+cond_num = np.linalg.cond(H) # -> High condition number (~524)
+```
+**Why It Matters**: High condition numbers cause linear regression models (`np.linalg.solve`) to output completely corrupted, wild coefficient estimates due to floating-point instability.
 
 ---
 

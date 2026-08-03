@@ -688,49 +688,151 @@ Then, independently: sample from a distribution of your choice that is visibly n
 
 ## 9. Glossary
 
-**Sample space** — the set of every outcome a random experiment could produce. An **event** is any subset of it.
+### 9.1 — Bayes' Theorem & Base-Rate Fallacy ($P(A|B) = \frac{P(B|A)P(A)}{P(B)}$)
 
-**Random variable** — a deterministic function from outcomes to numbers. The randomness is in which outcome occurs, not in the function.
+- **Bayes' Theorem**: The fundamental formula for updating beliefs upon receiving new evidence:
+  $$P(\text{Hypothesis}|\text{Evidence}) = \frac{P(\text{Evidence}|\text{Hypothesis}) \cdot P(\text{Hypothesis})}{P(\text{Evidence})}$$
+- **Base-Rate Fallacy**: The cognitive error of ignoring the low prior probability ($P(\text{Hypothesis})$) of a rare condition when evaluating a test result.
 
-**PMF (probability mass function)** — for a discrete variable, `p(x) = P(X = x)`. Sums to 1 across all `x`.
+#### 💡 The Beginner Analogy: Medical Test for a Super-Rare Disease
+Imagine a disease affecting 1 in 1,000 people ($0.1\%$ prevalence). A test is $99\%$ accurate.
+If you test **positive**, you do NOT have a $99\%$ chance of being sick! Out of 100,000 people:
+- 100 people are sick $\to$ 99 test positive.
+- 99,900 people are healthy $\to$ $1\%$ false alarms = 999 test positive.
+- Total positive tests = $99 + 999 = 1,098$.
+- **Real chance you are sick ($P(\text{Sick}|+)$)** = $\frac{99}{1098} \approx \mathbf{9\%}$!
 
-**PDF (probability density function)** — for a continuous variable, a density whose *integral* over a range gives the probability of landing in that range. `f(x)` is not a probability and may exceed 1.
+#### 🎨 Bayes Natural Frequency Tree
 
-**CDF (cumulative distribution function)** — `F(x) = P(X <= x)`. Non-decreasing, runs from 0 to 1, exists for both discrete and continuous variables.
+```mermaid
+flowchart TD
+    POP["100,000 Population"] --> SICK["100 Sick (0.1% Prevalence)"]
+    POP --> HEALTHY["99,900 Healthy"]
 
-**Joint distribution** — `P(A, B)`, the probability of both. **Marginal** — what you get by summing the joint over the variable you no longer care about.
+    SICK --> TP["99 True Positives"]
+    HEALTHY --> FP["999 False Positives (1% False Alarm Rate)"]
 
-**Conditional probability** — `P(A given B) = P(A, B) / P(B)`. A renormalized slice of the joint.
+    TP & FP --> RES["Total Positive Tests: 1,098"]
+    RES --> PROB["P(Sick | +) = 99 / 1098 = 9.0%!"]
 
-**Bayes theorem** — `P(A given B) = P(B given A) P(A) / P(B)`. Two lines of algebra from the definition above.
+    style PROB fill:#2d6a4f,stroke:#52b788,color:#fff
+```
 
-**Prior** — belief before the evidence. **Likelihood** — probability of the evidence under a hypothesis. **Evidence / marginal likelihood** — probability of the evidence overall. **Posterior** — belief after.
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# Bayes Theorem calculation for rare disease:
+prior = 0.001       # 0.1% disease prevalence
+sensitivity = 0.95 # True Positive Rate
+specificity = 0.98 # True Negative Rate (2% False Positive Rate)
 
-**Law of total probability** — `P(B) = sum over cases i of P(B given case_i) P(case_i)`. How the evidence term is actually built.
+# Marginal evidence P(+) = P(+|D)*P(D) + P(+|~D)*P(~D)
+p_evidence = (sensitivity * prior) + ((1 - specificity) * (1 - prior))
+p_posterior = (sensitivity * prior) / p_evidence
+print(f"Posterior P(Sick | +): {p_posterior:.4f}") # ~4.5%
+```
+**Why It Matters**: Explains why high accuracy classifiers fail in real-life imbalanced datasets (e.g. fraud detection, rare spam detection).
 
-**Base rate / prevalence** — the prior probability of the condition in the population being tested. Ignoring it is the base-rate fallacy.
+---
 
-**Sensitivity / recall / true positive rate** — `TP/(TP+FN)`, the fraction of real cases the test catches.
+### 9.2 — PMF vs. PDF vs. CDF
 
-**Specificity / true negative rate** — `TN/(TN+FP)`, the fraction of non-cases the test correctly clears.
+- **PMF (Probability Mass Function)**: For discrete variables — returns exact probability $P(X = x)$. Sum of all outcomes equals $1.0$.
+- **PDF (Probability Density Function)**: For continuous variables — returns probability **density** $f(x)$ at a point. Area under the curve equals $1.0$. **$f(x)$ is NOT a probability and can exceed $1.0$!**
+- **CDF (Cumulative Distribution Function)**: $F(x) = P(X \le x)$ — cumulative probability up to $x$, running monotonically from $0.0$ to $1.0$.
 
-**PPV / precision** — `TP/(TP+FP)`, the fraction of positives that are real. Identical to `P(D given +)`.
+#### 💡 The Beginner Analogy: Rolling Dice vs. Measuring Exact Height
+- **PMF**: Rolling a 6-sided die — exact chance of landing on $3$ is $\frac{1}{6}$ ($16.6\%$).
+- **PDF**: Measuring human height — the chance of someone being EXACTLY $175.0000000000\text{ cm}$ tall is $0.0$. Instead, you integrate the PDF density curve over an interval like $[174.5, 175.5]$.
+- **CDF**: Measuring the fraction of people who are $175\text{ cm}$ **or shorter**.
 
-**Odds** — `p / (1 - p)`. **Likelihood ratio** — `P(evidence given A) / P(evidence given not-A)`. Posterior odds equal prior odds times the likelihood ratio, and log-odds add.
+#### 🎨 Discrete PMF vs Continuous PDF & CDF
 
-**Independence** — `P(A, B) = P(A) P(B)`. **Conditional independence given C** — `P(A, B given C) = P(A given C) P(B given C)`. Neither implies the other.
+```mermaid
+flowchart LR
+    PMF["PMF (Discrete)<br>P(X = k) = Height of Bar"] --> CDF["CDF F(x) = P(X ≤ x)<br>Monotonic 0 to 1"]
+    PDF["PDF (Continuous)<br>Area under curve = P(a ≤ X ≤ b)"] --> CDF
 
-**Naive Bayes assumption** — that all features are conditionally independent given the class. Usually false; classifies well anyway because ranking is more robust than calibration.
+    style CDF fill:#2d6a4f,stroke:#52b788,color:#fff
+```
 
-**Calibration** — whether a model's stated probabilities match observed frequencies. Distinct from accuracy, and destroyed first when the naive assumption fails.
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+from scipy.stats import norm
 
-**Standard error** — `sigma / sqrt(n)`, the typical size of the gap between a sample mean and the true mean. Buys 10x accuracy for 100x data.
+# PDF height can be > 1.0 for narrow distributions!
+density = norm.pdf(0.0, loc=0, scale=0.1) # -> 3.989 ! (Not a probability!)
 
-**Skewness** — `E[((X-mu)/sigma)^3]`, a measure of asymmetry. Zero for the normal, exactly 2 for the exponential.
+# CDF returns valid cumulative probability:
+prob_less_than_0 = norm.cdf(0.0, loc=0, scale=0.1) # -> 0.50 (50%)
+```
+**Why It Matters**: Evaluating continuous PDFs as raw probabilities in loss functions produces invalid probabilities $> 1.0$.
 
-**Excess kurtosis** — `E[((X-mu)/sigma)^4] - 3`, a measure of tail heaviness relative to the normal. Zero for the normal, exactly 6 for the exponential.
+---
 
-**Central Limit Theorem** — the standardized mean of `n` independent draws from any distribution with finite mean and finite variance converges to `Normal(0, 1)`.
+### 9.3 — Naive Bayes & Conditional Independence
+
+- **Conditional Independence**: Events $A$ and $B$ are independent **given $C$** if $P(A, B | C) = P(A|C) P(B|C)$.
+- **Naive Bayes Assumption**: Assuming all feature variables $X_1, X_2, \dots, X_d$ are **mutually conditionally independent** given the class label $Y$.
+
+#### 💡 The Beginner Analogy: Medical Symptoms Given Flu
+Having a fever ($A$) and coughing ($B$) are heavily correlated in general. But if a doctor ALREADY knows you have the Flu ($C$), knowing you have a fever provides no extra information about whether you are coughing — both symptoms are driven independently by the underlying Flu virus!
+
+#### 🎨 Naive Bayes Conditional Independence Structure
+
+```mermaid
+flowchart TD
+    CLASS["Class Y (e.g., Spam vs Ham)"] --> F1["Feature X1 ('Viagra')"]
+    CLASS --> F2["Feature X2 ('Free')"]
+    CLASS --> F3["Feature X3 ('Dollar')"]
+
+    NOTE["Features X1, X2, X3 assumed independent GIVEN Class Y"]
+
+    style CLASS fill:#005f73,stroke:#0a9396,color:#fff
+    style NOTE fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# Naive Bayes joint likelihood calculation:
+# P(X1, X2 | Y) = P(X1 | Y) * P(X2 | Y)
+p_x1_given_y = 0.8
+p_x2_given_y = 0.6
+joint_likelihood = p_x1_given_y * p_x2_given_y # -> 0.48
+```
+**Why It Matters**: Simplifies multi-feature probability calculations from an intractable $O(2^d)$ joint table down to $O(d)$ parameter multiplications.
+
+---
+
+### 9.4 — Central Limit Theorem (CLT) & Standard Error ($\frac{\sigma}{\sqrt{n}}$)
+
+- **Central Limit Theorem (CLT)**: The sample mean $\bar{X}_n$ of $n$ independent draws from **ANY** arbitrary distribution (with finite variance $\sigma^2$) approaches a Normal Distribution $\mathcal{N}(\mu, \frac{\sigma^2}{n})$ as $n \to \infty$.
+- **Standard Error (SE)**: $\text{SE} = \frac{\sigma}{\sqrt{n}}$ — the standard deviation of the sample mean error.
+
+#### 💡 The Beginner Analogy: Rolling Skewed Loaded Dice
+If you roll a single heavily skewed 100-sided die, the distribution looks completely flat or lopsided. But if you take **1,000 people, each roll 100 dice, and average their rolls**, the plot of those 1,000 average numbers forms a perfect, smooth **Bell Curve** centered at the true mean!
+
+#### 🎨 Arbitrary Distribution Converging to Bell Curve
+
+```mermaid
+flowchart TD
+    RAW["Raw Data: Heavily Skewed Distribution (Exponential / Uniform)"] --> SAMPLE["Draw N Independent Samples & Compute Mean"]
+    SAMPLE --> N1["N = 1: Skewed Result"]
+    SAMPLE --> N30["N = 30+: Gaussian Bell Curve N(μ, σ²/N)"]
+
+    style N30 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+# Draw 10,000 sample means from a heavily skewed Exponential distribution
+sample_means = [np.mean(np.random.exponential(scale=2.0, size=100)) for _ in range(10000)]
+
+# Sample means are normally distributed!
+# Standard Error shrinks by sqrt(n): SE = sigma / sqrt(100)
+```
+**Why It Matters**: Explains why Gaussian/Normal assumptions hold in real-world ML noise models, confidence intervals, and hypothesis testing.
 
 ---
 

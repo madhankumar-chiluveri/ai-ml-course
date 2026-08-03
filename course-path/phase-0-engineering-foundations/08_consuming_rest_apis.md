@@ -316,23 +316,155 @@ Then write a second function that consumes a streaming endpoint and prints time-
 
 ---
 
-## 9. Glossary
+### 9.1 — `Session` & Connection Pooling (`HTTPAdapter`)
 
-**`Session`** — a `requests` object that persists headers, cookies and a **connection pool** across calls. The default `requests.get()` creates and discards one per call.
+- **`Session`**: An HTTP client object that maintains persistent TCP connections, SSL contexts, and cookies across multiple requests.
+- **`HTTPAdapter(pool_maxsize=N)`**: Configures connection pool limits, capping how many concurrent TCP connections Pytest/requests reuses per host.
 
-**`HTTPAdapter(pool_maxsize=N)`** — caps how many connections the pool keeps per host. Prevents a parallel fan-out (**6.10**) from exhausting file descriptors.
+#### 💡 The Beginner Analogy: Dedicated Express Toll Lane
+`requests.get()` without a `Session` is like dialing a phone number, speaking 1 sentence, and hanging up — then dialing the number again from scratch for the next sentence (re-doing DNS, TCP, and TLS handshakes every time!). A **`Session`** is keeping an **open telephone line** active so you can instantly send messages back and forth.
 
-**Connect timeout** — budget for DNS, TCP handshake and TLS. Should be seconds. Exceeding it means the host is unreachable.
+#### 🎨 Cold Handshake vs. Reused Session Pool
 
-**Read timeout** — budget for the response body to arrive. Legitimately long for generation. Exceeding it means the server is stuck, not absent.
+```mermaid
+flowchart TD
+    subgraph WithoutSession ["❌ requests.get() (No Session Pooling)"]
+        W1["Req 1: DNS -> TCP Handshake -> TLS Handshake -> Request (300ms)"]
+        W2["Req 2: DNS -> TCP Handshake -> TLS Handshake -> Request (300ms)"]
+    end
 
-**`requests.Timeout`** — parent of `ConnectTimeout` and `ReadTimeout`. Catching the parent covers both.
+    subgraph WithSession ["✅ session.get() (Reused Connection Pool)"]
+        S1["Req 1: DNS -> TCP -> TLS -> Request (300ms)"] --> KEEP["Keep TCP socket open in Pool"]
+        KEEP --> S2["Req 2: Reuses Open Socket -> Request (20ms!)"]
+    end
 
-**Exponential backoff** — waiting `base * 2 ** attempt`, so each retry waits longer. Usually capped so it does not grow without bound.
+    style S2 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
 
-**Full jitter** — sleeping `uniform(0, window)` instead of exactly `window`. Spreads simultaneous retries so they stop arriving as a spike.
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import requests
+from requests.adapters import HTTPAdapter
 
-**Thundering herd** — many clients retrying at the same instant, reproducing the load spike that caused the failure. Backoff alone does not prevent it; jitter does.
+# ❌ Slow & exhausts OS sockets under high concurrency
+# for _ in range(100): requests.get("https://api.com")
+
+# ✅ Fast connection pooling (10x faster)
+session = requests.Session()
+adapter = HTTPAdapter(pool_connections=10, pool_maxsize=20)
+session.mount("https://", adapter)
+
+response = session.get("https://api.com/v1/data")
+```
+**Why It Matters**: Creating a new connection per API call consumes socket file descriptors, leading to `OSError: [Errno 99] Cannot assign requested address` in high-throughput microservices.
+
+---
+
+### 9.2 — Connect Timeout vs. Read Timeout
+
+- **Connect Timeout**: Maximum budget allowed for DNS resolution, TCP handshake, and TLS negotiation (typically set low, e.g. 3.0s).
+- **Read Timeout**: Maximum budget allowed between receiving chunks of data from the server once the connection is established (set higher for long LLM generation, e.g. 30.0s).
+
+#### 💡 The Beginner Analogy: Phone Pick-up vs. Speech Delivery
+- **Connect Timeout**: How long you let the phone ring before hanging up if no one answers (3 seconds).
+- **Read Timeout**: How long you wait for the speaker to say their next sentence once they've already answered the phone (30 seconds).
+
+#### 🎨 Timeout Split Mechanics
+
+```mermaid
+flowchart TD
+    START["Initiate Request"] --> C1{"Connect Timeout (3.0s)"}
+    C1 -->|"Server unreachable"| E1["💥 ConnectTimeout (Host offline / Firewall)"]
+    C1 -->|"Connected"| C2{"Read Timeout (30.0s)"}
+    C2 -->|"Server stalled mid-generation"| E2["💥 ReadTimeout (LLM hung / DB lock)"]
+    C2 -->|"Data Arrives"| SUCCESS["200 OK"]
+
+    style E1 fill:#9b2226,stroke:#ae2012,color:#fff
+    style E2 fill:#9b2226,stroke:#ae2012,color:#fff
+    style SUCCESS fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import requests
+
+try:
+    # Tuple format: (connect_timeout, read_timeout)
+    resp = requests.get("https://api.com/llm", timeout=(3.0, 30.0))
+except requests.Timeout as e:
+    print(f"Network timeout: {e}")
+```
+**Why It Matters**: Passing a single integer `timeout=30` allows a dead server to hang DNS/TCP negotiation for 30 full seconds before failing.
+
+---
+
+### 9.3 — Exponential Backoff & Full Jitter
+
+- **Exponential Backoff**: Increasing retry delays exponentially ($2^1, 2^2, 2^3...$) so every subsequent retry waits twice as long.
+- **Full Jitter**: Adding a random delay distribution (`random.uniform(0, backoff_window)`) to spread out retry timestamps.
+
+#### 💡 The Beginner Analogy: Knocking on a Locked Door
+If a room is locked, knocking every 1 second just annoys the occupant. **Exponential Backoff** means knocking after 2 seconds, then 4 seconds, then 8 seconds. **Full Jitter** means throwing in random variations so 100 people don't all knock on the door at the exact same millisecond.
+
+#### 🎨 Backoff + Jitter Spread
+
+```mermaid
+flowchart TD
+    subgraph FixedRetry ["❌ Fixed Retry (Spike Arrival)"]
+        F1["100 Clients fail at T=0s"] --> F2["All 100 Clients retry simultaneously at T=2s (Spike!)"]
+    end
+
+    subgraph JitterRetry ["✅ Full Jitter (Randomized Spread)"]
+        J1["100 Clients fail at T=0s"] --> J2["Client 1 retries at 0.3s\nClient 2 retries at 1.7s\nClient 3 retries at 2.1s"]
+    end
+
+    style F2 fill:#9b2226,stroke:#ae2012,color:#fff
+    style J2 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import time, random
+
+def get_delay_with_jitter(attempt: int, base: float = 1.0, max_delay: float = 30.0) -> float:
+    # Calculate exponential window: min(max_delay, base * 2 ** attempt)
+    backoff = min(max_delay, base * (2 ** attempt))
+    # Full jitter: random float between 0 and backoff window
+    return random.uniform(0, backoff)
+
+# Sleep randomized time before retry
+time.sleep(get_delay_with_jitter(attempt=2))
+```
+**Why It Matters**: Essential for enterprise API consumption. Prevents rate-limit recovery loops from crashing remote services.
+
+---
+
+### 9.4 — The Thundering Herd Problem
+
+A failure mode where hundreds of concurrent API clients experience a brief network drop or rate limit, and all retry at the exact same millisecond, creating a giant traffic spike that instantly knocks the API server back down.
+
+#### 💡 The Beginner Analogy: Door Slam in a Crowd
+Imagine a stadium door jamming for 10 seconds. A crowd of 5,000 people builds up outside. The instant the guard unlocks the door, all 5,000 people **stampede the doorway at once**, crushing the entrance and forcing the guard to lock the door again.
+
+#### 🎨 Thundering Herd Crash Cycle
+
+```mermaid
+flowchart TD
+    CRASH["API Server recovers from brief glitch"] --> STAMPEDE["1,000 clients retry simultaneously at exact same second!"]
+    STAMPEDE --> RECRASH["💥 Server overloaded -> Crashes again!"]
+
+    FIX["Clients use Full Jitter"] --> SPREAD["Retries arrive smoothly over 10-second window"]
+    SPREAD --> RECOVERED["✅ API Server recovers cleanly!"]
+
+    style RECRASH fill:#9b2226,stroke:#ae2012,color:#fff
+    style RECOVERED fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# The Thundering Herd is prevented explicitly by adding JITTER to exponential backoff formulas.
+```
+**Why It Matters**: Explains why simple `time.sleep(2)` retry loops ruin production server recoveries during outages.
 
 **`Retry-After`** — a response header stating how many seconds to wait. When present it overrides your formula — the provider knows its own recovery time.
 

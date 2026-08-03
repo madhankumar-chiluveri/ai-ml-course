@@ -596,33 +596,160 @@ With this file **and** the script closed, write:
 
 ## 9. Glossary
 
-**Parameterised query** — a statement sent with placeholders (`%s` in psycopg, `?` in sqlite3) and its values sent separately. The values cannot become syntax because parsing finished before they arrived.
+### 9.1 — Parameterized Query vs. SQL Injection (f-string Trap)
 
-**SQL injection** — supplying input that changes the structure of a query rather than only its values. Enabled by building SQL with string concatenation or f-strings.
+- **Parameterized Query**: A database query design where SQL command structure and user-supplied data values are sent to the database driver as **two separate network messages**. User input is never evaluated as SQL syntax.
+- **SQL Injection**: A security vulnerability where string concatenation (`f"SELECT * FROM users WHERE name = '{input}'"`) allows untrusted user inputs to inject executable SQL commands.
 
-**Prepared statement** — a statement parsed and planned once, then executed many times with different values. The mechanism behind server-side parameter binding, and a performance win as well as a safety one.
+#### 💡 The Beginner Analogy: Bank Deposit Slip vs. Verbal Instruction
+- SQL Injection: Handing a bank teller a slip that says *"Deposit $100 and ALSO transfer $5,000 from the vault to my pocket"*. If the teller executes raw string text, they perform both commands!
+- Parameterized Query: The bank teller hands you a **pre-printed form** where you can ONLY fill in the numerical box `"Deposit Amount"`. Anything written in that box is strictly interpreted as a dollar value, never as a new command.
 
-**Allow-list** — a fixed map from caller-supplied keys to identifiers your code wrote. The only safe way to let input influence a table or column name.
+#### 🎨 SQL Injection vs. Parameterized AST Parsing
 
-**`psycopg`** — the current PostgreSQL driver for Python (version 3). Sends statement and parameters as separate protocol messages.
+```mermaid
+flowchart TD
+    subgraph Injection ["❌ String Concatenation (SQL Injection)"]
+        I1["f'SELECT * FROM users WHERE name = \'{user_input}\''"] --> I2["Input: 'admin\' --'"]
+        I2 --> I3["💥 Executable AST: SELECT * FROM users WHERE name = 'admin' --' (Auth Bypassed!)"]
+    end
 
-**`psycopg_pool.ConnectionPool`** — an in-process pool that lends and reclaims connections. Opened once at application startup, not per request.
+    subgraph Parameterized ["✅ Parameterized Query (%s / ?)"]
+        P1["cursor.execute('SELECT * FROM users WHERE name = %s', (user_input,))"] --> P2["AST Parsed FIRST without data"]
+        P2 --> P3["Data 'admin\' --' bound as literal string payload only!"]
+    end
 
-**PgBouncer** — a connection pooler that sits in front of Postgres and multiplexes many client connections onto few server backends. What you add when many processes each have their own pool.
+    style I3 fill:#9b2226,stroke:#ae2012,color:#fff
+    style P3 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
 
-**pgvector** — a PostgreSQL extension adding a `vector` column type, distance operators and ANN indexes. Keeps embeddings in the same database and the same transaction as their metadata.
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+user_input = "' OR '1'='1"
 
-**`vector(n)`** — a fixed-width column of `n` `float4` values. The width is part of the schema, so changing embedding model means a migration.
+# ❌ TRAP: SQL Injection vulnerability! Returns ALL users!
+# cursor.execute(f"SELECT * FROM users WHERE username = '{user_input}'")
 
-**Cosine similarity** — the cosine of the angle between two vectors: direction only, magnitude ignored. Equals the dot product exactly when both vectors have unit length.
+# ✅ SAFE IDIOM: Statement structure parsed separately from data
+cursor.execute("SELECT * FROM users WHERE username = %s", (user_input,))
+```
+**Why It Matters**: SQL Injection is a top web application vulnerability. Parameterized queries make SQL injection 100% impossible for data parameters.
 
-**Normalisation** — dividing a vector by its own length so it has magnitude 1. Done on insert, it makes cosine and inner product agree.
+---
 
-**`<=>` / `<->` / `<#>`** — pgvector's cosine, L2 and negative-inner-product distance operators. `ORDER BY` must use the one the index was built for or the index is skipped.
+### 9.2 — Connection Pooling (`psycopg_pool` vs. PgBouncer)
 
-**HNSW** — a graph-based ANN index. High recall, fast queries, expensive to build. Tuned at query time with `hnsw.ef_search`.
+- **`psycopg_pool.ConnectionPool`**: An **in-process** Python connection pool that maintains a warm pool of persistent database connections inside a single application process.
+- **PgBouncer**: An **out-of-process** lightweight external database proxy that multiplexes thousands of incoming application connections onto a small set of real PostgreSQL server backend connections.
 
-**IVFFlat** — an ANN index that clusters rows into lists and probes only the nearest few. Cheap to build, must be built on populated data. Tuned with `ivfflat.probes`.
+#### 💡 The Beginner Analogy: Individual Taxi Fleet vs. Central City Bus
+- In-Process Pool (`psycopg_pool`): Your office keeping 5 company cars parked in the garage so employees can grab keys without buying a new car every time.
+- External Proxy (PgBouncer): A **city transit bus system** that carries 1,000 workers using 10 buses instead of 1,000 individual cars crowding the highway.
+
+#### 🎨 Application Pool vs PgBouncer Architecture
+
+```mermaid
+flowchart TD
+    subgraph MultiProcess ["Microservices / Serverless Workers"]
+        APP1["FastAPI Worker 1 (Local Pool: 10)"]
+        APP2["FastAPI Worker 2 (Local Pool: 10)"]
+        APP3["FastAPI Worker 3 (Local Pool: 10)"]
+    end
+
+    APP1 & APP2 & APP3 --> PGBOUNCER["PgBouncer Connection Proxy (30 App Conn)"]
+    PGBOUNCER -->|"Multiplexes down to"| PG["PostgreSQL DB (5 Real Backend Connections)"]
+
+    style PGBOUNCER fill:#005f73,stroke:#0a9396,color:#fff
+    style PG fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+from psycopg_pool import ConnectionPool
+
+# Single pool opened once at application startup!
+pool = ConnectionPool(conninfo="postgresql://user:pass@localhost/db", min_size=5, max_size=20)
+
+with pool.connection() as conn:
+    conn.execute("SELECT 1")
+```
+**Why It Matters**: Creating a raw PostgreSQL connection takes 30-50ms of TCP/TLS and backend process fork overhead per request. Connection pooling reduces DB latency to 1ms.
+
+---
+
+### 9.3 — `pgvector` Distance Operators (`<=>`, `<->`, `<#>`)
+
+PostgreSQL extension distance metrics used to compute similarity between vector embeddings:
+- **`<=>`**: Cosine Distance ($1 - \text{Cosine Similarity}$). Range: $[0.0, 2.0]$.
+- **`<->`**: $L_2$ Euclidean Distance. Straight-line spatial distance.
+- **`<#>`**: Negative Inner Product (Dot Product).
+
+#### 💡 The Beginner Analogy: Angle vs. Distance vs. Projection
+- `<=>` (Cosine Distance): Comparing **which direction two arrows are pointing**, completely ignoring how long the arrows are.
+- `<->` (Euclidean Distance): Measuring the **ruler distance in inches** between two points on a map.
+- `<#>` (Negative Inner Product): Combining both direction AND arrow length.
+
+#### 秘 Operator vs Index Matching Rule
+
+```mermaid
+flowchart TD
+    INDEX["CREATE INDEX ON docs USING hnsw (embedding vector_cosine_ops)"] --> Q1["SELECT * FROM docs ORDER BY embedding <=> query_vec LIMIT 5"]
+    Q1 --> MATCH["✅ Uses HNSW Index! (Fast ANN Search)"]
+
+    INDEX --> Q2["SELECT * FROM docs ORDER BY embedding <-> query_vec LIMIT 5"]
+    Q2 --> MISMATCH["💥 Index SKIPPED! Drops back to slow Full Table Scan!"]
+
+    style MATCH fill:#2d6a4f,stroke:#52b788,color:#fff
+    style MISMATCH fill:#9b2226,stroke:#ae2012,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```sql
+-- ❌ TRAP: Using Euclidean distance <-> when index was built with vector_cosine_ops skips index!
+-- SELECT * FROM items ORDER BY embedding <-> '[0.1, 0.2]' LIMIT 5;
+
+-- ✅ CORRECT: Match operator to index ops class
+SELECT * FROM items ORDER BY embedding <=> '[0.1, 0.2]' LIMIT 5;
+```
+**Why It Matters**: `ORDER BY` must use the **exact same distance operator** specified during `CREATE INDEX` construction, or Postgres silently skips vector index lookups.
+
+---
+
+### 9.4 — HNSW vs. IVFFlat Vector Indexes
+
+- **HNSW (Hierarchical Navigable Small World)**: A multi-layer graph index. Fast query speed and high recall accuracy, but slower to build and consumes more RAM.
+- **IVFFlat (Inverted File Flat)**: A centroid clustering index that partitions vector space into Voronoi cells. Faster build times and less RAM, but requires building on existing data.
+
+#### 💡 The Beginner Analogy: Highway Highway System vs. Zip Code Sort
+- **HNSW**: A **multi-level highway system** with fast-express interchanges connecting nearby cities. You jump down from interstate to local street to reach your destination fast.
+- **IVFFlat**: Sorting letters into **Zip Code bins**. To find a letter, you only open the 3 nearest Zip Code bins (`ivfflat.probes`), ignoring the rest of the post office.
+
+#### 🎨 HNSW vs IVFFlat Architecture
+
+```mermaid
+flowchart TD
+    subgraph HNSW ["HNSW Graph (High Memory, Ultra Fast)"]
+        H1["Layer 2: Long-distance skip graph"] --> H2["Layer 1: Medium-distance graph"]
+        H2 --> H3["Layer 0: Dense local neighbor graph"]
+    end
+
+    subgraph IVFFlat ["IVFFlat Clusters (Low Memory, Needs Training Data)"]
+        I1["Query Vector"] --> I2["Probe N Centroid Lists (ivfflat.probes=10)"]
+        I2 --> I3["Scan items inside selected centroids"]
+    end
+
+    style H3 fill:#2d6a4f,stroke:#52b788,color:#fff
+    style I3 fill:#005f73,stroke:#0a9396,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```sql
+-- HNSW: Recommended default for vector search in RAG applications
+CREATE INDEX idx_docs_hnsw ON documents 
+USING hnsw (embedding vector_cosine_ops) 
+WITH (m = 16, ef_construction = 64);
+```
+**Why It Matters**: IVFFlat built on an empty database yields **0 recall accuracy** because centroids cannot form without initial vector data. HNSW handles empty table initialization safely.
 
 **`nprobe` / `probes`** — how many clusters a query opens. The knob that trades recall for speed; Demo 4 measures both ends of it.
 

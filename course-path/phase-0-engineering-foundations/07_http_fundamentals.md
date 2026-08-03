@@ -285,29 +285,246 @@ With this file **and** the script closed: write out by hand a complete `POST` re
 
 ---
 
-## 9. Glossary
+### 9.1 — HTTP Request Anatomy (Request Line, Headers, Body)
 
-**Request line** — the first line of a request: method, path, HTTP version. This is what servers log, which is why credentials must not appear in the path or query string.
+The 3-part textual structure of an HTTP request:
+1. **Request Line**: Method (`POST`), URL path (`/v1/chat`), and HTTP version (`HTTP/1.1`).
+2. **Headers**: Key-value pairs (`Authorization: Bearer ...`, `Content-Type: application/json`) preceding a blank line.
+3. **Body**: The main payload containing data or JSON prompts following the blank line.
 
-**Header** — a `Name: value` line before the blank line. Carries credentials, content type, versioning, and caching instructions.
+#### 💡 The Beginner Analogy: Postal Letter Package
+- **Request Line**: The printed shipping label on the outside of the envelope visible to mail handlers (logged by web servers).
+- **Headers**: Metadata stickers on the envelope (`"Urgent"`, `"Contains Breakables"`, `"Sender Auth Signature"`).
+- **Body**: The actual private letter sealed inside the envelope (your prompt / API data).
 
-**Body** — everything after the blank line. Structured payloads and prompts go here, not in the URL.
+#### 🎨 HTTP Packet Parsing Flow
 
-**`Content-Length`** — the exact byte count of the body. Wrong values cause hangs or corrupted reads; libraries compute it for you.
+```mermaid
+flowchart TD
+    RAW["POST /v1/chat/completions HTTP/1.1<br>Host: api.openai.com<br>Authorization: Bearer sk-...\n\n{'model': 'gpt-4'}"] --> R1["1. Request Line (Logged by Proxy)"]
+    RAW --> R2["2. Headers (Metadata & Credentials)"]
+    RAW --> R3["3. Blank Line Separator (\n\n)"]
+    RAW --> R4["4. Payload Body (JSON Prompt Data)"]
 
-**Idempotent** — repeating the request produces the same state as doing it once. `GET` is; `POST` is not. This is what determines whether a blind retry is safe.
+    style R1 fill:#005f73,stroke:#0a9396,color:#fff
+    style R4 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
 
-**`415 Unsupported Media Type`** — the server understood the request but rejects the declared (or missing) `Content-Type`.
+#### 💻 Code Example & ⚠️ Why It Matters
+```http
+POST /v1/chat/completions HTTP/1.1
+Host: api.openai.com
+Authorization: Bearer sk-proj-12345
+Content-Type: application/json
 
-**`422 Unprocessable Content`** — syntactically valid, semantically invalid. On this path, usually a Pydantic validation failure.
+{"model": "gpt-4o", "messages": [{"role": "user", "content": "Hi"}]}
+```
+**Why It Matters**: Putting secrets in URL query strings (`GET /api?key=sk-123`) leaks them to reverse proxy access logs. Credentials belong exclusively in HTTP Headers or Request Bodies!
 
-**`Retry-After`** — a response header giving the number of seconds to wait. When present it overrides your own backoff calculation; the provider knows better than your formula.
+---
 
-**Server-Sent Events (SSE)** — a streaming body format of `event:`/`data:` lines separated by blank lines, served as `text/event-stream`. Not parseable as a single JSON document.
+### 9.2 — `Content-Length` Header
 
-**Time to first token** — how long until the user sees *anything*. Distinct from total latency, and the metric streaming actually improves.
+An HTTP header specifying the exact size of the payload body measured in **bytes** (not character count).
 
-**`proxy_buffering`** — the NGINX setting (**0.12**) that, left at its default, holds streamed chunks until the response completes and silently converts a stream into a blob.
+#### 💡 The Beginner Analogy: Box Weight Declaration
+Declaring `Content-Length` is like placing a sticker on a shipping package declaring **"Weight: 5.2 kg"**. If the delivery driver picks up the box and it feels like 2 kg, they suspect items fell out and reject the package.
+
+#### 🎨 Correct vs. Mismatched Byte Length
+
+```mermaid
+flowchart TD
+    HEAD["Content-Length: 18"] --> BODY["Body: 'Hello World' (11 bytes)"]
+    BODY --> HANG["💥 Server waits indefinitely for remaining 7 bytes -> Connection Timeout!"]
+
+    style HANG fill:#9b2226,stroke:#ae2012,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# HTTP client libraries (requests, httpx) calculate byte length automatically!
+import httpx
+
+# Automatic Content-Length: 27 bytes calculated under the hood
+response = httpx.post("https://api.com/data", json={"name": "Alice"})
+```
+**Why It Matters**: Hand-crafting HTTP sockets with an incorrect `Content-Length` header causes web servers to hang waiting for missing bytes or truncate incoming payloads.
+
+---
+
+### 9.3 — Idempotency (`GET` vs `POST`)
+
+- **Idempotent**: Making the exact same request $N$ times leaves the system in the exact same state as making it 1 time (e.g. `GET`, `PUT`, `DELETE`).
+- **Non-Idempotent**: Repeated requests cause cumulative side-effects (e.g. `POST`).
+
+#### 💡 The Beginner Analogy: Light Switch vs. Vending Machine Coin Slot
+- **Idempotent (`GET` / `PUT`)**: Flipping a light switch to "ON". Flipping it 10 more times leaves the light in the "ON" state.
+- **Non-Idempotent (`POST`)**: Dropping a dollar into a vending machine. Dropping 10 dollars charges you $10 and dispenses 10 sodas.
+
+#### 🎨 Blind Retry Safety Flow
+
+```mermaid
+flowchart TD
+    subgraph GETRetry ["✅ GET Request (Idempotent)"]
+        G1["GET /invoices/101 fails due to network glitch"] --> G2["Safe to RETRY automatically 5 times!"]
+    end
+
+    subgraph POSTRetry ["❌ POST Request (Non-Idempotent)"]
+        P1["POST /charge_credit_card ($100) times out"] --> P2["Blind Retry -> DANGER! Charges customer $200!"]
+    end
+
+    style G2 fill:#2d6a4f,stroke:#52b788,color:#fff
+    style P2 fill:#9b2226,stroke:#ae2012,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# ❌ DANGER: Blindly retrying non-idempotent POST calls can double-charge customers or duplicate DB rows!
+# Always use Idempotency Keys (e.g., Header: Idempotency-Key: <uuid>) when retrying POST operations.
+```
+**Why It Matters**: Prevents duplicate credit card charges, double email dispatches, or duplicate database inserts during automated network retries.
+
+---
+
+### 9.4 — `415 Unsupported Media Type` vs `422 Unprocessable Content`
+
+- **`415 Unsupported Media Type`**: The server rejects the declared input format (e.g. sent `text/plain` when the endpoint expects `application/json`).
+- **`422 Unprocessable Content`**: The format is valid JSON, but the internal schema/data is semantically invalid (e.g. missing required field `user_id`).
+
+#### 💡 The Beginner Analogy: Wrong Language vs. Invalid Math
+- **415 Error**: Submitting a tax form written in French to a US agency that only accepts English (Format rejected).
+- **422 Error**: Submitting an English tax form where the line `"Age"` contains the word `"Blue"` (Format valid, content semantically invalid).
+
+#### 🎨 415 vs 422 Rejection Points
+
+```mermaid
+flowchart TD
+    REQ["Incoming HTTP Request"] --> C1{"Content-Type == application/json?"}
+    C1 -->|"No (sent text/plain)"| R415["💥 415 Unsupported Media Type"]
+    C1 -->|"Yes"| C2{"Pydantic Schema Valid?"}
+    C2 -->|"No (age: 'invalid')"| R422["💥 422 Unprocessable Content"]
+    C2 -->|"Yes"| SUCCESS["200 OK"]
+
+    style R415 fill:#9b2226,stroke:#ae2012,color:#fff
+    style R422 fill:#9b2226,stroke:#ae2012,color:#fff
+    style SUCCESS fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# FastAPI automatically returns 422 when incoming JSON fails Pydantic validation:
+# Response 422: {"detail": [{"loc": ["body", "price"], "msg": "field required"}]}
+```
+**Why It Matters**: Differentiates header content-type errors from Pydantic schema validation failures when debugging API client integration failures.
+
+---
+
+### 9.5 — `Retry-After` Header
+
+An HTTP response header sent alongside `429 Too Many Requests` or `530 Service Unavailable` specifying the exact number of seconds an API client must pause before retrying.
+
+#### 💡 The Beginner Analogy: Amusement Park Return Ticket
+When a ride reaches max capacity, the attendant hands you a slip of paper reading: *"Please come back in 30 minutes"* (`Retry-After: 30`). Ignoring the ticket and running back to the front of the line immediately gets you ejected from the park.
+
+#### 🎨 Respecting Server `Retry-After`
+
+```mermaid
+flowchart TD
+    REQ["API Request"] --> OVER["Server Rate Limited -> 429 Too Many Requests\nRetry-After: 15"]
+    OVER --> SLEEP["Client parses header -> Sleep 15.0 seconds"]
+    SLEEP --> RETRY["Retry Request -> 200 OK"]
+
+    style SLEEP fill:#005f73,stroke:#0a9396,color:#fff
+    style RETRY fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import time, httpx
+
+resp = httpx.get("https://api.com/llm")
+if resp.status_code == 429:
+    # Always prioritize server's Retry-After header over local math!
+    wait_time = float(resp.headers.get("Retry-After", 5.0))
+    time.sleep(wait_time)
+```
+**Why It Matters**: Ignoring `Retry-After` during rate limits triggers provider IP bans and account suspensions.
+
+---
+
+### 9.6 — Server-Sent Events (SSE) & Time To First Token (TTFT)
+
+- **Server-Sent Events (SSE)**: A lightweight unidirectionally-streamed HTTP body protocol where the server keeps the HTTP connection open and emits event lines formatted as `data: {"token": "hello"}\n\n`.
+- **Time To First Token (TTFT)**: The latency duration between sending a request and receiving the very first token chunk.
+
+#### 💡 The Beginner Analogy: Typing Indicator vs. Letter Delivery
+Waiting for a non-streamed response is like waiting for a full 5-page letter to arrive in the physical mail (3 days). **SSE Streaming** is watching a person type words onto a messaging screen **token by token in real-time**.
+
+#### 🎨 Full Waiting vs. SSE Real-Time Streaming
+
+```mermaid
+flowchart TD
+    subgraph NonStreamed ["❌ Standard Response (High TTFT)"]
+        N1["Send Request"] --> N2["Wait 5.0s for full LLM output generation..."]
+        N2 --> N3["Receive full text blob (User waits 5 seconds)"]
+    end
+
+    subgraph SSEStreamed ["✅ SSE Streaming (Low TTFT)"]
+        S1["Send Request"] --> S2["0.1s -> Receive chunk 1 ('The')"]
+        S2 --> S3["0.2s -> Receive chunk 2 ('capital')"]
+        S3 --> S4["0.3s -> Receive chunk 3 ('is')..."]
+    end
+
+    style S3 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# Raw SSE lines received over HTTP response stream:
+# data: {"text": "Hello"}
+#
+# data: {"text": " World"}
+#
+```
+**Why It Matters**: Reduces perceived user latency in AI chat interfaces from seconds down to milliseconds.
+
+---
+
+### 9.7 — NGINX `proxy_buffering`
+
+An NGINX reverse proxy configuration setting that controls whether NGINX holds incoming HTTP response chunks in a buffer until the full response completes before forwarding it to the client.
+
+#### 💡 The Beginner Analogy: Holding Tank vs. Open Pipe
+- `proxy_buffering on` (Default): A holding tank that catches streaming water until filled, releasing it in one big splash.
+- `proxy_buffering off`: An open pipe that passes water droplets through instantly as they arrive.
+
+#### 🎨 NGINX Proxy Buffering Bottleneck
+
+```mermaid
+flowchart TD
+    subgraph BufferingOn ["❌ proxy_buffering on (Default NGINX)"]
+        LLM1["LLM Streams SSE Chunks"] --> NGINX1["NGINX Holds Chunks in Buffer"]
+        NGINX1 --> CLIENT1["💥 Client receives NOTHING until generation completes!"]
+    end
+
+    subgraph BufferingOff ["✅ proxy_buffering off"]
+        LLM2["LLM Streams SSE Chunks"] --> NGINX2["NGINX Flushes Chunks Instantly"]
+        NGINX2 --> CLIENT2["Client renders tokens live!"]
+    end
+
+    style CLIENT1 fill:#9b2226,stroke:#ae2012,color:#fff
+    style CLIENT2 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```nginx
+# nginx.conf location block for streaming LLM APIs:
+location /v1/stream {
+    proxy_pass http://backend_api;
+    proxy_buffering off; # Essential for live token streaming!
+}
+```
+**Why It Matters**: Leaving `proxy_buffering on` in NGINX silently breaks LLM response streaming, turning real-time token streams into slow, buffered single blobs.
 
 ---
 

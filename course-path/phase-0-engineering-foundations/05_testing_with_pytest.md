@@ -233,23 +233,236 @@ With this file **and** the script closed: write a `conftest.py` with one functio
 
 ## 9. Glossary
 
-**Fixture** — a function providing test setup, requested by declaring a parameter of the same name. Dependency injection for tests.
+### 9.1 — Fixture & Dependency Injection
 
-**`conftest.py`** — auto-discovered by pytest; fixtures defined here are available to every test in that directory and below, with no import.
+A specialized setup function decorated with `@pytest.fixture` that prepares test data, state, or mock dependencies. Tests request fixtures by declaring matching argument names in their signatures.
 
-**Scope** — a fixture's lifetime: `function` (default, per test), `class`, `module`, `package`, `session` (once per run). Trade-off between isolation and cost.
+#### 💡 The Beginner Analogy: Surgical Tray Preparation
+Before a surgeon performs an operation (a test), a surgical nurse prepares a standardized **tray of sterilized tools** (the fixture). The surgeon simply requests the tray by name (`def test_surgery(sterile_tray):`), ensuring every procedure starts with identical, clean equipment.
 
-**Teardown** — cleanup after tests, written as whatever follows `yield` inside a fixture.
+#### 🎨 Dependency Injection Flow
 
-**Parametrize** — `@pytest.mark.parametrize` expands one function into N independent test cases, each named after its inputs in the report.
+```mermaid
+flowchart TD
+    FIX["@pytest.fixture<br>def db_client(): return MockDB()"] --> INJECT["Pytest matches test param name 'db_client'"]
+    INJECT --> TEST["def test_query(db_client):<br>assert db_client.ping() == True"]
 
-**`pytest.raises`** — context manager asserting that a block raises a given exception. Without it, error paths go untested.
+    style FIX fill:#005f73,stroke:#0a9396,color:#fff
+    style TEST fill:#2d6a4f,stroke:#52b788,color:#fff
+```
 
-**`pytest.approx`** — tolerance-based float comparison. Necessary because binary floating point cannot represent most decimals exactly (**1.12**).
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import pytest
 
-**`monkeypatch`** — built-in fixture that temporarily replaces attributes, functions or environment variables, reverting automatically when the test ends.
+@pytest.fixture
+def api_client():
+    return {"token": "test-secret-key"}
 
-**Assertion rewriting** — pytest's introspection of plain `assert` statements to show the actual expression and values on failure.
+# Pytest automatically injects api_client without needing explicit imports!
+def test_auth(api_client):
+    assert api_client["token"] == "test-secret-key"
+```
+**Why It Matters**: Eliminates duplicate setup code across test files and ensures test isolation by supplying fresh fixtures per test function.
+
+---
+
+### 9.2 — `conftest.py`
+
+A root configuration file automatically discovered by Pytest that makes fixtures defined inside it available to **all test files** in the same directory and subdirectories without requiring explicit `import` statements.
+
+#### 💡 The Beginner Analogy: Hotel Breakfast Buffet
+Instead of each guest bringing their own private toaster and coffee maker, the hotel sets up a central **breakfast buffet** in the lobby (`conftest.py`). Every guest room (test file) can access the buffet automatically without bringing appliances from home.
+
+#### 🎨 Auto-Discovery Architecture
+
+```mermaid
+flowchart TD
+    CONF["tests/conftest.py<br>(Defines global db_engine fixture)"] --> DISCOVER["Auto-discovered by Pytest runner"]
+    DISCOVER --> T1["tests/test_users.py (Uses db_engine)"]
+    DISCOVER --> T2["tests/test_orders.py (Uses db_engine)"]
+
+    style CONF fill:#005f73,stroke:#0a9396,color:#fff
+    style T1 fill:#2d6a4f,stroke:#52b788,color:#fff
+    style T2 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# conftest.py (placed in tests/ directory)
+import pytest
+
+@pytest.fixture
+def mock_user():
+    return {"id": 42, "role": "admin"}
+```
+**Why It Matters**: Keeps test suites clean and modular. Prevents circular imports and ugly `from conftest import ...` statements across test suites.
+
+---
+
+### 9.3 — Fixture Scope & Teardown (`yield`)
+
+- **Scope**: Controls the lifetime of a fixture (`function` default, `class`, `module`, `session`).
+- **Teardown**: Code following a `yield` statement inside a fixture that executes after tests complete, ensuring resources are cleaned up.
+
+#### 💡 The Beginner Analogy: Rental Car Return
+Setting up a fixture before `yield` is picking up a **rental car** for your trip. Executing tests is driving the car. The teardown code after `yield` is **filling up the tank and handing back the keys** to the agency when the trip ends.
+
+#### 🎨 Fixture Lifecycle & Teardown Execution
+
+```mermaid
+flowchart TD
+    SETUP["1. Code BEFORE yield runs (Setup Database)"] --> EXEC["2. Yield value passed to test function execution"]
+    EXEC --> TEARDOWN["3. Code AFTER yield runs (Drop test Database)"]
+
+    style SETUP fill:#005f73,stroke:#0a9396,color:#fff
+    style TEARDOWN fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+@pytest.fixture(scope="session")
+def temp_db():
+    db = create_test_db() # 1. Setup
+    yield db              # 2. Test Execution
+    db.drop_all()         # 3. Teardown (Clean up)
+```
+**Why It Matters**: Without proper teardown, test suites leave dangling database rows, unclosed sockets, and leaked files behind, causing subsequent tests to fail intermittently.
+
+---
+
+### 9.4 — `@pytest.mark.parametrize`
+
+A decorator that runs a single test function multiple times across a grid of different input arguments and expected outputs, reporting each combination as an independent test case.
+
+#### 💡 The Beginner Analogy: Automated Product Stress Test
+Instead of manually building 5 separate testing machines to test 5 different shoe sizes, **Parametrize** is a single automated machine that feeds 5 different shoe sizes through the exact same durability press one by one.
+
+#### 🎨 Single Test Function expanded into N Test Cases
+
+```mermaid
+flowchart TD
+    PARAM["@pytest.mark.parametrize('input, expected', [(1, 2), (2, 4), (3, 6)])"] --> T1["test_double[1-2] PASSED"]
+    PARAM --> T2["test_double[2-4] PASSED"]
+    PARAM --> T3["test_double[3-6] PASSED"]
+
+    style PARAM fill:#005f73,stroke:#0a9396,color:#fff
+    style T3 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+@pytest.mark.parametrize("val, expected", [
+    (2, 4),
+    (3, 9),
+    (4, 16),
+])
+def test_square(val, expected):
+    assert val ** 2 == expected
+```
+**Why It Matters**: Prevents code duplication (writing multiple `test_foo1()`, `test_foo2()` functions) and ensures that if one input fails, all other test cases still execute and report results.
+
+---
+
+### 9.5 — `pytest.raises` & `pytest.approx`
+
+- **`pytest.raises(Exception)`**: Assert context manager verifying that a code block raises an expected exception.
+- **`pytest.approx(value)`**: Tolerance-based floating-point comparison helper.
+
+#### 💡 The Beginner Analogy: Fire Alarm Drill & Scale Tolerance
+- `pytest.raises`: Pulling a fire alarm on purpose during a safety drill to verify that the alarm system actually sounds (`raise ValueError`).
+- `pytest.approx`: A digital bathroom scale that considers **150.00000000000003 lbs** to be **150 lbs**, ignoring tiny floating-point rounding noise.
+
+#### 🎨 Floating-Point Rounding Error Trap
+
+```mermaid
+flowchart TD
+    FLOAT["0.1 + 0.2"] --> RAW["0.30000000000000004 in binary float math"]
+    RAW --> FAIL["❌ 0.1 + 0.2 == 0.3 -> FALSE (Assertion Error!)"]
+    RAW --> PASS["✅ 0.1 + 0.2 == pytest.approx(0.3) -> TRUE"]
+
+    style FAIL fill:#9b2226,stroke:#ae2012,color:#fff
+    style PASS fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# ❌ TRAP: Exact float comparisons fail in binary computer math!
+# assert 0.1 + 0.2 == 0.3  <-- AssertionError!
+
+# ✅ CORRECT: Tolerance-based comparison
+assert 0.1 + 0.2 == pytest.approx(0.3)
+
+# Verify error handling paths
+with pytest.raises(ValueError, match="invalid status"):
+    process_order(status="INVALID")
+```
+**Why It Matters**: Raw float equality checks cause flaky, broken unit tests across different CPU architectures. `pytest.raises` ensures error paths are tested.
+
+---
+
+### 9.6 — `monkeypatch`
+
+A built-in Pytest fixture that temporarily safely overrides environment variables, module attributes, or dictionary items during a test run, automatically restoring original values when the test completes.
+
+#### 💡 The Beginner Analogy: Stunt Double
+If an actor (real production API) is too expensive or dangerous to risk during a scene, `monkeypatch` sends in a **stunt double** (mock object). Once the scene is filmed (test finishes), the real actor steps right back into their place.
+
+#### 🎨 Temporary Attribute Substitution
+
+```mermaid
+flowchart TD
+    MP["monkeypatch.setenv('DATABASE_URL', 'sqlite:///:memory:')"] --> EXEC["Run Test with In-Memory DB"]
+    EXEC --> RESTORE["Test Ends -> Automatically restores original DATABASE_URL!"]
+
+    style MP fill:#005f73,stroke:#0a9396,color:#fff
+    style RESTORE fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+def test_offline_mode(monkeypatch):
+    # Safely mock environment variable without polluting OS state for other tests!
+    monkeypatch.setenv("ENV", "TESTING")
+    assert get_env_setting() == "TESTING"
+```
+**Why It Matters**: Prevents test suites from polluting actual developer environment variables, making external live API calls, or mutating production databases.
+
+---
+
+### 9.7 — Assertion Rewriting
+
+Pytest's internal AST (Abstract Syntax Tree) bytecode transformation mechanism that intercepts plain Python `assert` statements and enriches failure messages with exact variable values and diffs.
+
+#### 💡 The Beginner Analogy: Courtroom Stenographer Highlighting
+Instead of just shouting **"Objection!"** (a raw `AssertionError` with zero context), Pytest acts like an expert **courtroom stenographer**: it prints out the exact text of both sides, highlights the mismatch, and shows you the exact discrepancy.
+
+#### 🎨 Standard Assert vs. Pytest Assertion Rewriting
+
+```mermaid
+flowchart TD
+    subgraph RawAssert ["❌ Standard Python assert (Uninformative)"]
+        R1["assert a == b"] --> R2["AssertionError (No values shown!)"]
+    end
+
+    subgraph RewrittenAssert ["✅ Pytest Assertion Rewriting"]
+        P1["assert a == b"] --> P2["AssertionError: assert {'status': 500} == {'status': 200}\n  - Right contains: 200\n  + Left contains: 500"]
+    end
+
+    style R2 fill:#9b2226,stroke:#ae2012,color:#fff
+    style P2 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# Plain Python assert syntax...
+assert calculate_total(100) == 120
+
+# ...becomes rich diagnostic output on failure:
+# > E   AssertionError: assert 118.0 == 120
+# > E     + where 118.0 = calculate_total(100)
+```
+**Why It Matters**: Eliminates the need to write custom assertion libraries like `self.assertEqual(a, b)` — plain Python `assert` statements produce full diagnostic failure tracebacks automatically.
 
 ---
 

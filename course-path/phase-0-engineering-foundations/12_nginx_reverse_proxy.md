@@ -438,31 +438,185 @@ Then, without looking: state the response header a FastAPI service can send to d
 
 ---
 
-## 9. Glossary
+### 9.1 — Reverse Proxy vs. Upstream (`proxy_pass`)
 
-**Reverse proxy** — a server that accepts client requests and forwards them to one or more backends, presenting itself as the origin. Not transparent: it rewrites the request in and the response out.
+- **Reverse Proxy**: A gateway server (NGINX) sitting between internet clients and internal application services that accepts incoming client requests and forwards them to backend applications.
+- **Upstream**: NGINX's term for the backend application server or server pool (`upstream {}`) receiving proxied requests.
+- **`proxy_pass`**: The NGINX directive that forwards HTTP requests to a target upstream.
 
-**Upstream** — NGINX's name for the backend being proxied to, and for the `upstream {}` block that groups and load-balances them.
+#### 💡 The Beginner Analogy: Hotel Reception Desk
+Public clients are guests entering a hotel lobby. They don't walk into private staff rooms (`uvicorn` / `fastapi` backends). They speak to the **receptionist at the desk** (Reverse Proxy). The receptionist verifies credentials, terminates outer security, and forwards the message to the **kitchen staff** (Upstream).
 
-**`proxy_pass`** — the directive that forwards a request to an upstream. A trailing slash on the URL changes how the path is rewritten, which is the single most common configuration surprise.
+#### 🎨 Reverse Proxy Routing Architecture
 
-**`proxy_buffering`** — whether NGINX collects the whole upstream response before sending body bytes to the client. Default **on**. Off is required for SSE and any token-by-token stream.
+```mermaid
+flowchart LR
+    CLIENT["Public Internet Client<br>HTTPS / 443"] --> NGINX["NGINX Reverse Proxy<br>TLS Termination & Rate Limiting"]
+    NGINX -->|"proxy_pass http://api_upstream"| API1["FastAPI Container 1 (8000)"]
+    NGINX -->|"proxy_pass http://api_upstream"| API2["FastAPI Container 2 (8000)"]
 
-**`proxy_buffers` / `proxy_buffer_size`** — how much of a buffered response is held in memory before it spills to a temporary file on disk. Only relevant while buffering is on.
+    style NGINX fill:#005f73,stroke:#0a9396,color:#fff
+    style API1 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
 
-**SSL / TLS termination** — decrypting HTTPS at the proxy and forwarding plain HTTP to the app over a trusted network. The app never handles a certificate, and consequently never sees the real scheme unless told.
+#### 💻 Code Example & ⚠️ Why It Matters
+```nginx
+# Define backend upstream server group
+upstream backend_api {
+    server api1:8000;
+    server api2:8000;
+}
 
-**`X-Forwarded-For`** — the chain of client addresses, leftmost first. Client-supplied text; trustworthy only for hops you control.
+server {
+    listen 80;
+    location /v1/ {
+        proxy_pass http://backend_api;
+    }
+}
+```
+**Why It Matters**: Prevents exposing fragile Python application servers directly to public internet port attacks, DDoS floods, and TLS negotiation overhead.
 
-**`$proxy_add_x_forwarded_for`** — the NGINX variable that appends this hop to an incoming `X-Forwarded-For`. Using `$remote_addr` instead overwrites the chain.
+---
 
-**`X-Forwarded-Proto`** — the scheme the client originally used. Without it an app behind a TLS-terminating proxy believes every request is plain `http`.
+### 9.2 — The `proxy_pass` Trailing Slash Trait
 
-**`X-Real-IP`** — a single-value convention for the immediate client address; simpler than parsing the chain, and equally unverifiable on its own.
+The URI rewriting behavior in NGINX determined by the presence or absence of a trailing slash `/` on the `proxy_pass` target URL:
+- **Without trailing slash (`proxy_pass http://backend`)**: Appends the entire matching location path to the upstream request.
+- **With trailing slash (`proxy_pass http://backend/`)**: Replaces the matching location prefix with the URI path specified after the domain.
 
-**`set_real_ip_from` / `real_ip_header`** — the `realip` module directives that make NGINX rewrite `$remote_addr` from a forwarded header, but only for source networks you explicitly trust.
+#### 💡 The Beginner Analogy: Address Replacement vs. Appending
+- Without trailing slash: Envelope addressed to `"Room 101/api/v1/users"` arrives at kitchen as `"Room 101/api/v1/users"`.
+- With trailing slash: Envelope addressed to `"Room 101/api/v1/users"` has `"Room 101/api/v1"` stripped off and replaced with `"/"`, arriving at kitchen as `"/users"`.
 
-**`X-Accel-Buffering: no`** — a response header from the app that disables NGINX buffering for that response. Consumed by the proxy; never reaches the client.
+#### 🎨 Trailing Slash Path Rewriting Behavior
+
+```mermaid
+flowchart TD
+    subgraph NoSlash ["❌ Without Trailing Slash: proxy_pass http://app;"]
+        REQ1["Request: GET /api/v1/users"] --> OUT1["Upstream Receives: GET /api/v1/users"]
+    end
+
+    subgraph WithSlash ["✅ With Trailing Slash: proxy_pass http://app/;"]
+        REQ2["Request: GET /api/v1/users"] --> OUT2["Upstream Receives: GET /users (Prefix stripped!)"]
+    end
+
+    style OUT1 fill:#005f73,stroke:#0a9396,color:#fff
+    style OUT2 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```nginx
+# ❌ TRAP: Trailing slash strips '/api/v1', causing 404s if backend expects '/api/v1'!
+location /api/v1/ {
+    proxy_pass http://backend_service/; # Rewrites /api/v1/users -> /users
+}
+
+# ✅ PRESERVES original path:
+location /api/v1/ {
+    proxy_pass http://backend_service;  # Passes /api/v1/users intact
+}
+```
+**Why It Matters**: The #1 silent configuration trap in NGINX reverse proxies, resulting in unexpected `404 Not Found` routing errors.
+
+---
+
+### 9.3 — TLS Termination & Proxy Headers (`X-Forwarded-For`, `X-Forwarded-Proto`, `X-Real-IP`)
+
+- **TLS Termination**: Decrypting HTTPS connections at the NGINX proxy so backend applications receive plain, unencrypted HTTP traffic over an internal network.
+- **`X-Forwarded-For`**: A header chain tracking client IP addresses (`Client, Proxy1, Proxy2`).
+- **`X-Forwarded-Proto`**: Tracks the original scheme used by the client (`https` vs `http`).
+- **`X-Real-IP`**: Single header carrying the client's real remote IP address.
+
+#### 💡 The Beginner Analogy: Envelope Return Address Stamp
+When NGINX decrypts HTTPS and forwards plain HTTP to FastAPI, FastAPI sees NGINX's internal IP (`172.18.0.2`) as the sender. NGINX must **stamp the envelope with proxy headers** so FastAPI knows the real user's IP (`203.0.113.19`) and protocol (`https`).
+
+#### 🎨 TLS Termination & Header Injection
+
+```mermaid
+flowchart TD
+    CLIENT["Client (IP: 203.0.113.19, HTTPS)"] --> NGINX["NGINX (TLS Termination)"]
+    NGINX --> INJECT["Inject Headers:<br>X-Real-IP: 203.0.113.19<br>X-Forwarded-Proto: https<br>X-Forwarded-For: 203.0.113.19"]
+    INJECT --> APP["FastAPI Backend (Plain HTTP over 172.18.0.2)"]
+
+    style INJECT fill:#005f73,stroke:#0a9396,color:#fff
+    style APP fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```nginx
+location / {
+    proxy_pass http://backend_app;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+**Why It Matters**: Omitting `X-Forwarded-Proto` causes FastAPI/Django redirect generators to generate broken `http://` links instead of `https://`.
+
+---
+
+### 9.4 — Trusted Proxy Address Rewriting (`set_real_ip_from`)
+
+An NGINX security directive (`realip` module) that instructs NGINX to overwrite `$remote_addr` with the IP provided in `X-Forwarded-For`, but **only if the request arrives from a explicitly trusted proxy IP address**.
+
+#### 💡 The Beginner Analogy: Caller ID Spoofing Defense
+If a random caller says *"I am calling on behalf of the President"*, you don't trust them. But if your **trusted private switchboard operator** transfers the call and tells you *"This is the President"*, you accept the identity.
+
+#### 🎨 Spoofed vs. Trusted Real-IP Rewriting
+
+```mermaid
+flowchart TD
+    subgraph UntrustedSpoof ["❌ Untrusted Client (Direct IP Spoof)"]
+        C1["Attacker sends X-Forwarded-For: 1.1.1.1"] --> N1["NGINX ignores header! Uses real attacker IP"]
+    end
+
+    subgraph TrustedProxy ["✅ Trusted Cloudflare / Load Balancer"]
+        C2["Request from Cloudflare (172.31.0.50)"] --> N2["set_real_ip_from 172.31.0.0/16;"]
+        N2 --> PASS["Rewrites $remote_addr to verified client IP!"]
+    end
+
+    style PASS fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```nginx
+# Trust ONLY requests arriving from our internal AWS Load Balancer subnet:
+set_real_ip_from 10.0.0.0/16;
+real_ip_header X-Forwarded-For;
+real_ip_recursive on;
+```
+**Why It Matters**: Without `set_real_ip_from`, malicious users can inject fake `X-Forwarded-For: 127.0.0.1` headers to bypass rate limits and IP ban lists.
+
+---
+
+### 9.5 — `X-Accel-Buffering: no`
+
+An HTTP response header emitted by backend applications (FastAPI/Flask) that instructs NGINX to disable `proxy_buffering` for that single response stream.
+
+#### 💡 The Beginner Analogy: Priority Express Pass
+A backend streaming API attaches a **Priority Express Pass** (`X-Accel-Buffering: no`) to outgoing SSE tokens, forcing NGINX to immediately bypass its holding buffers and flush token bytes to the client in real-time.
+
+#### 🎨 Header Override Mechanics
+
+```mermaid
+flowchart TD
+    APP["FastAPI emits chunk + Header: X-Accel-Buffering: no"] --> NGINX{"NGINX proxy_buffering is ON"}
+    NGINX -->|Header overrides global config!| FLUSH["Disables buffering & flushes chunk live!"]
+
+    style FLUSH fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# In FastAPI Streaming Endpoint:
+return StreamingResponse(
+    event_generator(),
+    media_type="text/event-stream",
+    headers={"X-Accel-Buffering": "no"} # Forces NGINX to stream live!
+)
+```
+**Why It Matters**: Allows backend applications to disable NGINX buffering per-route without requiring global edits to NGINX configuration files.
 
 **`proxy_connect_timeout`** — budget for opening the upstream connection. Exceeding it means the upstream is unreachable. Compare the connect half of the tuple in **0.8**.
 

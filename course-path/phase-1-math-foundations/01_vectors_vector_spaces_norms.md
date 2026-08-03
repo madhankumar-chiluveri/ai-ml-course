@@ -612,31 +612,117 @@ With this file **and** the script closed, from a blank editor: write a function 
 
 ---
 
-## 9. Glossary
+### 9.1 — Vector, Vector Space & Basis
 
-**Vector** — an ordered list of `n` real numbers. Ordered matters: position carries meaning. Appears as a feature row (**2.3**), an activation (**3.1**) and an embedding (**5.1**).
+- **Vector**: An ordered sequence of $n$ numbers ($v \in \mathbb{R}^n$) where every position corresponds to a specific feature dimension.
+- **Vector Space**: A set of vectors closed under addition and scalar multiplication obeying 8 algebraic vector axioms.
+- **Basis**: A minimal set of linearly independent vectors whose linear combinations span the entire vector space.
 
-**Dimension** — how many components a vector has; equivalently the number of vectors in a basis for the space.
+#### 💡 The Beginner Analogy: City Grid Directions
+Think of a 3D vector $[x, y, z] = [3, 4, 12]$ as **directions to a house**: 3 blocks East, 4 blocks North, 12 floors Up. The **Basis** is the set of 3 fundamental direction arrows: East ($\mathbf{e}_1$), North ($\mathbf{e}_2$), and Up ($\mathbf{e}_3$).
 
-**Vector space** — a set with addition and scalar multiplication satisfying eight axioms. The licence to do algebra on data.
+#### 🎨 Basis Vectors & Linear Combination
 
-**Linear combination** — `a_1*v_1 + ... + a_k*v_k` for scalars `a_i`. Everything a linear model can express.
+```mermaid
+flowchart TD
+    B1["Basis Arrow e1 = [1, 0, 0] (East)"] --> COMP["Linear Combination: 3*e1 + 4*e2 + 12*e3"]
+    B2["Basis Arrow e2 = [0, 1, 0] (North)"] --> COMP
+    B3["Basis Arrow e3 = [0, 0, 1] (Up)"] --> COMP
+    COMP --> VEC["Result Vector v = [3, 4, 12]"]
 
-**Span** — the set of all linear combinations of a given set of vectors.
+    style VEC fill:#2d6a4f,stroke:#52b788,color:#fff
+```
 
-**Basis** — a spanning set with no redundant member. Its size is the dimension.
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
 
-**Norm** — a function giving a vector a single non-negative size, obeying positive definiteness, absolute homogeneity and the triangle inequality.
+# 3D Vector representation
+v = np.array([3.0, 4.0, 12.0])
+print(f"Dimension: {v.shape[0]}") # 3 dimensions
+```
+**Why It Matters**: Text embeddings, image features, and neural network weights are all high-dimensional vectors. Understanding vector spaces enables calculating distances between data points in AI/ML.
 
-**L1 norm** — `sum_i |v_i|`. Unit ball is a diamond with **corners on the axes**. The reason Lasso zeroes coefficients (**2.5**).
+---
 
-**L2 norm** — `sqrt(sum_i v_i^2)`. Ordinary straight-line distance. Unit ball is a smooth circle. The default everywhere in **1.4** and **5.1**.
+### 9.2 — Norm Axioms ($L_1$, $L_2$, $L_\infty$)
 
-**L-infinity norm** — `max_i |v_i|`. Unit ball is a square. Bounds the single worst coordinate.
+A **Norm** $\|v\|$ is a function measuring the magnitude/length of a vector, satisfying 3 strict mathematical axioms:
+1. **Positive Definiteness**: $\|v\| \ge 0$, and $\|v\| = 0 \iff v = 0$.
+2. **Absolute Homogeneity**: $\|c \cdot v\| = |c| \cdot \|v\|$.
+3. **Triangle Inequality**: $\|u + v\| \le \|u\| + \|v\|$.
 
-**p-norm** — `(sum_i |v_i|^p)^(1/p)`. One formula containing all of the above.
+#### Norm Formulas:
+- **$L_1$ Norm (Manhattan)**: $\|v\|_1 = \sum |v_i|$
+- **$L_2$ Norm (Euclidean)**: $\|v\|_2 = \sqrt{\sum v_i^2}$
+- **$L_\infty$ Norm (Chebyshev)**: $\|v\|_\infty = \max |v_i|$
 
-**Unit ball** — every vector with norm at most 1. Its **shape** is what distinguishes one norm from another and what produces sparsity or fails to.
+#### 💡 The Beginner Analogy: Walking in Manhattan vs. Flying a Helicopter
+- **$L_1$ Norm**: Walking on city streets in Manhattan — you must walk around building blocks (Sum of absolute $X + Y$ distances).
+- **$L_2$ Norm**: A helicopter flying in a straight line directly from Point A to Point B (Straight-line distance).
+- **$L_\infty$ Norm**: Checking only your **longest single leg** of the journey.
+
+#### 🎨 $L_1$ vs. $L_2$ Distance Metric Comparison
+
+```mermaid
+flowchart LR
+    START["Point A (0,0)"] -->|"L1: Walk 3 East + 4 North"| L1["L1 Distance = 7.0"]
+    START -->|"L2: Fly straight line sqrt(3² + 4²)"| L2["L2 Distance = 5.0"]
+
+    style L1 fill:#005f73,stroke:#0a9396,color:#fff
+    style L2 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+v = np.array([3.0, -4.0])
+
+l1 = np.sum(np.abs(v))        # -> 7.0 (L1 / Manhattan)
+l2 = np.sqrt(np.sum(v ** 2))   # -> 5.0 (L2 / Euclidean)
+linf = np.max(np.abs(v))      # -> 4.0 (L-infinity)
+```
+**Why It Matters**: $L_2$ is the default distance for vector search (RAG embeddings). $L_1$ is used in Lasso regularization to drive weak features to zero.
+
+---
+
+### 9.3 — Unit Ball Geometry & Regularization Sparsity
+
+- **Unit Ball**: The set of all vectors whose norm is $\le 1.0$ ($\|v\| \le 1$).
+- **$L_1$ Unit Ball (Diamond)**: Has sharp corners touching the coordinate axes.
+- **$L_2$ Unit Ball (Circle)**: A smooth, uniform sphere.
+
+#### 💡 The Beginner Analogy: Diamond Corners vs. Smooth Sphere
+Imagine expanding a loss contour balloon until it touches a boundary constraint.
+- **$L_1$ (Diamond)**: The balloon touches the diamond at its **sharp corners** on the axes where $x=0$ or $y=0$ (causing features to become exactly $0.0$, creating **sparsity**).
+- **$L_2$ (Circle)**: The balloon touches a smooth circle at arbitrary non-zero points, shrinking all features smoothly without forcing them to zero.
+
+#### 🎨 $L_1$ Sparsity vs $L_2$ Shrinkage
+
+```mermaid
+flowchart TD
+    LOSS["Loss Function Contours Expanding"] --> L1["Hits L1 Diamond at Axis Corner (x = 0)"]
+    LOSS --> L2["Hits L2 Circle at Smooth Tangent (x = 0.3, y = 0.4)"]
+
+    L1 --> SPARSE["Lasso (L1): Exact Zero Coefficients (Feature Selection!)"]
+    L2 --> SMOOTH["Ridge (L2): Small Non-Zero Coefficients"]
+
+    style SPARSE fill:#2d6a4f,stroke:#52b788,color:#fff
+    style SMOOTH fill:#005f73,stroke:#0a9396,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# L1 Soft-Thresholding forces small weights to EXACT 0.0:
+def soft_threshold(w, lambda_val):
+    return np.sign(w) * np.maximum(0, np.abs(w) - lambda_val)
+
+# L2 Ridge Shrinkage scales weights smoothly down, but never forces exact 0.0:
+def ridge_shrink(w, lambda_val):
+    return w / (1.0 + lambda_val)
+```
+**Why It Matters**: Explains why Lasso ($L_1$) performs automatic feature selection by zeroing out useless variables, while Ridge ($L_2$) keeps all variables with shrunk weights.
 
 **Triangle inequality** — `N(u + v) <= N(u) + N(v)`. What makes a norm usable as a distance.
 

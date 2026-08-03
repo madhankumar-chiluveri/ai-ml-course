@@ -330,29 +330,299 @@ With this file **and** the script closed, from a fresh shell: find which process
 
 ---
 
-## 9. Glossary
+### 9.1 — Pipe (`|`)
 
-**Pipe (`|`)** — connects one command's stdout to the next command's stdin. The composition primitive the whole shell is built on.
+The Unix composition operator that connects the standard output (`stdout`) of one command directly to the standard input (`stdin`) of the next command without writing intermediate files to disk.
 
-**`grep -rn`** — search recursively, showing line numbers. The cheapest possible secret scan before a commit (**0.4**).
+#### 💡 The Beginner Analogy: Assembly Line Conveyor Belt
+Instead of taking output parts from Station 1, dumping them into a cardboard box on the floor, carrying the box across the room, and feeding them into Station 2... a **Pipe** is a **direct conveyor belt** connecting the exit of Station 1 directly to the intake of Station 2.
 
-**`cut -d' '`** — split on a single-character delimiter. Treats **every** occurrence as a separator, so it breaks on padded columns.
+#### 🎨 Pipe Stream Chaining
 
-**`awk`** — a field-aware text processor. Splits on runs of whitespace by default, which is why it survives padding.
+```mermaid
+flowchart LR
+    C1["cat /var/log/nginx/access.log<br>(Emits log stream)"] -->|"stdout -> stdin (|)"| C2["grep ' 500 '<br>(Filters 500 errors)"]
+    C2 -->|"stdout -> stdin (|)"| C3["awk '{print $1}'<br>(Extracts IP column)"]
+    C3 -->|"stdout -> stdin (|)"| C4["sort | uniq -c<br>(Counts occurrences)"]
 
-**`uniq -c`** — count consecutive identical lines. Requires sorted input; without it the counts are silently wrong.
+    style C2 fill:#005f73,stroke:#0a9396,color:#fff
+    style C4 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
 
-**`sort -rh`** — reverse, human-numeric. Ranks `2G` above `900M`; plain `sort` does not.
+#### 💻 Code Example & ⚠️ Why It Matters
+```bash
+# Stream log data through multiple commands without saving temporary files
+cat access.log | grep " 500 " | awk '{print $1}' | sort | uniq -c | sort -rn | head -n 5
+```
+**Why It Matters**: Allows processing gigabytes of server log data in memory with stream composition, using virtually zero disk space.
 
-**`ss -ltnp`** — listening, TCP, numeric, with process. The modern replacement for `netstat`.
+---
 
-**`SIGTERM` / `SIGKILL`** — a catchable stop request versus an uncatchable one. `TERM` allows cleanup; `KILL` does not.
+### 9.2 — `grep -rn`
 
-**OOM killer** — the kernel subsystem that terminates a process when the machine runs out of memory. Leaves no application-level traceback; evidence is in `dmesg`.
+A command-line text search tool flag combination:
+- `-r` / `-R`: Search directories recursively.
+- `-n`: Print line numbers alongside matching lines.
 
-**Octal permission bits** — three digits (owner, group, other), each summing read 4, write 2, execute 1.
+#### 💡 The Beginner Analogy: X-Ray Scanner for Code Folders
+Running `grep "keyword"` on a folder without flags is like looking at a closed filing cabinet. `grep -rn` is an **X-ray scanner**: it opens every folder, subfolder, and file, showing you the exact file name and line number where the word appears.
 
-**`tail -f`** — seek to the end of a file and keep reading as new data is appended. The live-debugging tool before tracing exists (**7.6**).
+#### 🎨 Local Search vs. Recursive Line Search
+
+```mermaid
+flowchart TD
+    CMD["grep -rn 'API_SECRET' ."] --> DISCOVER["Scans subdirectories recursively"]
+    DISCOVER --> OUT["src/config.py:42: API_SECRET = 'sk-proj-123'"]
+
+    style OUT fill:#9b2226,stroke:#ae2012,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```bash
+# Instant local secret scanner before committing to Git!
+grep -rn "sk-" .
+```
+**Why It Matters**: Quick, zero-dependency secret scanner to catch hardcoded API keys before committing code to public Git repositories.
+
+---
+
+### 9.3 — `cut` vs. `awk` (Whitespace & Delimiter Parsing)
+
+- **`cut -d' '`**: Splits input on a **single exact delimiter character**. Treats consecutive spaces as multiple empty fields, breaking on padded alignment.
+- **`awk '{print $N}'`**: A field-aware text processor that treats **runs of multiple whitespaces** as a single field separator by default.
+
+#### 💡 The Beginner Analogy: Fixed Scissors vs. Smart Reader
+- `cut`: Cutting paper with a rigid pair of scissors every 1 inch. If there are extra space gaps on the page, you accidentally cut through words instead of gaps.
+- `awk`: A human reader who ignores extra spacing between words and jumps straight to the 3rd word on the line.
+
+#### 🎨 `cut` Failure on Padded Data
+
+```mermaid
+flowchart TD
+    RAW["Padded Output: '   42  user_a'"] --> CUT["cut -d' ' -f2"]
+    CUT --> FAIL["💥 Returns empty string '' (Stumbles on initial space gaps)"]
+
+    RAW --> AWK["awk '{print $1}'"]
+    AWK --> PASS["✅ Returns '42' (Ignores padded leading spaces)"]
+
+    style FAIL fill:#9b2226,stroke:#ae2012,color:#fff
+    style PASS fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```bash
+# ❌ TRAP: cut breaks on commands that output leading space padding (like ps, ls -l, uniq -c)
+ps aux | cut -d' ' -f2  # Output: empty or wrong column!
+
+# ✅ SAFE: awk collapses multiple whitespaces automatically
+ps aux | awk '{print $2}' # Output: Process IDs cleanly extracted
+```
+**Why It Matters**: Shell pipelines parsing system statistics (`ps`, `df`, `uniq -c`) fail silently when using `cut` due to space padding.
+
+---
+
+### 9.4 — `sort` & `uniq -c` (Sorted Pre-condition)
+
+- **`uniq -c`**: Groups and counts **adjacent consecutive matching lines** in a stream.
+- **`sort`**: Sorts lines alphabetically or numerically, bringing identical lines together so `uniq -c` can count them accurately.
+
+#### 💡 The Beginner Analogy: Laundry Sorting before Counting
+If you have a pile of mixed socks `[Red, Blue, Red, Blue]`, counting identical items with `uniq` without sorting first yields: `1 Red, 1 Blue, 1 Red, 1 Blue`. Sorting the pile first (`[Blue, Blue, Red, Red]`) allows `uniq -c` to output: `2 Blue, 2 Red`.
+
+#### 🎨 Unsorted vs. Sorted Uniq Pipeline
+
+```mermaid
+flowchart TD
+    subgraph Unsorted ["❌ Without sort (Silent Counting Error)"]
+        U1["Input: A, B, A"] --> U2["uniq -c"]
+        U2 --> U3["1 A\n1 B\n1 A (Miscounted!)"]
+    end
+
+    subgraph Sorted ["✅ sort | uniq -c"]
+        S1["Input: A, B, A"] --> S2["sort -> A, A, B"]
+        S2 --> S3["uniq -c -> 2 A\n1 B (Accurate!)"]
+    end
+
+    style U3 fill:#9b2226,stroke:#ae2012,color:#fff
+    style S3 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```bash
+# ❌ TRAP: uniq -c without prior sort produces wrong counts!
+cat status_codes.txt | uniq -c
+
+# ✅ CORRECT IDIOM: Always sort before pipe to uniq -c
+cat status_codes.txt | sort | uniq -c | sort -rn
+```
+**Why It Matters**: Running `uniq -c` without a prior `sort` produces completely incorrect line count metrics without throwing an error.
+
+---
+
+### 9.5 — `ss -ltnp` (Socket Statistics)
+
+A modern Linux CLI utility used to inspect active network sockets:
+- `-l`: Show listening sockets.
+- `-t`: Filter for TCP sockets.
+- `-n`: Show numeric IP addresses and port numbers (avoids slow DNS lookups).
+- `-p`: Show process name and PID holding the socket.
+
+#### 💡 The Beginner Analogy: Building Security Intercom Registry
+`ss -ltnp` is the building intercom log: it shows every active door (port number like `:8000`), whether the door is open for visitors (`LISTEN`), and the exact name of the person standing inside holding the door (`PID 1420 / python`).
+
+#### 🎨 Port Conflict Debugging
+
+```mermaid
+flowchart TD
+    APP["FastAPI fails to start: OSError: [Errno 98] Address already in use"] --> SS["Run: ss -ltnp | grep :8000"]
+    SS --> PID["Identifies PID 4821 (stale uvicorn process)"]
+    PID --> KILL["kill -9 4821 -> Port freed!"]
+
+    style PID fill:#005f73,stroke:#0a9396,color:#fff
+    style KILL fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```bash
+# Find what process is blocking port 8000
+sudo ss -ltnp | grep :8000
+# Output: LISTEN 0 128 *:8000 *:* users:(("uvicorn",pid=4821,fd=3))
+```
+**Why It Matters**: Replaces legacy `netstat`. The primary diagnostic command for resolving port conflicts (`Address already in use`).
+
+---
+
+### 9.6 — `SIGTERM` vs. `SIGKILL`
+
+Signals sent by the OS kernel or user to terminate running processes:
+- **`SIGTERM` (Signal 15)**: A graceful termination request. The process can catch it, close database connections, flush log buffers, and exit cleanly.
+- **`SIGKILL` (Signal 9)**: An uncatchable kernel instruction that instantly vaporizes the process from memory.
+
+#### 💡 The Beginner Analogy: Closing Notice vs. Power Cut
+- **`SIGTERM`**: Knocking on an office door and saying *"We are closing the building in 5 minutes — please save your work and step outside."*
+- **`SIGKILL`**: Flipping the main circuit breaker for the entire building. Everyone's computer turns off instantly, corrupting unsaved work.
+
+#### 🎨 Process Shutdown Flow
+
+```mermaid
+flowchart TD
+    subgraph SigTerm ["✅ kill -15 <pid> (SIGTERM Graceful)"]
+        T1["Process receives SIGTERM"] --> T2["Executes Cleanup: Closes DB Pool, flushes logs"]
+        T2 --> T3["Exits cleanly (Exit code 0 or 143)"]
+    end
+
+    subgraph SigKill ["❌ kill -9 <pid> (SIGKILL Forceful)"]
+        K1["Kernel receives SIGKILL"] --> K2["Instantly purges process memory"]
+        K2 --> K3["💥 Unclosed DB transactions & corrupted state!"]
+    end
+
+    style T3 fill:#2d6a4f,stroke:#52b788,color:#fff
+    style K3 fill:#9b2226,stroke:#ae2012,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```bash
+# 1. ALWAYS try graceful termination first:
+kill -15 <pid>
+
+# 2. Use SIGKILL ONLY if the process is completely hung/frozen:
+kill -9 <pid>
+```
+**Why It Matters**: Overusing `kill -9` leaves orphaned database locks, incomplete file writes, and corrupted sqlite/pgstate files.
+
+---
+
+### 9.7 — Kernel OOM Killer (`dmesg`)
+
+The Linux Out-Of-Memory (OOM) Kernel Subsystem that monitors RAM usage and forcefully terminates a process when the system runs out of physical memory and swap space.
+
+#### 💡 The Beginner Analogy: Ship Captain Jettisoning Cargo
+When a ship (the OS) is taking on water because the total weight (RAM usage) is too heavy, the captain (OOM Killer) scans the cargo and throws the single heaviest crate (the biggest Python/PyTorch process) into the ocean to keep the ship from sinking.
+
+####  silent OOM Crash Diagnostic
+
+```mermaid
+flowchart TD
+    PY["Python script loads 20GB dataset on 16GB RAM machine"] --> MEM["RAM Hits 100%"]
+    MEM --> OOM["Linux Kernel OOM Killer activates"]
+    OOM --> KILL["Instantly kills Python process! (No Python traceback printed)"]
+    KILL --> DIAG["Check Kernel Logs: dmesg -T | grep -i oom"]
+
+    style KILL fill:#9b2226,stroke:#ae2012,color:#fff
+    style DIAG fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```bash
+# When your script dies abruptly with no Python traceback, check kernel logs:
+dmesg -T | grep -i "out of memory"
+# Output: [Mon Aug 3 20:00:00 2026] Out of memory: Kill process 1420 (python3) score 850
+```
+**Why It Matters**: OOM crashes leave **zero application-level tracebacks**. `dmesg` is the only place to confirm why a model training run vanished.
+
+---
+
+### 9.8 — Octal Permission Bits (`chmod 755`)
+
+A 3-digit numerical representation of file access rights in Unix, where each digit sums permissions for **Owner**, **Group**, and **Others**:
+- **Read (r)** = 4
+- **Write (w)** = 2
+- **Execute (x)** = 1
+
+#### 💡 The Beginner Analogy: Combination Lock
+An octal permission is a 3-digit combination lock:
+- Digit 1: What **You** (Owner) can do.
+- Digit 2: What your **Team** (Group) can do.
+- Digit 3: What the **World** (Everyone else) can do.
+Adding $4 + 2 + 1 = 7$ gives Full Access (Read, Write, Execute).
+
+#### 🎨 Octal Permission Addition
+
+```mermaid
+flowchart TD
+    P7["Owner: 7 (4+2+1 = Read + Write + Execute)"] --> CALC["755 = owner can edit/run, others can read/run"]
+    P5_1["Group: 5 (4+0+1 = Read + Execute)"] --> CALC
+    P5_2["Other: 5 (4+0+1 = Read + Execute)"] --> CALC
+
+    style CALC fill:#005f73,stroke:#0a9396,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```bash
+# Make script executable by owner, readable/executable by others
+chmod 755 deploy.sh
+
+# Restrict private SSH keys to owner ONLY (Mandatory for SSH!)
+chmod 600 ~/.ssh/id_rsa
+```
+**Why It Matters**: Setting loose permissions on SSH keys (`chmod 777 id_rsa`) causes `ssh` connections to be rejected with `Permissions are too open`.
+
+---
+
+### 9.9 — `tail -f`
+
+A CLI utility that opens a file, jumps to the last 10 lines, and keeps the stream open, outputting new text as it is appended in real-time.
+
+#### 💡 The Beginner Analogy: Live Ticker Reader
+Instead of refreshing a document manually every 5 seconds to read new entries, `tail -f` is like a ticker tape machine that prints out new lines of text the exact second a web server appends them.
+
+#### 🎨 Live Log Monitoring
+
+```mermaid
+flowchart TD
+    APP["FastAPI Server Appends Log Entry"] --> FILE["/var/log/app.log"]
+    FILE --> TAIL["tail -f /var/log/app.log"]
+    TAIL --> TERM["Prints line instantly to Developer Terminal Screen"]
+
+    style TERM fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```bash
+# Live monitor incoming web server error logs
+tail -f /var/log/nginx/error.log
+```
+**Why It Matters**: The fundamental live-debugging tool for watching application logs on remote servers during deployment tests.
 
 **Exit status** — a command's numeric result; `0` is success. A pipeline reports only its **last** command's status unless `pipefail` is set.
 

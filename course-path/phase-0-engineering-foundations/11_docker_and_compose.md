@@ -461,27 +461,248 @@ Then write a Compose file that brings up that API with pgvector-enabled Postgres
 
 ---
 
-## 9. Glossary
+### 9.1 — Image vs. Container vs. Layer
 
-**Image** — a read-only, content-addressed stack of filesystem layers plus metadata. Identified by a digest; tags are movable labels pointing at one.
+- **Image**: A read-only blueprint comprising stacked filesystem layers and runtime metadata.
+- **Container**: A running, isolated process instance constructed on top of an Image with a thin writable layer.
+- **Layer**: A single read-only filesystem diff produced by an instruction in a `Dockerfile`.
 
-**Container** — one running instance of an image with a private writable layer, process namespace and network namespace stacked on top of the shared read-only bytes.
+#### 💡 The Beginner Analogy: Frozen Bakery Recipe vs. Live Baked Cake
+- **Image**: A frozen, read-only **architectural blueprint / recipe**.
+- **Layer**: Individual **transparent layers of traced paper** stacked together to form the complete blueprint.
+- **Container**: The actual **live, baked cake** created from the blueprint. You can add frosting on top (writable layer) without changing the printed recipe blueprint.
 
-**Layer** — the filesystem diff produced by one instruction. Layers are shared between images and containers rather than copied.
+#### 🎨 Docker Layer Stacking Architecture
 
-**Writable layer** — the per-container copy-on-write layer. Everything written outside a volume lives here and is destroyed with the container.
+```mermaid
+flowchart TD
+    subgraph ContainerInstance ["Live Container Instance"]
+        WRITE["Writable Copy-on-Write Layer (Ephemeral data)"]
+    end
 
-**Build context** — the directory tarred and sent to the daemon before the first instruction runs, on every build.
+    subgraph ReadOnlyImage ["Read-Only Image (Shared Layers)"]
+        L3["Layer 3: COPY app.py / (Dependencies)"]
+        L2["Layer 2: RUN pip install fastapi (PyTorch/FastAPI)"]
+        L1["Layer 1: FROM python:3.11-slim (Base OS)"]
+    end
 
-**`.dockerignore`** — patterns excluded from the build context. Prunes whole directories, so the daemon never hears about their contents.
+    WRITE --> L3
+    L3 --> L2
+    L2 --> L1
 
-**Cache key** — the hash chaining parent key, instruction text and copied-file content. Determines whether a layer is re-executed or served from cache.
+    style WRITE fill:#005f73,stroke:#0a9396,color:#fff
+    style L1 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
 
-**`CACHED`** — BuildKit's own marker in `--progress=plain` output for a layer served from cache. The thing to count when checking an ordering.
+#### 💻 Code Example & ⚠️ Why It Matters
+```bash
+# Images are read-only blueprints
+docker build -t my-app:v1 .
 
-**Multi-stage build** — multiple `FROM` statements where a later stage copies artifacts out of an earlier one, leaving compilers and build caches behind.
+# Containers are instances running those blueprints
+docker run -d --name app1 -p 8000:8000 my-app:v1
+```
+**Why It Matters**: Multiple containers created from the same image share the exact same underlying read-only layers in memory, making container startup instant and memory footprint minimal.
 
-**Exec form** — `CMD ["prog", "arg"]`. Runs the program directly as PID 1, with no shell interposed.
+---
+
+### 9.2 — Writable Copy-On-Write Layer & Volumes
+
+- **Writable Layer**: The temporary top layer attached to a container where runtime file modifications take place. Destroyed when the container is deleted (`docker rm`).
+- **Volume**: A dedicated host-managed filesystem mount (`docker volume create`) decoupled from the container lifecycle to preserve database state.
+
+#### 💡 The Beginner Analogy: Hotel Room Scratchpad vs. Safety Deposit Box
+- **Writable Layer**: Drawing on the **hotel room notepad**. When you check out and the room is cleaned (`docker rm`), your notes are thrown in the trash.
+- **Volume**: Stashing your valuables inside a **hotel safety deposit box** in the lobby vault. Checking out of your room doesn't touch the deposit box.
+
+#### 🎨 Ephemeral Writable Layer vs. Persistent Volume
+
+```mermaid
+flowchart TD
+    subgraph Container ["Container Lifecycle"]
+        APP["Application Writes Data"] --> WRITABLE["Writable Layer (DESTRUCTIVE!)"]
+        APP --> VOL["Named Volume /var/lib/postgresql/data"]
+    end
+
+    RM["docker rm container"] -->|Destroys| WRITABLE
+    RM -->|PRESERVES| VOL
+
+    style WRITABLE fill:#9b2226,stroke:#ae2012,color:#fff
+    style VOL fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```yaml
+# docker-compose.yml
+services:
+  db:
+    image: postgres:16
+    volumes:
+      # Named volume ensures Postgres data survives container destruction!
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+```
+**Why It Matters**: Running databases inside Docker without named volumes results in total data loss whenever containers are recreated during deployments.
+
+---
+
+### 9.3 — Build Context & `.dockerignore`
+
+- **Build Context**: The local directory payload compressed into a tarball and sent to the Docker daemon when `docker build` runs.
+- **`.dockerignore`**: A text file listing pattern exclusions to prevent large binaries, node_modules, `.git` histories, and virtual environments from being sent to the daemon.
+
+#### 💡 The Beginner Analogy: Luggage Packing Filter
+`docker build` is like hiring a mover. If you don't use a `.dockerignore` file, you are paying the mover to pack **every piece of trash, old newspapers, and broken furniture** in your basement (`.venv/`, `.git/`, `__pycache__`) into the moving truck before doing anything else.
+
+#### 🎨 Build Context Transfer Bottleneck
+
+```mermaid
+flowchart TD
+    subgraph WithoutIgnore ["❌ Without .dockerignore"]
+        D1["Project Folder (includes 5GB .venv)"] -->|Transfers 5GB Tarball| DAEMON1["Docker Daemon (Slow build!)"]
+    end
+
+    subgraph WithIgnore ["✅ With .dockerignore"]
+        D2["Project Folder (.venv excluded)"] -->|Transfers 10MB Tarball| DAEMON2["Docker Daemon (Fast build!)"]
+    end
+
+    style DAEMON1 fill:#9b2226,stroke:#ae2012,color:#fff
+    style DAEMON2 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```text
+# .dockerignore
+.venv
+.git
+__pycache__
+*.pyc
+node_modules
+```
+**Why It Matters**: Omitting `.dockerignore` causes `docker build` to freeze for minutes transferring gigabytes of virtual environments and `.git` histories to the daemon on every build.
+
+---
+
+### 9.4 — Cache Invalidation & Layer Order
+
+Docker caches each build instruction layer based on a hash of the instruction text and input files. If a layer changes, that layer **and all subsequent layers below it** lose their cache and must rebuild from scratch.
+
+#### 💡 The Beginner Analogy: Baking Layer Cake
+If you alter the ingredients of the **bottom layer** of a 5-tier cake (e.g. changing `requirements.txt` placed at the top of the Dockerfile), you have to re-bake Tier 1, Tier 2, Tier 3, Tier 4, and Tier 5.
+
+#### 🎨 Correct vs Incorrect Layer Ordering
+
+```mermaid
+flowchart TD
+    subgraph IncorrectOrder ["❌ Bad Order (Slow Build)"]
+        I1["COPY . . (Source code changes often!)"] --> I2["RUN pip install -r requirements.txt"]
+        I2 --> CACHE_FAIL["💥 Modifying 1 python file invalidates pip cache every build!"]
+    end
+
+    subgraph CorrectOrder ["✅ Optimized Order (Fast Build)"]
+        C1["COPY requirements.txt ."] --> C2["RUN pip install -r requirements.txt (CACHED!)"]
+        C2 --> C3["COPY . . (Source code copied LAST)"]
+    end
+
+    style CACHE_FAIL fill:#9b2226,stroke:#ae2012,color:#fff
+    style C3 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```dockerfile
+# ✅ CORRECT LAYER ORDER: Copy requirements & install dependencies BEFORE source code
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Source code changes often, so copy it AFTER installing dependencies!
+COPY . .
+```
+**Why It Matters**: Copying application source code before `RUN pip install` forces Docker to re-download heavy ML dependencies (PyTorch, Pandas) on every minor code edit.
+
+---
+
+### 9.5 — Multi-Stage Build
+
+A `Dockerfile` pattern containing multiple `FROM` statements where final production images selectively copy compiled artifacts from earlier builder stages, leaving heavy compilers, SDKs, and build caches behind.
+
+#### 💡 The Beginner Analogy: Factory Scaffolding Removal
+Building a house requires heavy scaffolding, cranes, and cement mixers (Compilers, C build tools, dev libraries). Once the house is finished, you **remove the scaffolding** and ship only the clean, lightweight finished house to the customer.
+
+#### 🎨 Multi-Stage Artifact Extraction
+
+```mermaid
+flowchart TD
+    subgraph Stage1 ["Stage 1: Builder (Heavy 2GB Image)"]
+        B1["FROM python:3.11 as builder"] --> B2["RUN gcc, g++, pip install wheel"]
+    end
+
+    subgraph Stage2 ["Stage 2: Final Production (Lightweight 150MB Image)"]
+        P1["FROM python:3.11-slim"] --> P2["COPY --from=builder /install /usr/local"]
+    end
+
+    B2 -->|Copy built wheels ONLY| P2
+
+    style Stage1 fill:#005f73,stroke:#0a9396,color:#fff
+    style Stage2 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```dockerfile
+# Stage 1: Build dependencies
+FROM python:3.11 as builder
+WORKDIR /app
+COPY requirements.txt .
+RUN pip wheel --no-cache-dir --wheel-dir /app/wheels -r requirements.txt
+
+# Stage 2: Clean Minimal Production Image
+FROM python:3.11-slim
+WORKDIR /app
+COPY --from=builder /app/wheels /wheels
+RUN pip install --no-index --find-links=/wheels /wheels/*
+COPY . .
+```
+**Why It Matters**: Shrinks container image sizes from multi-gigabyte blobs down to tens of megabytes, reducing security attack surfaces and deployment transfer times.
+
+---
+
+### 9.6 — Exec Form (`CMD ["prog", "arg"]`) vs. Shell Form
+
+- **Exec Form (`CMD ["python", "app.py"]`)**: Executes the process directly as **PID 1** without wrapping it in a shell interpreter.
+- **Shell Form (`CMD python app.py`)**: Wraps execution in `/bin/sh -c`, making the shell PID 1 and ignoring incoming OS signals (`SIGTERM`).
+
+#### 💡 The Beginner Analogy: Direct Phone Line vs. Answering Service
+- **Exec Form**: Calling a person directly on their mobile phone (PID 1). When you ask them to leave (`SIGTERM`), they hear you instantly and exit.
+- **Shell Form**: Calling an answering service (`/bin/sh`), which takes your message but refuses to pass it to the person inside, leaving them stuck in the room.
+
+#### 🎨 Exec Form vs. Shell Form Signal Handling
+
+```mermaid
+flowchart TD
+    subgraph ExecForm ["✅ Exec Form: CMD ['python', 'app.py']"]
+        E1["docker stop (SIGTERM)"] --> E2["PID 1: python app.py receives SIGTERM directly"]
+        E2 --> E3["Graceful Shutdown in 0.5s"]
+    end
+
+    subgraph ShellForm ["❌ Shell Form: CMD python app.py"]
+        S1["docker stop (SIGTERM)"] --> S2["PID 1: /bin/sh receives SIGTERM & IGNORES it"]
+        S2 --> S3["💥 Docker waits 10s timeout then sends SIGKILL!"]
+    end
+
+    style E3 fill:#2d6a4f,stroke:#52b788,color:#fff
+    style S3 fill:#9b2226,stroke:#ae2012,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```dockerfile
+# ❌ TRAP: Shell form ignores SIGTERM, causing 10-second docker stop delays!
+# CMD python main.py
+
+# ✅ CORRECT IDIOM: Exec JSON array form runs process as PID 1 directly
+CMD ["python", "main.py"]
+```
+**Why It Matters**: Shell form prevents Python from receiving `SIGTERM` signals during deployments, causing containers to hang for 10 seconds before being brutally killed by `SIGKILL`.
 
 **Shell form** — `CMD prog arg`. Runs via `/bin/sh -c`. A lone simple command is `exec`ed away; anything with shell syntax leaves `sh` resident as PID 1.
 

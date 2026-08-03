@@ -642,41 +642,145 @@ Finally, implement gradient descent on a convex quadratic of your own choosing a
 
 ---
 
-## 9. Glossary
+### 9.1 — Gradient ($\nabla f$) & Steepest Ascent Property
 
-**Derivative** — `f'(a) = lim (f(a+h) - f(a))/h as h -> 0`. The instantaneous rate of change of `f` at `a`; the slope of the tangent line there.
+- **Gradient ($\nabla f$)**: The vector of all partial derivatives of scalar function $f(x_1, x_2, \dots, x_n)$ with respect to every input variable.
+- **Steepest Ascent Property**: The gradient vector $\nabla f$ **always points in the exact direction of maximum instantaneous rate of increase**. The negative gradient $-\nabla f$ points in the direction of steepest descent.
 
-**Secant slope** — `(f(a+h) - f(a))/h` for a finite `h`. The two-point approximation whose limit is the derivative.
+#### 💡 The Beginner Analogy: Mountain Hiker in Fog
+Imagine standing on a mountain slope in dense fog (you can't see the top or bottom).
+- The **Gradient Vector** points straight UP hill along the steepest slope path under your feet.
+- To reach the bottom valley as fast as possible (minimize loss function), you turn 180 degrees opposite the gradient and step downhill (**Gradient Descent**: $\theta \gets \theta - \eta \nabla L$).
 
-**Limit** — the value an expression settles on as a parameter approaches something, without ever evaluating it there. `h -> 0` never reaches `0`, because `0/0` is meaningless.
+#### 🎨 Gradient Vector & Perpendicular Contours
 
-**Partial derivative** — the derivative with respect to one input while all other inputs are held fixed as constants. Written with a curly `d`.
+```mermaid
+flowchart TD
+    HIKER["Current Position (x, y) on Loss Surface"] --> GRAD["Gradient Vector ∇f"]
+    GRAD --> ASCENT["Points directly UPHILL (Steepest Ascent)"]
+    GRAD --> DESCENT["-∇f Points directly DOWNHILL (Gradient Descent)"]
+    GRAD --> CONTOUR["Perpendicular (90°) to Loss Contour Lines!"]
 
-**Gradient (`grad f`, `∇f`)** — the vector of all partial derivatives of `f`, one per input. Points in the direction of steepest ascent; its length is the rate of ascent in that direction.
+    style DESCENT fill:#2d6a4f,stroke:#52b788,color:#fff
+    style CONTOUR fill:#005f73,stroke:#0a9396,color:#fff
+```
 
-**Directional derivative (`D_u f`)** — the rate of change of `f` when walking in a chosen unit direction `u`. Equals `grad f . u = |grad f| * cos(theta)`.
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
 
-**Unit vector** — a vector of length exactly 1. Directions must be unit vectors for the directional derivative to measure a rate per unit distance.
+# f(x, y) = x^2 + 3*y^2
+# Analytic Gradient: [2x, 6y]
+def loss_func(x, y):
+    return x**2 + 3*y**2
 
-**Contour / level set** — the set of points where `f` takes one fixed value. The gradient is perpendicular to it everywhere, verified in Demo 5 to `5.329e-15`.
+def grad_func(x, y):
+    return np.array([2*x, 6*y])
 
-**Stationary point** — a point where `grad f = 0`. Every direction is momentarily flat: a minimum, maximum, or saddle. **1.11** distinguishes them.
+# At point (2.0, 1.0), grad is [4.0, 6.0]
+```
+**Why It Matters**: Gradient descent is the core optimization engine used to train all machine learning models and neural networks.
 
-**Learning rate (`lr`)** — the multiplier on the gradient in the update `p <- p - lr*grad`. Too large and descent diverges even with a perfectly correct direction.
+---
 
-**Hessian** — the matrix of second partial derivatives. Its largest eigenvalue sets the maximum safe learning rate, `lr < 2/lam_max`.
+### 9.2 — Directional Derivative ($D_u f = \nabla f \cdot u$)
 
-**Residual** — `prediction - target` for one example, written `r_i`. The squared-error gradient is built entirely from residuals and inputs.
+The rate of change of scalar function $f$ when moving in a specific normalized unit direction vector $u$ ($\|u\| = 1$). Computed via dot product:
+$$D_u f = \nabla f \cdot u = \|\nabla f\| \|u\| \cos(\theta) = \|\nabla f\| \cos(\theta)$$
 
-**Finite difference** — approximating a derivative by evaluating `f` at nearby points. **Forward**: `(f(a+h)-f(a))/h`. **Central**: `(f(a+h)-f(a-h))/(2h)`, more accurate for the same `h`.
+#### 💡 The Beginner Analogy: Walking Diagonally Across a Hill
+If you walk straight up the hill ($\theta = 0^\circ$), you gain height at maximum rate ($100\% \cdot \|\nabla f\|$). If you walk sideways along a level trail contour ($\theta = 90^\circ$), your elevation gain is **zero** ($\cos(90^\circ) = 0$).
 
-**Truncation error** — the error from the approximation formula itself. Shrinks as `h` shrinks.
+#### 🎨 Directional Derivative Angle Dependence
 
-**Roundoff error** — the error from subtracting two nearly equal floating-point numbers and dividing by a tiny `h`. **Grows** as `h` shrinks. The reason the Demo 2 curve is a U. See **1.12**.
+```mermaid
+flowchart LR
+    GRAD["Gradient Vector ∇f"] --> U_0["u along ∇f (θ = 0°) -> Max Increase (+||∇f||)"]
+    GRAD --> U_90["u perpendicular (θ = 90°) -> Zero Change (0.0)"]
+    GRAD --> U_180["u opposite -∇f (θ = 180°) -> Max Decrease (-||∇f||)"]
 
-**Machine epsilon (`eps`)** — the gap between `1.0` and the next representable float, `2.220446e-16` in float64. The optimal forward-difference step sits near its square root.
+    style U_180 fill:#2d6a4f,stroke:#52b788,color:#fff
+    style U_90 fill:#005f73,stroke:#0a9396,color:#fff
+```
 
-**Gradient checking** — comparing a hand-derived or hand-coded gradient against a central finite difference. The standard first move when a training loop misbehaves.
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+grad = np.array([4.0, 3.0])
+u_uphill = grad / np.linalg.norm(grad) # Unit direction
+
+# Directional derivative in gradient direction is maximum:
+rate = np.dot(grad, u_uphill) # -> 5.0 (Equals ||grad||)
+```
+**Why It Matters**: Proves mathematically why gradient descent MUST update parameters along $-\nabla f$ to achieve maximum loss reduction.
+
+---
+
+### 9.3 — Central Finite Difference & Gradient Checking
+
+Numerical approximation of derivatives used to verify analytical gradients:
+- **Forward Difference**: $\frac{f(x+h) - f(x)}{h}$ (Error $O(h)$)
+- **Central Difference**: $\frac{f(x+h) - f(x-h)}{2h}$ (Error $O(h^2)$)
+
+#### 💡 The Beginner Analogy: Checking Speedometer with Two Clocks
+- Forward difference: Measuring car speed by comparing position now vs 1 second in future.
+- Central difference: Measuring position 1 second ago vs 1 second in future, getting a much more accurate average speed centered at this exact second.
+
+#### 🎨 Forward vs Central Difference Accuracy
+
+```mermaid
+flowchart TD
+    FORWARD["Forward Difference: (f(x+h) - f(x)) / h"] --> ERR1["Error O(h) - Needs 2 evaluations"]
+    CENTRAL["Central Difference: (f(x+h) - f(x-h)) / (2h)"] --> ERR2["✅ Error O(h²) - High Accuracy!"]
+
+    style ERR2 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# Central Difference gradient checking
+def central_diff_grad(f, x, h=1e-5):
+    grad = np.zeros_like(x)
+    for i in range(len(x)):
+        x_plus = x.copy(); x_plus[i] += h
+        x_minus = x.copy(); x_minus[i] -= h
+        grad[i] = (f(x_plus) - f(x_minus)) / (2 * h)
+    return grad
+```
+**Why It Matters**: The gold standard test used during PyTorch custom C++/CUDA autograd kernel development to catch backpropagation derivation bugs.
+
+---
+
+### 9.4 — Floating-Point Roundoff vs. Truncation Error U-Curve ($h \approx \sqrt{\epsilon}$)
+
+Numerical finite difference error is governed by a **trade-off between two competing error sources**:
+1. **Truncation Error**: Mathematical approximation error shrinking as $h \to 0$ ($O(h^2)$).
+2. **Roundoff Error**: Floating-point cancellation error when subtracting two nearly equal numbers, which **explodes as $h \to 0$** ($O(\epsilon_{\text{mach}} / h)$).
+
+#### 💡 The Beginner Analogy: Telescope Zoom Lens
+Zooming in gets clearer details (reduces truncation error). But if you zoom in **too far**, the lens starts magnifying tiny microscopic atmospheric heat shimmer distortions (floating-point roundoff noise).
+
+#### 🎨 Finite Difference Error U-Curve
+
+```mermaid
+flowchart TD
+    LARGE_H["h = 1.0 (Too Large)"] --> TRUNC["High Truncation Error!"]
+    TINY_H["h = 1e-15 (Too Small)"] --> ROUNDOFF["💥 Catastrophic Roundoff Error (Catastrophic Cancellation!)"]
+    OPTIMAL["h ≈ 1e-5 (Float64 Optimal)"] --> IDEAL["✅ Minimum Total Error!"]
+
+    style IDEAL fill:#2d6a4f,stroke:#52b788,color:#fff
+    style ROUNDOFF fill:#9b2226,stroke:#ae2012,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# ❌ TRAP: Picking h = 1e-15 causes floating point catastrophic cancellation!
+h_bad = 1e-15
+# (f(x + 1e-15) - f(x - 1e-15)) produces garbage noise!
+
+# ✅ CORRECT: Pick h = 1e-5 for Float64 central differences
+h_optimal = 1e-5
+```
+**Why It Matters**: Explains why setting step size $h$ too small in numerical gradient checks produces corrupted comparisons due to float64 machine epsilon limits.
 
 ---
 

@@ -234,21 +234,277 @@ With this file **and** the script closed: create a package with `__init__.py`, d
 
 ## 9. Glossary
 
-**ABC (Abstract Base Class)** — a class that cannot be instantiated directly and whose `@abstractmethod`s must be implemented by subclasses. Moves "you forgot a method" from runtime to construction time.
+### 9.1 — ABC (Abstract Base Class)
 
-**Class attribute** — defined in the class body, stored once on the class object, shared by all instances. Safe when immutable, a bug source when mutable.
+A blueprint class that cannot be instantiated directly and forces any subclass to implement marked `@abstractmethod`s before an object can be built.
 
-**Instance attribute** — assigned via `self.x`, one copy per object.
+#### 💡 The Beginner Analogy: Employment Contract
+An ABC is like a strict **employment contract**. You cannot hire an employee (instantiate an object) who signed a blank contract with missing job duties (`@abstractmethod`). Python stops you the moment you attempt to create the object.
 
-**MRO (Method Resolution Order)** — the linearised sequence of classes Python searches for an attribute. Readable via `type(obj).__mro__`.
+#### 🎨 Failing at Startup vs. Failing in Production
 
-**Shadowing** — a name found earlier in the MRO hiding the same name later. Assigning `t.name` on an instance shadows the class value without changing it.
+```mermaid
+flowchart TD
+    subgraph NoABC ["❌ Without ABC (Fails late in production)"]
+        N1["BrokenTool defined (forgot run method)"] --> N2["Instantiates fine: tool = BrokenTool()"]
+        N2 --> N3["Agent executes at 3 AM: tool.run('query')"]
+        N3 --> N4["💥 AttributeError: 'BrokenTool' object has no attribute 'run'"]
+    end
 
-**Polymorphism** — code written against a base type working unmodified with any subclass, including ones that do not exist yet. The mechanism behind `list[Tool]` in agent frameworks.
+    subgraph WithABC ["✅ With ABC + @abstractmethod (Fails instantly at construction)"]
+        A1["BrokenTool(Tool) (forgot run method)"] --> A2["Try tool = BrokenTool()"]
+        A2 --> A3["⛔ TypeError: Can't instantiate abstract class BrokenTool..."]
+    end
 
-**`__init__.py`** — marks a directory as an importable package. Its absence causes `ModuleNotFoundError` that has nothing to do with the code being wrong.
+    style N4 fill:#9b2226,stroke:#ae2012,color:#fff
+    style A3 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
 
-**venv** — an isolated interpreter and `site-packages` per project, so version pins do not collide across projects.
+#### 💻 Code Example
+```python
+from abc import ABC, abstractmethod
+
+class BaseTool(ABC):
+    @abstractmethod
+    def run(self, query: str) -> str:
+        pass
+
+class BrokenTool(BaseTool):
+    pass # Forgot to implement run()!
+
+# tool = BrokenTool() 
+# 💥 TypeError: Can't instantiate abstract class BrokenTool without an implementation for abstract method 'run'
+```
+
+---
+
+### 9.2 — Class Attribute vs. Instance Attribute
+
+- **Class Attribute**: Defined directly in the class body; stored **once** on the class object and **shared by all instances**.
+- **Instance Attribute**: Defined on `self` (usually inside `__init__`); unique copy per object instance.
+
+#### 💡 The Beginner Analogy: Hallway Whiteboard vs. Desk Notepad
+- **Class Attribute**: A whiteboard in the office hallway. If Employee A writes a note on it, Employee B sees it too!
+- **Instance Attribute**: A personal notebook inside Employee A's private desk drawer.
+
+#### 🎨 The Shared Mutable Attribute Bug
+
+```mermaid
+flowchart TD
+    subgraph ClassLevel ["Tool Class Object (Shared)"]
+        CLASS_NAME["name = 'unnamed' (Immutable, safe to share)"]
+        CLASS_LOG["call_log = [] (MUTABLE — SHARED WHITEBOARD!)"]
+    end
+
+    subgraph InstA ["Instance a (SQLTool)"]
+        A_DSN["self.dsn = 'oracle://a'"]
+    end
+
+    subgraph InstB ["Instance b (SearchTool)"]
+        B_END["self.endpoint = 'https://search'"]
+    end
+
+    InstA -->|"a.call_log.append('SELECT 1')"| CLASS_LOG
+    InstB -->|"b.call_log.append('search py')"| CLASS_LOG
+    CLASS_LOG --> BUG["💥 Cross-Tenant Data Leak!<br>a.call_log IS b.call_log -> True<br>Both instances see BOTH entries!"]
+
+    style CLASS_LOG fill:#9b2226,stroke:#ae2012,color:#fff
+    style BUG fill:#9b2226,stroke:#ae2012,color:#fff
+    style A_DSN fill:#2d6a4f,stroke:#52b788,color:#fff
+    style B_END fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & Fix
+```python
+# ❌ BUG: Mutable class attribute shared across ALL instances
+class Tool:
+    call_log: list[str] = [] # Shared list!
+
+# ✅ FIX: Create mutable attributes inside __init__ per instance
+class Tool:
+    def __init__(self) -> None:
+        self.call_log: list[str] = [] # Private list per instance
+```
+
+---
+
+### 9.3 — MRO (Method Resolution Order)
+
+The exact linear sequence of classes Python searches when looking up an attribute or method on an object.
+
+#### 💡 The Beginner Analogy: Searching for Misplaced Keys
+When searching for your keys:
+1. Check your **pockets** (Instance attributes `self.x`).
+2. Check your **bedroom** (The child class `SQLTool`).
+3. Check the **living room** (The parent base class `Tool`).
+4. Check the **house foundation** (`ABC` / `object`).
+
+Python searches in this exact order and stops at the very **first** location where it finds the attribute!
+
+#### 🎨 Attribute Lookup Path
+
+```mermaid
+flowchart LR
+    LOOKUP["t.name"] --> STEP1{"1. On Instance (t)?"}
+    STEP1 -->|"Yes"| RET1["Return instance value"]
+    STEP1 -->|"No"| STEP2{"2. On Child Class (SQLTool)?"}
+    STEP2 -->|"Yes"| RET2["Return 'sql_query'"]
+    STEP2 -->|"No"| STEP3{"3. On Base Class (Tool)?"}
+    STEP3 -->|"Yes"| RET3["Return 'unnamed'"]
+    STEP3 -->|"No"| STEP4{"4. On ABC / object?"}
+    STEP4 -->|"No"| ERR["💥 AttributeError"]
+
+    style RET1 fill:#2d6a4f,stroke:#52b788,color:#fff
+    style RET2 fill:#2d6a4f,stroke:#52b788,color:#fff
+    style ERR fill:#9b2226,stroke:#ae2012,color:#fff
+```
+
+#### 💻 How to view MRO in code
+```python
+print(SQLTool.__mro__)
+# Output: (<class 'SQLTool'>, <class 'Tool'>, <class 'abc.ABC'>, <class 'object'>)
+```
+
+---
+
+### 9.4 — Shadowing
+
+Creating an instance attribute with the same name as a class attribute. The instance attribute hides ("shadows") the class value for that specific object without altering the class default for other objects.
+
+#### 💡 The Beginner Analogy: Door Sticky Note
+Placing a sticky note over a printed office room sign. The sticky note covers up the printed text for anyone looking at that specific door (the instance), but the original printed sign underneath (the class) remains unchanged for everyone else!
+
+#### 🎨 Shadowing Mechanism
+
+```mermaid
+flowchart TD
+    subgraph ClassLevel ["Class Definition (Tool)"]
+        C_VAL["Tool.name = 'unnamed'"]
+    end
+
+    subgraph InstanceLevel ["Instance (t)"]
+        I_VAL["t.name = 'instance_override'<br>(Shadows Tool.name)"]
+    end
+
+    READ_T["Read t.name"] --> I_VAL
+    READ_CLASS["Read Tool.name"] --> C_VAL
+
+    style I_VAL fill:#2d6a4f,stroke:#52b788,color:#fff
+    style C_VAL fill:#005f73,stroke:#0a9396,color:#fff
+```
+
+#### 💻 Code Example
+```python
+t = SQLTool()
+t.name = "my_custom_sql"  # Assigning on instance creates an instance attribute!
+
+print(t.name)         # -> 'my_custom_sql' (Found on instance)
+print(SQLTool.name)   # -> 'sql_query'       (Class value UNCHANGED!)
+```
+
+---
+
+### 9.5 — Polymorphism
+
+Designing functions to accept a general base class (`Tool`), enabling any present or future subclass (`SQLTool`, `SearchTool`, `APITool`) to be passed in and executed without modifying the caller.
+
+#### 💡 The Beginner Analogy: Universal USB-C Port
+A laptop's USB-C port doesn't care whether you plug in a mouse, keyboard, or flash drive. As long as the device adheres to the USB standard protocol, the laptop interacts with it seamlessly.
+
+#### 🎨 Framework Polymorphism in Action
+
+```mermaid
+flowchart TD
+    FRAMEWORK["Agent Framework / Tool Registry"] -->|"Calls describe(tool: Tool)"| CONTRACT["Abstract Base: Tool"]
+    CONTRACT --> IMPL1["SQLTool (runs SQL queries)"]
+    CONTRACT --> IMPL2["SearchTool (runs Web searches)"]
+    CONTRACT --> IMPL3["NewCustomTool (Built next month!)"]
+
+    style CONTRACT fill:#005f73,stroke:#0a9396,color:#fff
+    style FRAMEWORK fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example
+```python
+def describe_tool(tool: Tool) -> str:
+    # Written ONCE. Works for SQLTool, SearchTool, and tools not created yet!
+    return f"{tool.name} (Timeout: {tool.timeout}s)"
+
+tools: list[Tool] = [SQLTool(), SearchTool()]
+for t in tools:
+    print(describe_tool(t))
+```
+
+---
+
+### 9.6 — `__init__.py`
+
+A special configuration file placed inside a directory to signal to Python's import engine that the folder should be treated as an importable package.
+
+#### 💡 The Beginner Analogy: Passport Entry Permit
+Without `__init__.py`, Python treats a folder full of files as just a plain file system directory, refusing to let other Python modules import code from inside it. `__init__.py` acts as the passport entry stamp.
+
+#### 🎨 Directory Structure
+```
+my_project/
+├── tools/
+│   ├── __init__.py    <-- 🔑 Entry Permit! Makes `tools` an importable package
+│   ├── base.py
+│   └── sql.py
+└── main.py            <-- Imports via: `from tools.sql import SQLTool`
+```
+
+#### ⚠️ Why It Matters
+Forgetting `__init__.py` causes `ModuleNotFoundError` errors when structuring multi-file projects, test suites, or modular libraries.
+
+---
+
+### 9.7 — venv (Virtual Environment)
+
+An isolated sandbox directory per project containing its own Python executable and `site-packages` folder.
+
+#### 💡 The Beginner Analogy: Private Toolboxes
+Installing Python packages globally is like throwing all your tools onto **one shared workbench**:
+- **Project A** requires `pandas==1.5.3`.
+- **Project B** upgrades the workbench to `pandas==2.2.0`.
+- **Project A breaks** because its required version was overwritten!
+
+A **Virtual Environment** gives every project its own **private toolbox** containing the exact package versions it needs, completely isolated from system Python and other projects.
+
+#### 🎨 Global Python vs. Isolated Virtual Environments
+
+```mermaid
+flowchart TD
+    subgraph GlobalSystem ["❌ Global Python (Shared Workbench)"]
+        SYS_PY["System Python (Global)"]
+        SYS_PKGS["Global site-packages"]
+        PROJ_A1["Project A (wants pandas 1.5)"] --> SYS_PKGS
+        PROJ_B1["Project B (wants pandas 2.2)"] --> SYS_PKGS
+        SYS_PKGS --> CONFLICT["💥 Overwritten Package & Production Crash!"]
+    end
+
+    subgraph IsolatedVenv ["✅ Virtual Environments (Private Toolboxes)"]
+        subgraph VENV_A ["Project A Sandbox (.venv/)"]
+            PY_A["Isolated python"]
+            PKG_A["site-packages: pandas 1.5"]
+        end
+        subgraph VENV_B ["Project B Sandbox (.venv/)"]
+            PY_B["Isolated python"]
+            PKG_B["site-packages: pandas 2.2"]
+        end
+        PROJ_A2["Project A"] --> VENV_A
+        PROJ_B2["Project B"] --> VENV_B
+    end
+
+    style CONFLICT fill:#9b2226,stroke:#ae2012,color:#fff
+    style VENV_A fill:#2d6a4f,stroke:#52b788,color:#fff
+    style VENV_B fill:#005f73,stroke:#0a9396,color:#fff
+```
+
+#### ⚙️ How it works under the hood
+1. **Creation** (`python -m venv .venv`): Creates a `.venv/` folder containing local binaries (`python`, `pip`) and a fresh `site-packages/` directory.
+2. **Activation** (`source .venv/bin/activate` or `.\.venv\Scripts\Activate.ps1`): Prepends `.venv` to your OS environment `PATH` variable so running `python` or `pip` automatically resolves to the local `.venv`.
+3. **Deactivation** (`deactivate`): Restores your terminal's original system `PATH`.
 
 ---
 

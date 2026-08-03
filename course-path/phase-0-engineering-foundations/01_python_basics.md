@@ -248,17 +248,241 @@ With this file **and** the script closed, write from scratch: read a CSV of invo
 
 ## 9. Glossary
 
-**Comprehension** — expression-form loop producing a list, dict or set. The append-expression moves to the front. Same semantics as the loop, more idiomatic, marginally faster.
+### 9.1 — Comprehension
 
-**Context manager** — object usable with `with`, guaranteeing cleanup (`__exit__`) even when the block raises. `open()` is the canonical one.
+An expression-level loop construct that constructs a new `list`, `dict`, or `set` in a single readable line. The transform expression comes first, followed by the `for` loop and optional `if` filters.
 
-**`defaultdict`** — dict subclass calling a zero-argument factory on first access to a missing key. `defaultdict(float)` yields `0.0`, removing the "if key not in d" guard.
+#### 💡 The Beginner Analogy: Factory Assembly Line Filter
+Instead of taking raw materials into a warehouse, creating an empty bin (`out = []`), walking items over one by one (`for x in items:`), inspecting them (`if condition:`), and dropping them in (`out.append(x)`)... a comprehension is a **smart conveyor belt** with built-in sensors that filters and transforms items directly into the output box in one continuous movement.
 
-**Falsy** — values evaluating `False` in a boolean context: `''`, `0`, `[]`, `{}`, `None`. The reason `x or default` catches empty strings where `.get(k, default)` does not.
+#### 🎨 Loop vs. Comprehension Data Flow
 
-**Lexicographic ordering** — character-by-character string comparison. `'9000' > '150000'` is `True` because `'9' > '1'`. The cause of Demo 4's silent bug.
+```mermaid
+flowchart TD
+    subgraph MultiLineLoop ["❌ Verbose For-Loop (4 steps)"]
+        L1["Initialize: out = []"] --> L2["Loop: for row in rows"]
+        L2 --> L3{"Filter: if row['status'] == 'OPEN'"}
+        L3 -->|"Yes"| L4["Mutate: out.append(row['id'])"]
+    end
 
-**Vectorization** — expressing an operation over a whole array rather than element-by-element, pushing the loop into C. Introduced in **0.6**, formalised in **1.14**.
+    subgraph Comprehension ["✅ List Comprehension (1 step)"]
+        C1["[row['id'] for row in rows if row['status'] == 'OPEN']"]
+    end
+
+    style C1 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# ❌ Verbose & slower (repeated method calls in Python bytecode)
+open_ids = []
+for row in rows:
+    if row["status"] == "OPEN":
+        open_ids.append(row["id"])
+
+# ✅ Idiomatic & optimized in C-CPython
+open_ids = [row["id"] for row in rows if row["status"] == "OPEN"]
+```
+**Why It Matters**: Comprehensions are not just syntactic sugar; they run faster because CPython avoids attribute lookup and function call overhead for `.append()` on every iteration.
+
+---
+
+### 9.2 — Context Manager (`with` statement)
+
+An object that manages resource setup and teardown automatically via internal `__enter__` and `__exit__` hooks, guaranteeing cleanup even if exceptions are raised inside the block.
+
+#### 💡 The Beginner Analogy: Auto-Locking Hotel Room
+Opening a resource (file, database connection, network socket) without a context manager is like leaving a hotel room door wide open when you leave. A **Context Manager** is an automatic door closer: the instant you step out of the room (exit the `with` block or crash inside it), the door automatically locks shut behind you (`file.close()`).
+
+#### 🎨 Resource Cleanup Protection
+
+```mermaid
+flowchart TD
+    subgraph RawFile ["❌ Manual open() / close() (Leaks on Crash)"]
+        F1["f = open('data.csv')"] --> F2["Process lines..."]
+        F2 -->|💥 Exception Raised| F3["Crash! f.close() NEVER executed!"]
+        F3 --> LEAK["Resource Leak (Locked File / Leaked Socket)"]
+    end
+
+    subgraph ContextMgr ["✅ with open('data.csv') as f (Guaranteed Cleanup)"]
+        W1["with open('data.csv') as f:"] --> W2["Process lines..."]
+        W2 -->|Normal Exit or Exception| W3["__exit__() fires automatically!"]
+        W3 --> CLEAN["File Closed Cleanly"]
+    end
+
+    style LEAK fill:#9b2226,stroke:#ae2012,color:#fff
+    style CLEAN fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# ❌ Dangerous: If an error happens during processing, file remains open in OS
+f = open("invoices.csv")
+data = f.read()
+# if error occurs here, f.close() is skipped!
+f.close()
+
+# ✅ Safe: Guaranteed cleanup regardless of exceptions
+with open("invoices.csv") as f:
+    data = f.read()
+```
+**Why It Matters**: Unclosed file handles lead to OS file locks and file descriptor exhaustion in high-concurrency applications.
+
+---
+
+### 9.3 — `defaultdict`
+
+A subclass of `dict` provided by the `collections` module that calls a zero-argument factory function (like `float`, `int`, or `list`) to supply a default value whenever a missing key is accessed.
+
+#### 💡 The Beginner Analogy: Self-Refilling Refreshment Stand
+A standard dictionary is like a vendor counter: if you ask for a drink flavor that isn't on the counter (`d[key]`), the vendor shouts **"KeyError!"** and crashes. A `defaultdict` is an automatic vending machine: if you request a new key, it automatically creates a fresh empty cup (`0.0` or `[]`) for you instantly without throwing a fit.
+
+#### 🎨 Key Lookup Handling
+
+```mermaid
+flowchart TD
+    subgraph StandardDict ["❌ Standard dict"]
+        D1["d['vendor_a'] += 100.0"] --> D2{"Is 'vendor_a' in d?"}
+        D2 -->|"No"| D3["💥 KeyError: 'vendor_a'"]
+    end
+
+    subgraph DefaultDict ["✅ defaultdict(float)"]
+        DD1["dd['vendor_a'] += 100.0"] --> DD2{"Is 'vendor_a' in dd?"}
+        DD2 -->|"No"| DD3["Invoke factory: float() -> 0.0"]
+        DD3 --> DD4["Perform: 0.0 + 100.0 -> Store 100.0"]
+    end
+
+    style D3 fill:#9b2226,stroke:#ae2012,color:#fff
+    style DD4 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+from collections import defaultdict
+
+# ❌ Clunky boilerplate required with standard dicts
+totals = {}
+for vendor, amount in transactions:
+    if vendor not in totals:
+        totals[vendor] = 0.0
+    totals[vendor] += amount
+
+# ✅ Clean & fast with defaultdict
+totals = defaultdict(float)
+for vendor, amount in transactions:
+    totals[vendor] += amount
+```
+**Why It Matters**: Eliminates repetitive `if key not in dict` checking code and avoids accidental runtime `KeyError` crashes when grouping data.
+
+---
+
+### 9.4 — Falsy
+
+Values in Python that evaluate to `False` when converted to a boolean context (`bool(value)`), including `""`, `0`, `0.0`, `[]`, `{}`, `set()`, `None`.
+
+#### 💡 The Beginner Analogy: Empty Envelopes
+Imagine receiving envelopes in the mail. An envelope containing a letter is **Truthy**. An empty envelope (`""`, `[]`, `{}`), zero coins (`0`), or a blank piece of paper (`None`) is **Falsy** — even though the envelope physical object exists, its content is effectively "nothing".
+
+#### 🎨 `.get(key, default)` Trap with Empty Strings
+
+```mermaid
+flowchart TD
+    DATA["row = {'vendor': ''} (Key EXISTS, but value is empty string)"] --> TEST1["row.get('vendor', 'UNKNOWN')"]
+    TEST1 --> RESULT1["Returns '' (Empty string! Default skipped because key exists)"]
+
+    DATA --> TEST2["row.get('vendor') or 'UNKNOWN'"]
+    TEST2 --> RESULT2["Returns 'UNKNOWN' (Evaluates falsy '' and returns default)"]
+
+    style RESULT1 fill:#9b2226,stroke:#ae2012,color:#fff
+    style RESULT2 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+row = {"vendor": ""} # CSV row where key exists, but value is empty
+
+# ❌ TRAP: dict.get() only falls back if key is MISSING, not if empty!
+vendor_1 = row.get("vendor", "UNKNOWN")  # -> "" (Silent bug!)
+
+# ✅ CORRECT IDIOM: Uses boolean 'or' over falsy value
+vendor_2 = row.get("vendor") or "UNKNOWN" # -> "UNKNOWN"
+```
+**Why It Matters**: CSV parsers set missing values to empty strings `""`. Using `.get(key, "default")` fails to fall back because the key *is* present in the dict!
+
+---
+
+### 9.5 — Lexicographic Ordering
+
+Character-by-character dictionary sorting based on ASCII/Unicode character codes rather than numerical magnitude.
+
+#### 💡 The Beginner Analogy: Alphabetical Phonebook
+In an alphabetical phonebook, the word **"Apple"** comes before **"Banana"**. Similarly, the string **"150000"** comes *before* **"9000"** because the first character `'1'` is smaller than `'9'`, completely ignoring the fact that 150,000 is numerically larger than 9,000.
+
+#### 🎨 Numeric vs. Lexicographic String Comparison
+
+```mermaid
+flowchart TD
+    COMP["Compare: '9000' > '150000'"] --> STEP1["Inspect 1st Character: '9' vs '1'"]
+    STEP1 --> STEP2["'9' > '1' is TRUE in ASCII"]
+    STEP2 --> BUG["💥 '9000' > '150000' evaluates to TRUE!"]
+
+    NUM["Compare: float('9000') > float('150000')"] --> NUM_STEP["9000.0 > 150000.0"]
+    NUM_STEP --> FIX["✅ Evaluates to FALSE (Correct math)"]
+
+    style BUG fill:#9b2226,stroke:#ae2012,color:#fff
+    style FIX fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# ❌ TRAP: Strings read directly from CSV sorting alphabetically
+raw_amounts = ["9000.0", "150000.0", "250.0"]
+sorted_amounts = sorted(raw_amounts, reverse=True)
+# -> ['9000.0', '250.0', '150000.0'] 💥 Completely wrong order!
+
+# ✅ FIX: Convert to float before sorting
+sorted_amounts = sorted(raw_amounts, key=float, reverse=True)
+# -> ['150000.0', '9000.0', '250.0']
+```
+**Why It Matters**: Reading numbers from CSV files leaves them as strings. Comparing or sorting raw CSV strings leads to silent financial and analytical sorting corruption.
+
+---
+
+### 9.6 — Vectorization
+
+Expressing mathematical operations over an entire array of data simultaneously, pushing computational loops into compiled C/Assembly code rather than interpreting element-by-element Python `for` loops.
+
+#### 💡 The Beginner Analogy: Stamp Press vs. Hand Pen
+Calculating values in a Python `for` loop is like signing 1,000 documents **by hand, one by one**. **Vectorization** is using a giant **industrial stamp press** that stamps all 1,000 documents simultaneously in a single downward motion.
+
+#### 🎨 Python Loop vs. C-Vectorized Array Operation
+
+```mermaid
+flowchart TD
+    subgraph PythonLoop ["❌ Python For-Loop (Slow Interpreted Loop)"]
+        P1["Iterate element 1 -> Type check -> Multiply"] --> P2["Iterate element 2 -> Type check -> Multiply"]
+        P2 --> P3["Iterate element N... (High overhead per step)"]
+    end
+
+    subgraph Vectorized ["✅ Vectorized NumPy/C Operation"]
+        V1["Pass entire SIMD contiguous memory array to C CPU registers"] --> V2["Process 1000s of numbers in single CPU clock cycle"]
+    end
+
+    style PythonLoop fill:#9b2226,stroke:#ae2012,color:#fff
+    style Vectorized fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+# ❌ Slow Python loop (100x slower)
+out = [x * 1.18 for x in prices]
+
+# ✅ Vectorized array computation (SIMD hardware execution)
+out = np.array(prices) * 1.18
+```
+**Why It Matters**: Essential for AI/ML data processing. Vectorization delivers 10x to 100x speedups, allowing models to process millions of rows in milliseconds.
 
 ---
 

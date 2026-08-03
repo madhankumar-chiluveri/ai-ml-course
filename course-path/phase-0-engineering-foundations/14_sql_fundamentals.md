@@ -500,29 +500,202 @@ Then, on the same data: produce a per-parent report that includes parents with *
 
 ---
 
-## 9. Glossary
+### 9.1 — `INNER JOIN` vs. `LEFT JOIN` & Fan-Out Inflation
 
-**`INNER JOIN`** — keeps only rows that matched on both sides. The default when you write plain `JOIN`, and the reason reports lose rows nobody asked to remove.
+- **`INNER JOIN`**: Retains only rows that match on **both** left and right tables. Unmatched left rows are discarded.
+- **`LEFT JOIN`**: Retains **all** left table rows, filling missing right table columns with `NULL`s.
+- **Fan-Out Inflation**: Occurs when a left row matches multiple right rows, duplicating the left row $N$ times and inflating sum/count aggregates.
 
-**`LEFT JOIN`** — keeps every left row, filling the right side with NULLs when nothing matched. Fixes the missing rows and immediately requires `COUNT(col)` and `COALESCE`.
+#### 💡 The Beginner Analogy: Guest List Check-in vs. Ticket Sales
+- `INNER JOIN`: Checking in guests at a gala where only people who **both have a ticket AND arrived at the door** are allowed inside. Unregistered attendees are turned away.
+- `LEFT JOIN`: Calling every person on the guest list. If they didn't bring a date (`NULL`), their name still stays on the master guest registry.
+- Fan-Out: If a guest bought 3 separate raffle tickets, their name appears 3 times on the sheet. Summing their ticket value directly doubles or triples their reported head count!
 
-**Fan-out** — a join matching more than one row on the right, duplicating each left row. Every aggregate after it is inflated by the duplication factor — measured at 1.99x in Demo 6.
+#### 🎨 Fan-Out Duplicate Multiplication
 
-**`WHERE`** — filters individual rows, before grouping. Cannot reference an aggregate, because none exists yet.
+```mermaid
+flowchart TD
+    subgraph FanOutBug ["❌ Fan-Out Multiplication"]
+        USER["User A (1 row)"] --> JOIN["JOIN 3 Invoices for User A"]
+        JOIN --> DUP["User A duplicated into 3 rows in join table!"]
+        DUP --> SUM["SUM(user_credit) multiplies user credit x3!"]
+    end
 
-**`HAVING`** — filters whole groups, after grouping. The only place an aggregate condition can go.
+    subgraph LeftJoinSafe ["✅ Pre-aggregate Right Table before Join"]
+        INV["Pre-aggregate Invoices by User ID"] --> SAFE_JOIN["LEFT JOIN 1 aggregated row"]
+        SAFE_JOIN --> ACCURATE["Accurate Financial Sums!"]
+    end
 
-**`GROUP BY`** — collapses rows into one row per distinct key combination. Group by the key column, not just the display name.
+    style SUM fill:#9b2226,stroke:#ae2012,color:#fff
+    style ACCURATE fill:#2d6a4f,stroke:#52b788,color:#fff
+```
 
-**`COUNT(*)` vs `COUNT(col)`** — rows versus non-NULL values of `col`. On a `LEFT JOIN` with no match they differ by exactly one, and only the second is meaningful.
+#### 💻 Code Example & ⚠️ Why It Matters
+```sql
+-- ❌ TRAP: Inner join drops customers who have 0 orders!
+SELECT c.name, COUNT(o.id) 
+FROM customers c 
+JOIN orders o ON c.id = o.customer_id 
+GROUP BY c.name;
 
-**`COALESCE(x, y)`** — returns `x` unless it is NULL, in which case `y`. The standard defence against `SUM` over zero rows returning NULL.
+-- ✅ CORRECT: LEFT JOIN preserves all customers, defaulting missing orders to 0
+SELECT c.name, COUNT(o.id) 
+FROM customers c 
+LEFT JOIN orders o ON c.id = o.customer_id 
+GROUP BY c.name;
+```
+**Why It Matters**: `INNER JOIN` silently drops inactive users or empty categories from financial reports. Uncontrolled 1-to-many joins inflate financial metrics by 2x-5x.
 
-**Three-valued logic** — SQL predicates are `TRUE`, `FALSE` or `UNKNOWN`. `WHERE` keeps only `TRUE`, which is how NULL rows vanish from both branches of a supposedly exhaustive filter.
+---
 
-**`NOT EXISTS`** — a correlated existence test that is immune to NULLs in the inner set. The default choice over `NOT IN`.
+### 9.2 — `WHERE` vs. `HAVING` (Logical SQL Order of Execution)
 
-**Index (B-tree)** — a second, sorted copy of one or more columns with pointers back to the rows. Faster reads, slower writes, more disk. All three were measured.
+- **`WHERE`**: Filters **individual raw rows** before any grouping (`GROUP BY`) takes place. Cannot reference aggregate functions (`SUM`, `COUNT`).
+- **`HAVING`**: Filters **aggregated groups** after grouping has taken place.
+
+#### 💡 The Beginner Analogy: Sorting Students before vs. after Test Grading
+- `WHERE`: Filtering out students who were **absent from taking the exam** before grading begins.
+- `HAVING`: Grouping students by study group, calculating group average scores, and filtering out **study groups whose average score is below 70%**.
+
+#### 🎨 SQL Logical Execution Pipeline
+
+```mermaid
+flowchart TD
+    RAW["Raw Database Rows"] --> WHERE["1. WHERE Clause (Filters individual rows)"]
+    WHERE --> GROUP["2. GROUP BY (Groups rows by key)"]
+    GROUP --> AGG["3. AGGREGATE (Calculates SUM, COUNT, AVG)"]
+    AGG --> HAVING["4. HAVING Clause (Filters grouped aggregates)"]
+    HAVING --> SELECT["5. SELECT Projection"]
+
+    style WHERE fill:#005f73,stroke:#0a9396,color:#fff
+    style HAVING fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```sql
+-- ❌ TRAP: WHERE cannot evaluate aggregates! Raises SQL Syntax Error!
+-- SELECT dept, COUNT(*) FROM emp WHERE COUNT(*) > 5 GROUP BY dept;
+
+-- ✅ CORRECT: Use HAVING for aggregate filtering after GROUP BY
+SELECT dept, COUNT(*) 
+FROM emp 
+GROUP BY dept 
+HAVING COUNT(*) > 5;
+```
+**Why It Matters**: Writing aggregate filters inside `WHERE` causes immediate SQL engine parser errors.
+
+---
+
+### 9.3 — `COUNT(*)` vs. `COUNT(column)` & `COALESCE`
+
+- **`COUNT(*)`**: Counts total number of **rows** in the group or result set, including `NULL` values.
+- **`COUNT(column)`**: Counts only rows where `column` is **NOT NULL**.
+- **`COALESCE(val, default)`**: Returns the first non-NULL value in its argument list.
+
+#### 💡 The Beginner Analogy: Attendance Sheets vs. Signed Ballots
+- `COUNT(*)`: Counting how many chairs are occupied in a conference room.
+- `COUNT(column)`: Counting how many people in those chairs **actually raised a signed voting card** (ignoring blank hands / `NULL`s).
+- `COALESCE`: Checking your pocket for cash. If empty (`NULL`), pulling out your backup $20 bill from your shoe (`COALESCE(pocket_cash, 20.0)`).
+
+#### 🎨 `COUNT(*)` vs `COUNT(col)` on `LEFT JOIN`
+
+```mermaid
+flowchart TD
+    DATA["Customer 'Bob' has ZERO orders (LEFT JOIN row: [Bob, NULL])"] --> C1["COUNT(*) -> Returns 1 (Counts the row!)"]
+    DATA --> C2["COUNT(order_id) -> Returns 0 (Ignores NULL order_id!)"]
+
+    style C1 fill:#9b2226,stroke:#ae2012,color:#fff
+    style C2 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```sql
+-- ❌ TRAP: COUNT(*) on LEFT JOIN reports users with 0 orders as having 1 order!
+SELECT u.name, COUNT(*) 
+FROM users u 
+LEFT JOIN orders o ON u.id = o.user_id 
+GROUP BY u.name;
+
+-- ✅ CORRECT IDIOM: COUNT(o.id) & COALESCE for sums
+SELECT u.name, 
+       COUNT(o.id) AS order_count, 
+       COALESCE(SUM(o.amount), 0.0) AS total_spent
+FROM users u 
+LEFT JOIN orders o ON u.id = o.user_id 
+GROUP BY u.name;
+```
+**Why It Matters**: Using `COUNT(*)` on a `LEFT JOIN` erroneously reports inactive users as having 1 activity event.
+
+---
+
+### 9.4 — Three-Valued Logic & `NOT EXISTS` vs. `NOT IN`
+
+- **Three-Valued Logic**: SQL logic evaluates to `TRUE`, `FALSE`, or `UNKNOWN` (when operating on `NULL`s). `WHERE` clauses **only** pass rows evaluating to `TRUE`.
+- **`NOT IN (subquery)`**: If the subquery returns even a **single `NULL` value**, `NOT IN` evaluates to `UNKNOWN` for all rows, returning an **empty result set**!
+- **`NOT EXISTS (subquery)`**: Evaluates row-by-row existence without being corrupted by `NULL` values.
+
+#### 💡 The Beginner Analogy: Blacklist with a Smudged Name
+Imagine checking a guest list against a banlist: `["AttackerA", "AttackerB", NULL]`.
+- `NOT IN`: The `NULL` smudged entry makes you say: *"I don't know who the smudged name is, so I can't confirm if ANY guest is allowed in!"* (Entire party turned away).
+- `NOT EXISTS`: Checking each guest individually: *"Is Guest A specifically written on the clear lines of the banlist?"*
+
+#### 🎨 `NOT IN` NULL Poisoning Trap
+
+```mermaid
+flowchart TD
+    SUB["Subquery returns: (10, 20, NULL)"] --> NOTIN["WHERE id NOT IN (10, 20, NULL)"]
+    NOTIN --> POISON["💥 Evaluates to UNKNOWN for ALL rows -> Returns ZERO results!"]
+
+    EXISTS["WHERE NOT EXISTS (SELECT 1 FROM tbl WHERE tbl.id = main.id)"] --> SAFE["✅ Evaluates cleanly (Ignores NULLs)"]
+
+    style POISON fill:#9b2226,stroke:#ae2012,color:#fff
+    style SAFE fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```sql
+-- ❌ TRAP: If subquery contains a NULL, returns 0 rows silently!
+SELECT * FROM users WHERE id NOT IN (SELECT manager_id FROM departments);
+
+-- ✅ SAFE IDIOM: Immune to NULL poisoning
+SELECT * FROM users u 
+WHERE NOT EXISTS (
+    SELECT 1 FROM departments d WHERE d.manager_id = u.id
+);
+```
+**Why It Matters**: `NOT IN` with subqueries containing `NULL` is a top cause of production SQL query silence (queries returning 0 rows unexpectedly).
+
+---
+
+### 9.5 — B-Tree Indexing Trade-offs
+
+A sorted auxiliary data structure maintained by database engines that allows binary search lookups ($O(\log N)$) on specific indexed columns instead of scanning the full table ($O(N)$).
+
+#### 💡 The Beginner Analogy: Book Index vs. Page Flip
+Scanning a 1,000-page book without an index requires **reading every page from page 1 to 1,000** (Seq Scan). A **B-Tree Index** is the alphabetical topic index in the back of the book — it tells you instantly that `"Postgres"` is mentioned on page 412.
+
+#### 🎨 Full Table Scan vs. B-Tree Index Lookup
+
+```mermaid
+flowchart TD
+    subgraph SeqScan ["❌ Sequential Scan (O(N) Disk Reads)"]
+        S1["Read Block 1 -> Read Block 2 ... Read Block 1,000,000"]
+    end
+
+    subgraph IndexScan ["✅ B-Tree Index Lookup (O(log N) Buffer Hits)"]
+        I1["B-Tree Root -> Branch -> Leaf Pointer -> Direct Row Block Hit (3 reads!)"]
+    end
+
+    style S1 fill:#9b2226,stroke:#ae2012,color:#fff
+    style I1 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```sql
+-- Speeds up SELECT queries from 500ms down to 1ms
+CREATE INDEX idx_orders_customer_id ON orders(customer_id);
+```
+**Why It Matters**: Indexes accelerate `SELECT` read queries, but **slow down `INSERT`, `UPDATE`, and `DELETE` operations** because the database engine must rewrite the B-Tree index structure on every write.
 
 **`SCAN` / `SEARCH`** — SQLite plan verbs for "read every row" and "descend an index to the matching rows". PostgreSQL's equivalents are `Seq Scan` and `Index Scan`.
 
