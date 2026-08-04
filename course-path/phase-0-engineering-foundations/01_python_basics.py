@@ -173,6 +173,7 @@ def demo_vectorised_preview() -> None:
     print("  0.6 NumPy removes the Python-level loop entirely. Compare:")
 
     try:
+        # pyrefly: ignore [missing-import]
         import numpy as np
         arr = np.arange(2_000_000)
         t0 = time.perf_counter()
