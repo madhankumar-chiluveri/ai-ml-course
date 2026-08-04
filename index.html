@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI & ML Course Studio Workspace</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Marked Markdown Renderer CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Prism.js Syntax Highlighting CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markdown.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- TOP APP HEADER -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-logo">
+          <i class="fa-solid fa-brain"></i>
+        </div>
+        <div class="brand-info">
+          <h1>AI & ML Course Studio</h1>
+          <span class="branch-tag"><i class="fa-solid fa-code-branch"></i> sudam-rohith</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="layout-indicator">
+          <span class="badge badge-left"><i class="fa-solid fa-folder-tree"></i> Left: Projects</span>
+          <span class="badge badge-middle"><i class="fa-solid fa-file-code"></i> Middle: Data</span>
+          <span class="badge badge-right"><i class="fa-solid fa-robot"></i> Right: AI Chatbot</span>
+        </div>
+        <button class="btn btn-outline" id="refresh-tree-btn" title="Refresh Workspace Tree">
+          <i class="fa-solid fa-rotate"></i> Refresh
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN 3-PANE WORKSPACE BODY -->
+    <main class="workspace-body">
+      <!-- LEFT PANE: PROJECTS & FOLDERS -->
+      <aside class="pane pane-left" id="pane-left">
+        <div class="pane-header">
+          <div class="pane-title">
+            <i class="fa-solid fa-folder-tree icon-left"></i>
+            <span>PROJECTS & FOLDERS</span>
+          </div>
+          <button class="icon-btn" id="collapse-left-btn" title="Collapse Panel">
+            <i class="fa-solid fa-sidebar"></i>
+          </button>
+        </div>
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="file-search-input" placeholder="Search files & folders...">
+        </div>
+        <div class="tree-container" id="tree-container">
+          <div class="loading-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading workspace...</div>
+        </div>
+        <div class="pane-footer">
+          <span id="file-count-badge"><i class="fa-solid fa-file"></i> 0 files</span>
+          <span id="dir-count-badge"><i class="fa-solid fa-folder"></i> 0 folders</span>
+        </div>
+      </aside>
+
+      <!-- RESIZER LEFT -->
+      <div class="resizer" id="resizer-left"></div>
+
+      <!-- MIDDLE PANE: FILE DATA & CODE VIEWER -->
+      <section class="pane pane-middle" id="pane-middle">
+        <div class="tab-bar-container">
+          <div class="tab-bar" id="tab-bar">
+            <!-- Dynamic tabs inserted here -->
+          </div>
+          <div class="tab-controls">
+            <button class="icon-btn" id="view-mode-btn" title="Toggle Rendered Markdown / Raw Code">
+              <i class="fa-solid fa-eye"></i> Mode
+            </button>
+            <button class="icon-btn" id="copy-file-btn" title="Copy Content">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+          </div>
+        </div>
+        <div class="breadcrumb-bar" id="breadcrumb-bar">
+          <i class="fa-solid fa-house"></i> <span id="breadcrumb-text">Select a file from the left panel to inspect</span>
+        </div>
+
+        <div class="editor-view-container" id="editor-view-container">
+          <!-- WELCOME SPLASH VIEW -->
+          <div class="welcome-screen" id="welcome-screen">
+            <div class="welcome-card glass-panel">
+              <div class="welcome-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+              <h2>Welcome to AI & ML Course Workspace</h2>
+              <p>Explore your course materials, read practice scripts, and interact with the AI assistant on the right panel.</p>
+              <div class="quick-cards">
+                <div class="quick-card" onclick="openFileFromPath('course-path/README.md')">
+                  <i class="fa-solid fa-map-location-dot"></i>
+                  <div>
+                    <h4>Course Path Roadmap</h4>
+                    <span>course-path/README.md</span>
+                  </div>
+                </div>
+                <div class="quick-card" onclick="openFileFromPath('practice/phase-0-engineering-foundations/01_python_basics.py')">
+                  <i class="fa-brands fa-python"></i>
+                  <div>
+                    <h4>Python Basics Practice</h4>
+                    <span>01_python_basics.py</span>
+                  </div>
+                </div>
+                <div class="quick-card" onclick="openFileFromPath('course-utils/agentic-ai-learning-path.md')">
+                  <i class="fa-solid fa-diagram-project"></i>
+                  <div>
+                    <h4>Agentic AI Learning Path</h4>
+                    <span>agentic-ai-learning-path.md</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CODE / DATA VIEW -->
+          <div class="code-viewer-wrapper hidden" id="code-viewer-wrapper">
+            <pre class="code-pre"><code id="code-block" class="language-markdown"></code></pre>
+          </div>
+
+          <!-- MARKDOWN RENDERED VIEW -->
+          <div class="markdown-viewer-wrapper hidden" id="markdown-viewer-wrapper">
+            <div class="markdown-body" id="markdown-content"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RESIZER RIGHT -->
+      <div class="resizer" id="resizer-right"></div>
+
+      <!-- RIGHT PANE: AI CHATBOT -->
+      <aside class="pane pane-right" id="pane-right">
+        <div class="pane-header">
+          <div class="pane-title">
+            <i class="fa-solid fa-robot icon-right"></i>
+            <span>AI CHATBOT ASSISTANT</span>
+          </div>
+          <div class="model-select-wrapper">
+            <select id="model-selector">
+              <option value="gemini-flash">Gemini 3.6 Flash</option>
+              <option value="pro-reasoning">Gemini Pro Reasoning</option>
+              <option value="code-expert">Code Expert AI</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="active-context-bar" id="active-context-bar">
+          <i class="fa-solid fa-paperclip"></i> Context: <span id="active-context-file">None</span>
+        </div>
+
+        <div class="chat-messages-container" id="chat-messages">
+          <div class="chat-message bot-message">
+            <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+            <div class="msg-content">
+              <p>Hello! I am your <strong>AI Course Assistant</strong>. I'm connected to your repository layout.</p>
+              <p>You can ask me questions about your course materials, Python scripts, or RAG architecture!</p>
+              <div class="prompt-pills">
+                <button class="pill" onclick="sendPromptPill('Summarize the Course Roadmap')">🗺️ Course Roadmap</button>
+                <button class="pill" onclick="sendPromptPill('Explain Python Basics in practice folder')">🐍 Python Basics</button>
+                <button class="pill" onclick="sendPromptPill('What are RAG Systems?')">🔍 RAG Systems</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-input-area">
+          <form id="chat-form">
+            <div class="input-wrapper">
+              <textarea id="chat-input" placeholder="Ask AI about code or repository..." rows="2"></textarea>
+              <button type="submit" id="send-chat-btn" class="send-btn">
+                <i class="fa-solid fa-paper-plane"></i>
+              </button>
+            </div>
+          </form>
+          <div class="input-footer">
+            <span>Press Enter to send</span>
+            <button class="text-btn" onclick="clearChat()"><i class="fa-solid fa-trash-can"></i> Clear</button>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
