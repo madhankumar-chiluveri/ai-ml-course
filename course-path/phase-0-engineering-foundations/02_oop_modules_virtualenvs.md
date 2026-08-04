@@ -377,6 +377,87 @@ flowchart TD
 
 ---
 
+### 2.8 — `__repr__` (Developer-Facing String Representation)
+
+A dunder method (`__repr__`) that defines the **official string representation** of an object. When you `print()` an object, drop it into an f-string, or inspect it in a debugger/log, Python calls `__repr__` to decide what text to show.
+
+#### 💡 The Beginner Analogy: Name Tag at a Conference
+Imagine 200 people at a tech conference. Without name tags, you see:
+- `<Person object at 0x7f3a2b1c>` — *useless*. Who is this?
+
+With a proper name tag:
+- `Person(name='Alice', role='ML Engineer', company='DeepMind')` — *instantly useful*.
+
+`__repr__` is the name tag you pin to every object. Without it, every object in your logs, debugger, and error tracebacks is an anonymous stranger.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# ❌ WITHOUT __repr__ — useless in logs and debugging
+class BadTool:
+    def __init__(self, name: str, timeout: float) -> None:
+        self.name = name
+        self.timeout = timeout
+
+# ✅ WITH __repr__ — self-documenting in every context
+class GoodTool:
+    def __init__(self, name: str, timeout: float) -> None:
+        self.name = name
+        self.timeout = timeout
+
+    def __repr__(self) -> str:
+        return f"GoodTool(name={self.name!r}, timeout={self.timeout})"
+
+bad = BadTool("sql_query", 30.0)
+good = GoodTool("sql_query", 30.0)
+
+print("Without __repr__:", bad)
+print("With    __repr__:", good)
+
+# Real-world scenario: debugging a list of tools
+tools = [GoodTool("sql", 30), GoodTool("search", 15)]
+print("Tool registry:", tools)
+```
+
+##### Verified Output
+```text
+Without __repr__: <__main__.BadTool object at 0x000001A2B3C4D5E6>
+With    __repr__: GoodTool(name='sql_query', timeout=30.0)
+Tool registry: [GoodTool(name='sql', timeout=30), GoodTool(name='search', timeout=15)]
+```
+
+**Why It Matters**: During an AI agent run (**7.6 tracing**), every tool invocation is logged. Without `__repr__`, your trace shows 50 lines of `<Tool object at 0x...>` — impossible to debug. With it, you instantly see *which* tool with *what* configuration was called, turning hours of detective work into a glance.
+
+#### 🔑 The `!r` Format Spec
+Inside f-strings, `{self.name!r}` calls `repr()` on the value, which wraps strings in quotes: `name='sql_query'` instead of `name=sql_query`. This makes the output copy-pasteable back into Python — a convention called a **"round-trippable repr"**.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    OBJ["GoodTool instance"] --> REPR["__repr__ called"]
+
+    REPR --> CTX1["print(tool)"]
+    REPR --> CTX2["f'Running {tool}'"]
+    REPR --> CTX3["Debugger hover / watch"]
+    REPR --> CTX4["Logger: log.info('Selected %r', tool)"]
+    REPR --> CTX5["Error traceback"]
+
+    CTX1 --> OUTPUT["GoodTool(name='sql_query', timeout=30.0)"]
+    CTX2 --> OUTPUT
+    CTX3 --> OUTPUT
+    CTX4 --> OUTPUT
+    CTX5 --> OUTPUT
+
+    subgraph Without ["❌ Without __repr__"]
+        BAD["<Tool object at 0x7f3a2b1c>"]
+    end
+
+    style OUTPUT fill:#2d6a4f,stroke:#52b788,color:#fff
+    style BAD fill:#9b2226,stroke:#ae2012,color:#fff
+```
+
+---
+
 ## 3. Skip Test — Answered
 
 > Gate **before** studying. Both correct from memory → skip. §7 withholds its answers deliberately.
@@ -590,61 +671,6 @@ Full 6-part series (classes → class variables → classmethods/staticmethods �
 ## 8. Closed-Book Rebuild
 
 With this file **and** the script closed: create a package with `__init__.py`, define an abstract `Tool` base with one abstract method and a `__repr__`, subclass it twice with correct `super()` calls, write a function accepting the base type that works on both, and demonstrate the shared-mutable-class-attribute bug and its fix — all inside a fresh venv with a `requirements.txt`.
-
----
-
-## 9. Glossary
-
-### 9.1 — ABC (Abstract Base Class)
-
-A blueprint class that cannot be instantiated directly and forces any subclass to implement marked `@abstractmethod`s before an object can be built.
-
-#### 💡 The Beginner Analogy: Employment Contract
-An ABC is like a strict **employment contract**. You cannot hire an employee (instantiate an object) who signed a blank contract with missing job duties (`@abstractmethod`). Python stops you the moment you attempt to create the object.
-
-#### 🎨 Failing at Startup vs. Failing in Production
-
-```mermaid
-flowchart TD
-    subgraph NoABC ["❌ Without ABC (Fails late in production)"]
-        N1["BrokenTool defined (forgot run method)"] --> N2["Instantiates fine: tool = BrokenTool()"]
-        N2 --> N3["Agent executes at 3 AM: tool.run('query')"]
-        N3 --> N4["💥 AttributeError: 'BrokenTool' object has no attribute 'run'"]
-    end
-
-    subgraph WithABC ["✅ With ABC + @abstractmethod (Fails instantly at construction)"]
-        A1["BrokenTool(Tool) (forgot run method)"] --> A2["Try tool = BrokenTool()"]
-        A2 --> A3["⛔ TypeError: Can't instantiate abstract class BrokenTool..."]
-    end
-
-    style N4 fill:#9b2226,stroke:#ae2012,color:#fff
-    style A3 fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-from abc import ABC, abstractmethod
-
-class BaseTool(ABC):
-    @abstractmethod
-    def run(self, query: str) -> str:
-        pass
-
-class BrokenTool(BaseTool):
-    pass # Forgot to implement run()!
-
-try:
-    tool = BrokenTool()
-except TypeError as e:
-    print("Caught Error:", e)
-```
-
-##### Verified Output
-```text
-Caught Error: Can't instantiate abstract class BrokenTool without an implementation for abstract method 'run'
-```
-
-**Why It Matters**: Prevents shipping broken classes that crash late at 3 AM in production when missing methods are finally invoked.
 
 ---
 
