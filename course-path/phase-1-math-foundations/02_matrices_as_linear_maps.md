@@ -20,7 +20,203 @@ Depends on **1.1** (vectors); feeds **1.14**, **2.3**, **3.1**, **3.4**, **4.2**
 
 ---
 
-## 2. Skip Test — Answered
+## 2. Glossary
+
+### 2.1 — Linear Map & Matrix (Columns as Images of Basis)
+
+- **Linear Map**: A vector transformation $f(v)$ satisfying additivity ($f(u+v) = f(u) + f(v)$) and scaling ($f(c\cdot v) = c\cdot f(v)$), keeping the origin fixed and grid lines straight and parallel.
+- **Matrix**: An $n \times d$ rectangular grid of numbers representing a linear map. **Column $j$ of matrix $A$ is the exact vector location where standard basis vector $\mathbf{e}_j$ lands after transformation!**
+
+#### 💡 The Beginner Analogy: Stretching a Rubber Coordinate Sheet
+Imagine drawing a grid of squares on a rubber sheet. A **Linear Map** is pulling, rotating, or squishing the sheet. You don't need to track where every point lands — you **ONLY** need to track where the 2 fundamental basis arrows ($[1,0]$ and $[0,1]$) land. Their new landing locations form the columns of your matrix!
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+A = np.array([
+    [0.0, -2.0],
+    [2.0,  0.0]
+])
+
+e1 = np.array([1.0, 0.0]) # First basis vector
+col1 = A @ e1
+print("Destination of e1:", col1)
+```
+
+##### Verified Output
+```text
+Destination of e1: [0. 2.]
+```
+
+**Why It Matters**: Demystifies matrix multiplication. Any linear layer in a neural network ($y = Wx + b$) is simply a linear transformation whose weights $W$ record the destination coordinates of the input space basis vectors.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    ORIGINAL["Original Grid: e1=[1, 0], e2=[0, 1]"] --> MAP["Linear Map A (Rotate & Scale)"]
+    MAP --> LAND1["e1 lands at [0, 2] -> Column 1 of A"]
+    MAP --> LAND2["e2 lands at [-2, 0] -> Column 2 of A"]
+    LAND1 & LAND2 --> MAT["Matrix A = [ [0, -2], [2, 0] ]"]
+
+    style MAT fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.2 — Column Picture vs. Row Picture
+
+- **Column Picture**: $A \mathbf{x}$ is a **weighted linear combination of $A$'s columns**, weighted by the components of vector $\mathbf{x}$.
+- **Row Picture**: Entry $i$ of $A \mathbf{x}$ is the **dot product** of row $i$ of $A$ with vector $\mathbf{x}$.
+
+#### 💡 The Beginner Analogy: Mixing Paint Buckets vs. Checking Quiz Questions
+- **Column Picture**: Mixing buckets of paint! Column 1 is Red Paint, Column 2 is Blue Paint. Vector $\mathbf{x} = [3, 2]$ means mix 3 parts Red + 2 parts Blue.
+- **Row Picture**: Checking individual quiz answers row-by-row using dot products.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+A = np.array([[1, 2], [3, 4]])
+x = np.array([5, 6])
+
+# Column picture: 5 * [1, 3] + 6 * [2, 4]
+res_col = 5 * A[:, 0] + 6 * A[:, 1]
+
+# Matrix multiplication A @ x gives exact same result:
+res_mat = A @ x
+
+print("Column Picture Result:", res_col)
+print("Matrix Multiply Result:", res_mat)
+```
+
+##### Verified Output
+```text
+Column Picture Result: [17 39]
+Matrix Multiply Result: [17 39]
+```
+
+**Why It Matters**: The column picture explains how linear models generate output vectors as linear combinations of feature column vectors in feature space.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    VEC["Input Vector x = [x1, x2]"] --> MULT["A @ x = x1 * (Col 1) + x2 * (Col 2)"]
+    MULT --> RES["Output Vector y"]
+
+    style RES fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.3 — Matrix Composition & Non-Commutativity ($A B \neq B A$)
+
+- **Matrix Composition**: Multiplying matrix $A$ by matrix $B$ ($A \cdot B$) produces a single new matrix representing the sequential transformation **"apply $B$ first, then apply $A$"**.
+- **Non-Commutativity**: Matrix order matters! In general, $A @ B \neq B @ A$.
+
+#### 💡 The Beginner Analogy: Putting on Socks and Shoes
+Order of operations is non-commutative in real life:
+- **Action A**: Put on shoes.
+- **Action B**: Put on socks.
+- **$A$ then $B$**: Put on shoes first, then try to stretch socks over the shoes (Catastrophe!).
+- **$B$ then $A$**: Put on socks first, then put on shoes (Normal!).
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+# Rotate 90 degrees
+R = np.array([[0, -1], [1, 0]])
+# Stretch X-axis
+S = np.array([[2, 0], [0, 1]])
+
+T1 = R @ S
+T2 = S @ R
+
+print("Rotate then Stretch (R @ S):\n", T1)
+print("Stretch then Rotate (S @ R):\n", T2)
+```
+
+##### Verified Output
+```text
+Rotate then Stretch (R @ S):
+ [[ 0 -1]
+ [ 2  0]]
+Stretch then Rotate (S @ R):
+ [[ 0 -2]
+ [ 1  0]]
+```
+
+**Why It Matters**: Swapping matrix order in neural network layer equations ($W_2 W_1 x \neq W_1 W_2 x$) produces completely wrong, invalid math.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    subgraph Flow1 ["Sequence: Apply B (Shear) then A (Rotate 90°)"]
+        INPUT1["Input Vector"] --> B1["B @ x"] --> A1["A @ (B @ x) = (A @ B) @ x"]
+    end
+
+    subgraph Flow2 ["Sequence: Apply A (Rotate 90°) then B (Shear)"]
+        INPUT2["Input Vector"] --> A2["A @ x"] --> B2["B @ (A @ x) = (B @ A) @ x"]
+    end
+
+    Flow1 --> DIFF["💥 A @ B != B @ A (Different Final Geometries!)"]
+
+    style DIFF fill:#9b2226,stroke:#ae2012,color:#fff
+```
+
+---
+
+### 2.4 — Determinant ($\det(A)$) & Singular Matrices
+
+- **Determinant**: A single scalar measuring the **scaling factor by which a matrix scales areas (in 2D) or volumes (in 3D)**.
+- **Singular Matrix**: A matrix with $\det(A) = 0$. It squishes space down to a lower dimension (e.g. flattening 2D space into a 1D line), destroying information so the transformation cannot be inverted.
+
+#### 💡 The Beginner Analogy: Compressing a 3D Balloon to a Flat Sheet
+If a 2D matrix has a determinant of $3.0$, it stretches a $1 \times 1$ unit square into an area of $3.0$. If $\det(A) = 0.0$, it is like stepping on a cardboard box and **squishing it completely flat into a 1D line**. You cannot un-squish the box because volume information was lost!
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+A = np.array([[2.0, 0.0], [0.0, 3.0]])
+det_A = np.linalg.det(A)
+
+B = np.array([[1.0, 2.0], [2.0, 4.0]])
+det_B = np.linalg.det(B)
+
+print("det(A):", det_A)
+print("det(B):", det_B)
+```
+
+##### Verified Output
+```text
+det(A): 6.0
+det(B): 0.0
+```
+
+**Why It Matters**: Matrices with zero (or near-zero) determinants cannot be inverted, causing `LinAlgError: Singular matrix` during linear system solving and model fitting.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    UNIT["Unit Square (Area = 1.0)"] --> M1["Matrix A (det = 2.5)"]
+    UNIT --> M2["Matrix B (det = 0.0)"]
+
+    M1 --> RES1["Parallelogram (Area = 2.5)"]
+    M2 --> RES2["💥 Collapsed 1D Line (Area = 0.0, Non-Invertible!)"]
+
+    style RES1 fill:#2d6a4f,stroke:#52b788,color:#fff
+    style RES2 fill:#9b2226,stroke:#ae2012,color:#fff
+```
+
+---
+
+## 3. Skip Test — Answered
 
 > Gate **before** studying. Both correct from memory → skip. §7 withholds its answers deliberately.
 
@@ -632,159 +828,6 @@ Chapters 3, 4 and 6 together are about 32 minutes and cover §4.1 through §4.5 
 With this file **and** the script closed, from a blank Python file: build a 2x2 rotation matrix from an angle and confirm `R^T R` is the identity; state what the columns of any matrix mean and verify it by multiplying by the basis vectors; apply a shear to the unit square's four corners and measure the resulting area with the shoelace formula, then check it against `np.linalg.det`; construct a projection matrix onto a line from a single vector and verify both `P @ P == P` and that the residual is orthogonal; demonstrate that two specific matrices fail to commute and quantify by how much; write down the shape rule for `(n, d) @ (d, k)` and deliberately trigger the `ValueError` for a wrong-way multiply; and finally build a matrix whose determinant is `1e-10`, solve a system with it, perturb the right-hand side by a relative `1e-12`, and report both the resulting relative error in the solution and `np.linalg.cond` of the matrix.
 
 ---
-
-### 9.1 — Linear Map & Matrix (Columns as Images of Basis)
-
-- **Linear Map**: A vector transformation $f(v)$ satisfying additivity ($f(u+v) = f(u) + f(v)$) and scaling ($f(c\cdot v) = c\cdot f(v)$), keeping the origin fixed and grid lines straight and parallel.
-- **Matrix**: An $n \times d$ rectangular grid of numbers representing a linear map. **Column $j$ of matrix $A$ is the exact vector location where standard basis vector $\mathbf{e}_j$ lands after transformation!**
-
-#### 💡 The Beginner Analogy: Stretching a Rubber Coordinate Sheet
-Imagine drawing a grid of squares on a rubber sheet. A **Linear Map** is pulling, rotating, or squishing the sheet. You don't need to track where every point lands — you **ONLY** need to track where the 2 fundamental basis arrows ($[1,0]$ and $[0,1]$) land. Their new landing locations form the columns of your matrix!
-
-#### 🎨 Basis Vector Landing Locations
-
-```mermaid
-flowchart TD
-    ORIGINAL["Original Grid: e1=[1, 0], e2=[0, 1]"] --> MAP["Linear Map A (Rotate & Scale)"]
-    MAP --> LAND1["e1 lands at [0, 2] -> Column 1 of A"]
-    MAP --> LAND2["e2 lands at [-2, 0] -> Column 2 of A"]
-    LAND1 & LAND2 --> MAT["Matrix A = [ [0, -2], [2, 0] ]"]
-
-    style MAT fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-import numpy as np
-
-A = np.array([
-    [0.0, -2.0],
-    [2.0,  0.0]
-])
-
-e1 = np.array([1.0, 0.0]) # First basis vector
-# Multiplying A @ e1 extracts the FIRST column of A!
-col1 = A @ e1 # -> [0.0, 2.0]
-```
-**Why It Matters**: Demystifies matrix multiplication. Any linear layer in a neural network ($y = Wx + b$) is simply a linear transformation whose weights $W$ record the destination coordinates of the input space basis vectors.
-
----
-
-### 9.2 — Column Picture vs. Row Picture
-
-- **Column Picture**: $A \mathbf{x}$ is a **weighted linear combination of $A$'s columns**, weighted by the components of vector $\mathbf{x}$.
-- **Row Picture**: Entry $i$ of $A \mathbf{x}$ is the **dot product** of row $i$ of $A$ with vector $\mathbf{x}$.
-
-#### 💡 The Beginner Analogy: Mixing Paint Buckets vs. Checking Quiz Questions
-- **Column Picture**: Mixing buckets of paint! Column 1 is Red Paint, Column 2 is Blue Paint. Vector $\mathbf{x} = [3, 2]$ means mix 3 parts Red + 2 parts Blue.
-- **Row Picture**: Checking individual quiz answers row-by-row using dot products.
-
-#### 🎨 Column Picture (Linear Combination of Columns)
-
-```mermaid
-flowchart TD
-    VEC["Input Vector x = [x1, x2]"] --> MULT["A @ x = x1 * (Col 1) + x2 * (Col 2)"]
-    MULT --> RES["Output Vector y"]
-
-    style RES fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-A = np.array([[1, 2], [3, 4]])
-x = np.array([5, 6])
-
-# Column picture: 5 * [1, 3] + 6 * [2, 4]
-res_col = 5 * A[:, 0] + 6 * A[:, 1] # -> [17, 39]
-
-# Matrix multiplication A @ x gives exact same result:
-res_mat = A @ x # -> [17, 39]
-```
-**Why It Matters**: The column picture explains how linear models generate output vectors as linear combinations of feature column vectors in feature space.
-
----
-
-### 9.3 — Matrix Composition & Non-Commutativity ($A B \neq B A$)
-
-- **Matrix Composition**: Multiplying matrix $A$ by matrix $B$ ($A \cdot B$) produces a single new matrix representing the sequential transformation **"apply $B$ first, then apply $A$"**.
-- **Non-Commutativity**: Matrix order matters! In general, $A @ B \neq B @ A$.
-
-#### 💡 The Beginner Analogy: Putting on Socks and Shoes
-Order of operations is non-commutative in real life:
-- **Action A**: Put on shoes.
-- **Action B**: Put on socks.
-- **$A$ then $B$**: Put on shoes first, then try to stretch socks over the shoes (Catastrophe!).
-- **$B$ then $A$**: Put on socks first, then put on shoes (Normal!).
-
-#### 🎨 Non-Commutative Transformation Flow
-
-```mermaid
-flowchart TD
-    subgraph Flow1 ["Sequence: Apply B (Shear) then A (Rotate 90°)"]
-        INPUT1["Input Vector"] --> B1["B @ x"] --> A1["A @ (B @ x) = (A @ B) @ x"]
-    end
-
-    subgraph Flow2 ["Sequence: Apply A (Rotate 90°) then B (Shear)"]
-        INPUT2["Input Vector"] --> A2["A @ x"] --> B2["B @ (A @ x) = (B @ A) @ x"]
-    end
-
-    Flow1 --> DIFF["💥 A @ B != B @ A (Different Final Geometries!)"]
-
-    style DIFF fill:#9b2226,stroke:#ae2012,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-# Rotate 90 degrees
-R = np.array([[0, -1], [1, 0]])
-# Stretch X-axis
-S = np.array([[2, 0], [0, 1]])
-
-# Order 1: Stretch then Rotate
-T1 = R @ S # -> [[0, -1], [2, 0]]
-
-# Order 2: Rotate then Stretch
-T2 = S @ R # -> [[0, -2], [1, 0]]
-
-# T1 != T2!
-```
-**Why It Matters**: Swapping matrix order in neural network layer equations ($W_2 W_1 x \neq W_1 W_2 x$) produces completely wrong, invalid math.
-
----
-
-### 9.4 — Determinant ($\det(A)$) & Singular Matrices
-
-- **Determinant**: A single scalar measuring the **scaling factor by which a matrix scales areas (in 2D) or volumes (in 3D)**.
-- **Singular Matrix**: A matrix with $\det(A) = 0$. It squishes space down to a lower dimension (e.g. flattening 2D space into a 1D line), destroying information so the transformation cannot be inverted.
-
-#### 💡 The Beginner Analogy: Compressing a 3D Balloon to a Flat Sheet
-If a 2D matrix has a determinant of $3.0$, it stretches a $1 \times 1$ unit square into an area of $3.0$. If $\det(A) = 0.0$, it is like stepping on a cardboard box and **squishing it completely flat into a 1D line**. You cannot un-squish the box because volume information was lost!
-
-#### 🎨 Area Scaling vs. Singular Flattening
-
-```mermaid
-flowchart TD
-    UNIT["Unit Square (Area = 1.0)"] --> M1["Matrix A (det = 2.5)"]
-    UNIT --> M2["Matrix B (det = 0.0)"]
-
-    M1 --> RES1["Parallelogram (Area = 2.5)"]
-    M2 --> RES2["💥 Collapsed 1D Line (Area = 0.0, Non-Invertible!)"]
-
-    style RES1 fill:#2d6a4f,stroke:#52b788,color:#fff
-    style RES2 fill:#9b2226,stroke:#ae2012,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-# Regular matrix (Invertible)
-A = np.array([[2.0, 0.0], [0.0, 3.0]])
-det_A = np.linalg.det(A) # -> 6.0 (Scales area 6x)
-
-# Singular matrix (Flattening -> Non-invertible)
-B = np.array([[1.0, 2.0], [2.0, 4.0]]) # Col 2 is 2x Col 1
-det_B = np.linalg.det(B) # -> 0.0! (Cannot be inverted)
-```
-**Why It Matters**: Matrices with zero (or near-zero) determinants cannot be inverted, causing `LinAlgError: Singular matrix` during linear system solving and model fitting.
 
 **Determinant** — the factor by which a map multiplies area or volume. Negative means orientation flipped. Zero means space was collapsed into a lower dimension. `det(A @ B) = det(A) * det(B)`.
 

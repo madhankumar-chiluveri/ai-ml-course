@@ -25,16 +25,17 @@ Write one Markdown file teaching {topic_name} end-to-end, sized for a single foc
 4. Search for one specific, currently-live, free YouTube video that teaches this exact concept well. Name title and channel. If you can't verify it currently exists, write [VERIFY] instead of guessing.
 5. "Retrieval Checkpoint": 2-3 questions the learner must answer from memory, no notes, before moving on. Do not answer them here.
 6. "Closed-Book Rebuild": one sentence telling the learner exactly what to reproduce from scratch with no reference.
-7. "Elaborated Glossary": End with a self-contained Glossary section where every term uses the 4-part `elaborated-glossary-explanation` framework:
+7. "Elaborated Glossary": Place immediately after Section 1 (Overview) as **Section 2**. Every term uses the 4-part `elaborated-glossary-explanation` framework in this exact sub-order:
    - **Core Definition**: 1-2 sentence high-density summary.
    - **💡 The Beginner Analogy**: Everyday real-world physical comparison.
+   - **💻 Code Example & ⚠️ Why It Matters**: Minimal runnable code snippet.
+   - **##### Verified Output**: Fenced `text` block containing actual captured stdout.
    - **🎨 Visual Diagram**: Mermaid diagram showing execution flow / search path / component state.
-   - **💻 Code Example & ⚠️ Why It Matters**: Minimal runnable code snippet demonstrating the pitfall/idiom and the real-world failure mode.
-8. "Review again in": 1 day / 3 days / 7 days, based on conceptual density.
+8. "Review again in": 1 day / 3 days / 7 days, placed at the very end of the file.
 </instructions>
 
 <output_format>
-Single Markdown file. Section order: Concept → Code-and-Explanation (or Worked Example) → Visual → Video → Retrieval Checkpoint → Closed-Book Rebuild → Elaborated Glossary → Review tag. No section may be empty — if genuinely not applicable, write "N/A — [one-sentence reason]" rather than omitting it silently.
+Single Markdown file. Section order: Overview → Elaborated Glossary → Concept / Deep Dive → Code-and-Explanation (or Worked Example) → Visual → Video → Retrieval Checkpoint → Closed-Book Rebuild → Review tag. No section may be empty — if genuinely not applicable, write "N/A — [one-sentence reason]" rather than omitting it silently.
 </output_format>
 
 <guardrails>

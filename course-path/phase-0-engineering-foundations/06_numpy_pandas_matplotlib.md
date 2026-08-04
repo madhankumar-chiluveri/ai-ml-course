@@ -18,7 +18,408 @@ Depends on **0.1**; directly unlocks **1.14**, **2.2**, and every model-fitting 
 
 ---
 
-## 2. Skip Test — Answered
+## 2. Glossary
+
+### 2.1 — `ndarray` & Vectorization
+
+NumPy's core `ndarray` (n-dimensional array) stores fixed-type data in contiguous memory blocks. Vectorization performs mathematical operations across the entire array simultaneously in compiled C, avoiding Python `for` loops.
+
+#### 💡 The Beginner Analogy: Assembly Line Stamp vs. Hand Pen
+A Python list of numbers is a loose pile of items — doing math on it requires picking up each item individually and inspecting its type. An `ndarray` is an **orderly egg carton** where every slot holds the exact same size item (`int64` or `float64`), allowing a **single industrial stamp** (C operation) to process all slots at once.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+# Vectorized C-speed computation
+arr = np.array([1, 2, 3, 4])
+res = arr * 2
+
+print("Vectorized Multiply:", res)
+```
+
+##### Verified Output
+```text
+Vectorized Multiply: [2 4 6 8]
+```
+
+**Why It Matters**: AI/ML libraries (PyTorch, scikit-learn, TensorFlow) depend on contiguous `ndarray` memory layouts to feed data into GPU matrix multiplication cores.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    subgraph PyList ["❌ Python List (Pointers to scattered objects)"]
+        L1["Pointer 0 -> int(10)"] --> L2["Pointer 1 -> int(20)"]
+        L2 --> L3["Pointer 2 -> int(30) (Memory fragmentation!)"]
+    end
+
+    subgraph NumPyArray ["✅ NumPy ndarray (Contiguous Memory Block)"]
+        N1["[ 10 | 20 | 30 ] -> Processed via single CPU SIMD register!"]
+    end
+
+    style PyList fill:#9b2226,stroke:#ae2012,color:#fff
+    style NumPyArray fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.2 — Boolean Mask
+
+An array of `True`/`False` values of matching shape used to filter elements from another array or DataFrame, returning only the elements corresponding to `True` positions.
+
+#### 💡 The Beginner Analogy: Stencil Cutout
+A boolean mask is like laying a **cardboard stencil with holes cut out** over a sheet of paper. Spraying paint (indexing) only passes through where the holes (`True`) exist, ignoring the covered paper (`False`).
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+prices = np.array([12.0, 99.0, 5.0, 150.0])
+
+# Vectorized boolean masking
+expensive = prices[prices > 50.0]
+print("Filtered Prices:", expensive)
+```
+
+##### Verified Output
+```text
+Filtered Prices: [ 99. 150.]
+```
+
+**Why It Matters**: Enables instantaneous vector filtering across multi-gigabyte datasets without writing complex `for` loops or `if` statements.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    ARR["Original Array: [ 10,  45,  30,  80 ]"] --> COND["Condition: arr > 40"]
+    COND --> MASK["Boolean Mask: [ False, True, False, True ]"]
+    MASK --> FILTERED["arr[arr > 40] -> Result: [ 45, 80 ]"]
+
+    style MASK fill:#005f73,stroke:#0a9396,color:#fff
+    style FILTERED fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.3 — Axis (Reduction Dimensions)
+
+The dimension index along which a reduction operation (like `.sum()` or `.mean()`) operates, collapsing that dimension out of the resulting shape.
+
+#### 💡 The Beginner Analogy: Squishing a Cardboard Box
+Think of a 2D table of Rows x Columns:
+- `axis=0`: Pushing down from the top lid to **squish rows into a single flat line** (yielding 1 result per column).
+- `axis=1`: Pushing in from the side to **squish columns into a single vertical line** (yielding 1 result per row).
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+matrix = np.array([
+    [10, 20],
+    [30, 40]
+])
+
+col_sums = matrix.sum(axis=0) # -> [40, 60] (Row dimension collapses)
+row_sums = matrix.sum(axis=1) # -> [30, 70] (Col dimension collapses)
+
+print("Column Sums (axis=0):", col_sums)
+print("Row Sums (axis=1):", row_sums)
+```
+
+##### Verified Output
+```text
+Column Sums (axis=0): [40 60]
+Row Sums (axis=1): [30 70]
+```
+
+**Why It Matters**: Mixing up `axis=0` and `axis=1` is the #1 bug when calculating feature means or batch statistics in machine learning pipelines.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    subgraph Axis0 ["axis=0 (Collapses Rows -> Column Totals)"]
+        A0_MAT["[ [1, 2], <br>  [3, 4] ]"] -->|sum axis=0| A0_RES["[ 4, 6 ]"]
+    end
+
+    subgraph Axis1 ["axis=1 (Collapses Columns -> Row Totals)"]
+        A1_MAT["[ [1, 2], <br>  [3, 4] ]"] -->|sum axis=1| A1_RES["[ 3, 7 ]"]
+    end
+
+    style A0_RES fill:#2d6a4f,stroke:#52b788,color:#fff
+    style A1_RES fill:#005f73,stroke:#0a9396,color:#fff
+```
+
+---
+
+### 2.4 — Broadcasting
+
+NumPy's automatic rule set for performing element-wise arithmetic between arrays of different shapes by virtually expanding smaller dimensions without allocating redundant memory copies.
+
+#### 💡 The Beginner Analogy: Rubber Stamp Duplication
+If you want to add a $5 tip to 1,000 separate bill amounts, you don't write out a 1,000-element array filled with `5`. Broadcasting takes a single scalar `5` and **virtually stamps** it across all 1,000 bill slots during computation.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+prices = np.array([[100, 200], [300, 400]])
+discount = np.array([10, 20])
+
+final_prices = prices - discount
+print("Broadcast Subtraction:\n", final_prices)
+```
+
+##### Verified Output
+```text
+Broadcast Subtraction:
+ [[90 180]
+ [290 380]]
+```
+
+**Why It Matters**: Allows performing matrix-vector operations (like subtracting feature means for model normalization) with zero memory overhead.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    MAT["Matrix (3x2): [[1, 2], [3, 4], [5, 6]]"] --> ADD["+"]
+    VEC["Vector (1x2): [10, 20]"] -->|Broadcasts across rows| STRETCH["Virtual Matrix: [[10, 20], [10, 20], [10, 20]]"]
+    ADD & STRETCH --> RES["Result: [[11, 22], [13, 24], [15, 26]]"]
+
+    style STRETCH fill:#005f73,stroke:#0a9396,color:#fff
+    style RES fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.5 — Series, DataFrame & Index
+
+- **Series**: Pandas 1-dimensional labeled array.
+- **DataFrame**: Pandas 2-dimensional tabular structure composed of a dictionary of Series sharing a common Index.
+- **Index**: Immutable row labels that anchor data alignment across transformations.
+
+#### 💡 The Beginner Analogy: Spreadsheet Sheet & Row Headers
+A **Series** is a single column in an Excel sheet. A **DataFrame** is the entire multi-column sheet. The **Index** is the frozen row numbers / dates on the far left that ensure data rows stay locked to the right records even when sorted.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import pandas as pd
+
+df = pd.DataFrame({
+    "price": [10.0, 20.0],
+    "category": ["A", "B"]
+}, index=["item_1", "item_2"])
+
+print("DataFrame:\n", df)
+```
+
+##### Verified Output
+```text
+DataFrame:
+         price category
+item_1   10.0        A
+item_2   20.0        B
+```
+
+**Why It Matters**: Pandas aligns operations by **Index**, not by raw position. If two DataFrames have different indices, adding them together produces unexpected `NaN` values!
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    DF["Pandas DataFrame"] --> COL1["Series: 'age' [25, 30]"]
+    DF --> COL2["Series: 'city' ['NY', 'SF']"]
+    DF --> IDX["Index: ['user_101', 'user_102'] (Locks row alignment)"]
+
+    style IDX fill:#005f73,stroke:#0a9396,color:#fff
+    style DF fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.6 — `.loc` vs. `.iloc`
+
+- **`.loc`**: Label-based indexing using explicit index names and column labels.
+- **`.iloc`**: Integer position-based indexing using 0-indexed integer coordinates (like standard Python lists).
+
+#### 💡 The Beginner Analogy: Street Address vs. GPS Coordinates
+- `.loc`: Looking up a house by its **postal address label** (`"123 Main St"`).
+- `.iloc`: Looking up a house by its **exact physical position** (the 3rd house from the corner).
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import pandas as pd
+
+df = pd.DataFrame({"val": [10, 20, 30]}, index=[2, 1, 0])
+
+# .loc[0] looks for index LABEL 0 (the LAST row)
+val_loc = df.loc[0, "val"]
+
+# .iloc[0] looks for integer POSITION 0 (the FIRST row)
+val_iloc = df.iloc[0, "val"]
+
+print("loc[0]:", val_loc)
+print("iloc[0]:", val_iloc)
+```
+
+##### Verified Output
+```text
+loc[0]: 30
+iloc[0]: 10
+```
+
+**Why It Matters**: After filtering a DataFrame, index labels become non-sequential. Using raw brackets `df[0]` or mixing `.loc` and `.iloc` produces silent lookup bugs.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    DF["df with custom index ['100', '101', '102']"] --> LOC[".loc[100] -> Looks for index LABEL '100'"]
+    DF --> ILOC[".iloc[0] -> Looks for integer POSITION 0 (First row)"]
+
+    style LOC fill:#005f73,stroke:#0a9396,color:#fff
+    style ILOC fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.7 — `groupby` (Split-Apply-Combine)
+
+A 3-stage data aggregation workflow:
+1. **Split**: Partition data into groups based on key values.
+2. **Apply**: Compute summary statistics (`mean`, `sum`, `count`) per group independently.
+3. **Combine**: Reassemble group results into a single output DataFrame.
+
+#### 💡 The Beginner Analogy: Sorting Laundry Baskets
+Imagine sorting a giant pile of mixed laundry (Split into white, dark, and color baskets), washing each basket separately (Apply), and folding them back into a single clean drawer (Combine).
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import pandas as pd
+
+df = pd.DataFrame({
+    "category": ["A", "B", "A", "B"],
+    "sales": [100, 200, 300, 400]
+})
+
+res = df.groupby("category")["sales"].agg(["sum", "mean"])
+print(res)
+```
+
+##### Verified Output
+```text
+          sum   mean
+category            
+A         400  200.0
+B         600  300.0
+```
+
+**Why It Matters**: The fundamental pattern for computing per-category summary statistics, user cohort metrics, and feature aggregations in data analytics.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    RAW["Raw Data: [ (A, 10), (B, 20), (A, 30) ]"] --> SPLIT["SPLIT by Key"]
+    SPLIT --> G_A["Group A: [10, 30]"]
+    SPLIT --> G_B["Group B: [20]"]
+    G_A -->|APPLY sum| RES_A["Group A Total: 40"]
+    G_B -->|APPLY sum| RES_B["Group B Total: 20"]
+    RES_A & RES_B --> COMBINE["COMBINE -> DataFrame: A:40, B:20"]
+
+    style COMBINE fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.8 — Skew & `log1p` Transformation
+
+- **Skew**: Asymmetry of a statistical distribution. Right-skewed data features a long tail of extreme high values (e.g. house prices, income levels).
+- **`log1p` (`log(1 + x)`)**: A natural log transform that compresses extreme values into a bell-curve distribution while safely handling zero values (`log1p(0) = 0`).
+
+#### 💡 The Beginner Analogy: Compressible Telescope Lens
+Right-skewed data is like looking at objects scattered across a 10-mile field — tiny house values are bunched up near 0 while billionaire mansions sit miles away. A `log1p` transform acts as a **wide-angle telephoto lens**: it zooms in on the zero cluster while pulling far-away outliers closer so the machine learning model can see everything on one scale.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+prices = np.array([0.0, 100.0, 500.0, 10000.0])
+prices_transformed = np.log1p(prices)
+
+print("Transformed:", np.round(prices_transformed, 2))
+```
+
+##### Verified Output
+```text
+Transformed: [0.   4.62 6.22 9.21]
+```
+
+**Why It Matters**: Linear regression and neural networks perform poorly on skewed data. `log1p` normalizes feature distributions and prevents numerical overflow during training.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    SKEW["Raw Prices: [ 0, 100, 500, 10_000_000 ] (Extreme Skew!)"] --> LOG["np.log1p(prices)"]
+    LOG --> NORMALIZED["Transformed: [ 0.0, 4.61, 6.21, 16.11 ] (Normally Distributed)"]
+
+    style NORMALIZED fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.9 — `Agg` Backend (Matplotlib)
+
+Matplotlib's non-interactive Anti-Grain Geometry (`Agg`) rendering engine that outputs raster graphics (`PNG`, `JPEG`) directly to file buffers without requiring a GUI desktop window manager.
+
+#### 💡 The Beginner Analogy: Headless Virtual Camera
+Standard plot rendering attempts to pop up a physical window on your desktop monitor. The **`Agg` backend** is a **headless virtual camera**: it renders high-resolution plots directly to disk in the background, making it work over remote SSH servers without a physical monitor attached.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots()
+ax.plot([1, 2], [3, 4])
+fig.savefig("test_output.png")
+
+print("Saved figure headlessly to test_output.png")
+```
+
+##### Verified Output
+```text
+Saved figure headlessly to test_output.png
+```
+
+**Why It Matters**: Prevents Matplotlib scripts from crashing when executed inside headless cloud VMs (like AWS/OCI), Docker containers, or automated CI/CD pipelines.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    subgraph GUI ["❌ Default GUI Backend (Needs Desktop Display)"]
+        G1["plt.show()"] --> G2["Tries to open X11/Windows GUI Window"]
+        G2 --> G3["💥 Crash over remote SSH / Docker: TclError: no display name"]
+    end
+
+    subgraph Headless ["✅ Agg Backend (Headless File Exporter)"]
+        H1["import matplotlib; matplotlib.use('Agg')"] --> H2["plt.savefig('output.png')"]
+        H2 --> H3["Renders cleanly directly to PNG disk file"]
+    end
+
+    style G3 fill:#9b2226,stroke:#ae2012,color:#fff
+    style H3 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+## 3. Skip Test — Answered
 
 > Gate **before** studying. Both correct from memory → skip. §7 withholds its answers deliberately.
 
@@ -289,320 +690,6 @@ NumPy-specific and Matplotlib-specific videos: **[VERIFY]** — not confirmed in
 ## 8. Closed-Book Rebuild
 
 With this file **and** the script closed: load a CSV into a DataFrame, run the four inspection commands, engineer one boolean and one log-transformed column without a loop, filter on two conditions combined correctly, group by a categorical column with a multi-statistic aggregation, handle a missing column with a stated assumption, and save a two-panel figure containing a histogram and a scatter plot.
-
----
-
-### 9.1 — `ndarray` & Vectorization
-
-NumPy's core `ndarray` (n-dimensional array) stores fixed-type data in contiguous memory blocks. Vectorization performs mathematical operations across the entire array simultaneously in compiled C, avoiding Python `for` loops.
-
-#### 💡 The Beginner Analogy: Assembly Line Stamp vs. Hand Pen
-A Python list of numbers is a loose pile of items — doing math on it requires picking up each item individually and inspecting its type. An `ndarray` is an **orderly egg carton** where every slot holds the exact same size item (`int64` or `float64`), allowing a **single industrial stamp** (C operation) to process all slots at once.
-
-#### 🎨 Contiguous Memory & SIMD Execution
-
-```mermaid
-flowchart TD
-    subgraph PyList ["❌ Python List (Pointers to scattered objects)"]
-        L1["Pointer 0 -> int(10)"] --> L2["Pointer 1 -> int(20)"]
-        L2 --> L3["Pointer 2 -> int(30) (Memory fragmentation!)"]
-    end
-
-    subgraph NumPyArray ["✅ NumPy ndarray (Contiguous Memory Block)"]
-        N1["[ 10 | 20 | 30 ] -> Processed via single CPU SIMD register!"]
-    end
-
-    style PyList fill:#9b2226,stroke:#ae2012,color:#fff
-    style NumPyArray fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-import numpy as np
-
-# ❌ 10x-100x Slower: Python loop with type check per element
-py_list = [1, 2, 3, 4]
-res = [x * 2 for x in py_list]
-
-# ✅ Vectorized C-speed computation
-arr = np.array([1, 2, 3, 4])
-res = arr * 2
-```
-**Why It Matters**: AI/ML libraries (PyTorch, scikit-learn, TensorFlow) depend on contiguous `ndarray` memory layouts to feed data into GPU matrix multiplication cores.
-
----
-
-### 9.2 — Boolean Mask
-
-An array of `True`/`False` values of matching shape used to filter elements from another array or DataFrame, returning only the elements corresponding to `True` positions.
-
-#### 💡 The Beginner Analogy: Stencil Cutout
-A boolean mask is like laying a **cardboard stencil with holes cut out** over a sheet of paper. Spraying paint (indexing) only passes through where the holes (`True`) exist, ignoring the covered paper (`False`).
-
-#### 🎨 Stencil Masking Flow
-
-```mermaid
-flowchart TD
-    ARR["Original Array: [ 10,  45,  30,  80 ]"] --> COND["Condition: arr > 40"]
-    COND --> MASK["Boolean Mask: [ False, True, False, True ]"]
-    MASK --> FILTERED["arr[arr > 40] -> Result: [ 45, 80 ]"]
-
-    style MASK fill:#005f73,stroke:#0a9396,color:#fff
-    style FILTERED fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-prices = np.array([12.0, 99.0, 5.0, 150.0])
-
-# ❌ Slow loop filtering
-expensive = [p for p in prices if p > 50.0]
-
-# ✅ Vectorized boolean masking
-expensive = prices[prices > 50.0]
-```
-**Why It Matters**: Enables instantaneous vector filtering across multi-gigabyte datasets without writing complex `for` loops or `if` statements.
-
----
-
-### 9.3 — Axis (Reduction Dimensions)
-
-The dimension index along which a reduction operation (like `.sum()` or `.mean()`) operates, collapsing that dimension out of the resulting shape.
-
-#### 💡 The Beginner Analogy: Squishing a Cardboard Box
-Think of a 2D table of Rows x Columns:
-- `axis=0`: Pushing down from the top lid to **squish rows into a single flat line** (yielding 1 result per column).
-- `axis=1`: Pushing in from the side to **squish columns into a single vertical line** (yielding 1 result per row).
-
-#### 🎨 `axis=0` vs `axis=1` Reduction
-
-```mermaid
-flowchart TD
-    subgraph Axis0 ["axis=0 (Collapses Rows -> Column Totals)"]
-        A0_MAT["[ [1, 2], <br>  [3, 4] ]"] -->|sum axis=0| A0_RES["[ 4, 6 ]"]
-    end
-
-    subgraph Axis1 ["axis=1 (Collapses Columns -> Row Totals)"]
-        A1_MAT["[ [1, 2], <br>  [3, 4] ]"] -->|sum axis=1| A1_RES["[ 3, 7 ]"]
-    end
-
-    style A0_RES fill:#2d6a4f,stroke:#52b788,color:#fff
-    style A1_RES fill:#005f73,stroke:#0a9396,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-matrix = np.array([
-    [10, 20],
-    [30, 40]
-])
-
-col_sums = matrix.sum(axis=0) # -> [40, 60] (Row dimension collapses)
-row_sums = matrix.sum(axis=1) # -> [30, 70] (Col dimension collapses)
-```
-**Why It Matters**: Mixing up `axis=0` and `axis=1` is the #1 bug when calculating feature means or batch statistics in machine learning pipelines.
-
----
-
-### 9.4 — Broadcasting
-
-NumPy's automatic rule set for performing element-wise arithmetic between arrays of different shapes by virtually expanding smaller dimensions without allocating redundant memory copies.
-
-#### 💡 The Beginner Analogy: Rubber Stamp Duplication
-If you want to add a $5 tip to 1,000 separate bill amounts, you don't write out a 1,000-element array filled with `5`. Broadcasting takes a single scalar `5` and **virtually stamps** it across all 1,000 bill slots during computation.
-
-#### 🎨 Scalar-to-Matrix Broadcasting
-
-```mermaid
-flowchart TD
-    MAT["Matrix (3x2): [[1, 2], [3, 4], [5, 6]]"] --> ADD["+"]
-    VEC["Vector (1x2): [10, 20]"] -->|Broadcasts across rows| STRETCH["Virtual Matrix: [[10, 20], [10, 20], [10, 20]]"]
-    ADD & STRETCH --> RES["Result: [[11, 22], [13, 24], [15, 26]]"]
-
-    style STRETCH fill:#005f73,stroke:#0a9396,color:#fff
-    style RES fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-prices = np.array([[100, 200], [300, 400]])
-discount = np.array([10, 20])
-
-# Broadcasts discount vector across every row of prices automatically!
-final_prices = prices - discount
-# -> [[90, 180], [290, 380]]
-```
-**Why It Matters**: Allows performing matrix-vector operations (like subtracting feature means for model normalization) with zero memory overhead.
-
----
-
-### 9.5 — Series, DataFrame & Index
-
-- **Series**: Pandas 1-dimensional labeled array.
-- **DataFrame**: Pandas 2-dimensional tabular structure composed of a dictionary of Series sharing a common Index.
-- **Index**: Immutable row labels that anchor data alignment across transformations.
-
-#### 💡 The Beginner Analogy: Spreadsheet Sheet & Row Headers
-A **Series** is a single column in an Excel sheet. A **DataFrame** is the entire multi-column sheet. The **Index** is the frozen row numbers / dates on the far left that ensure data rows stay locked to the right records even when sorted.
-
-#### 🎨 DataFrame Component Architecture
-
-```mermaid
-flowchart TD
-    DF["Pandas DataFrame"] --> COL1["Series: 'age' [25, 30]"]
-    DF --> COL2["Series: 'city' ['NY', 'SF']"]
-    DF --> IDX["Index: ['user_101', 'user_102'] (Locks row alignment)"]
-
-    style IDX fill:#005f73,stroke:#0a9396,color:#fff
-    style DF fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-import pandas as pd
-
-df = pd.DataFrame({
-    "price": [10.0, 20.0],
-    "category": ["A", "B"]
-}, index=["item_1", "item_2"])
-```
-**Why It Matters**: Pandas aligns operations by **Index**, not by raw position. If two DataFrames have different indices, adding them together produces unexpected `NaN` values!
-
----
-
-### 9.6 — `.loc` vs. `.iloc`
-
-- **`.loc`**: Label-based indexing using explicit index names and column labels.
-- **`.iloc`**: Integer position-based indexing using 0-indexed integer coordinates (like standard Python lists).
-
-#### 💡 The Beginner Analogy: Street Address vs. GPS Coordinates
-- `.loc`: Looking up a house by its **postal address label** (`"123 Main St"`).
-- `.iloc`: Looking up a house by its **exact physical position** (the 3rd house from the corner).
-
-#### 🎨 `.loc` vs `.iloc` Divergence Trap
-
-```mermaid
-flowchart TD
-    DF["df with custom index ['100', '101', '102']"] --> LOC[".loc[100] -> Looks for index LABEL '100'"]
-    DF --> ILOC[".iloc[0] -> Looks for integer POSITION 0 (First row)"]
-
-    style LOC fill:#005f73,stroke:#0a9396,color:#fff
-    style ILOC fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-df = pd.DataFrame({"val": [10, 20, 30]}, index=[2, 1, 0])
-
-# ❌ TRAP: .loc[0] looks for index LABEL 0, which is the LAST row!
-val_loc = df.loc[0]   # -> 30
-
-# ✅ .iloc[0] looks for absolute integer POSITION 0, which is the FIRST row!
-val_iloc = df.iloc[0] # -> 10
-```
-**Why It Matters**: After filtering a DataFrame, index labels become non-sequential. Using raw brackets `df[0]` or mixing `.loc` and `.iloc` produces silent lookup bugs.
-
----
-
-### 9.7 — `groupby` (Split-Apply-Combine)
-
-A 3-stage data aggregation workflow:
-1. **Split**: Partition data into groups based on key values.
-2. **Apply**: Compute summary statistics (`mean`, `sum`, `count`) per group independently.
-3. **Combine**: Reassemble group results into a single output DataFrame.
-
-#### 💡 The Beginner Analogy: Sorting Laundry Baskets
-Imagine sorting a giant pile of mixed laundry (Split into white, dark, and color baskets), washing each basket separately (Apply), and folding them back into a single clean drawer (Combine).
-
-#### 🎨 Split-Apply-Combine Data Flow
-
-```mermaid
-flowchart TD
-    RAW["Raw Data: [ (A, 10), (B, 20), (A, 30) ]"] --> SPLIT["SPLIT by Key"]
-    SPLIT --> G_A["Group A: [10, 30]"]
-    SPLIT --> G_B["Group B: [20]"]
-    G_A -->|APPLY sum| RES_A["Group A Total: 40"]
-    G_B -->|APPLY sum| RES_B["Group B Total: 20"]
-    RES_A & RES_B --> COMBINE["COMBINE -> DataFrame: A:40, B:20"]
-
-    style COMBINE fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-# Split by category, apply sum to sales, combine into summary table
-df.groupby("category")["sales"].agg(["sum", "mean"])
-```
-**Why It Matters**: The fundamental pattern for computing per-category summary statistics, user cohort metrics, and feature aggregations in data analytics.
-
----
-
-### 9.8 — Skew & `log1p` Transformation
-
-- **Skew**: Asymmetry of a statistical distribution. Right-skewed data features a long tail of extreme high values (e.g. house prices, income levels).
-- **`log1p` (`log(1 + x)`)**: A natural log transform that compresses extreme values into a bell-curve distribution while safely handling zero values (`log1p(0) = 0`).
-
-#### 💡 The Beginner Analogy: Compressible Telescope Lens
-Right-skewed data is like looking at objects scattered across a 10-mile field — tiny house values are bunched up near 0 while billionaire mansions sit miles away. A `log1p` transform acts as a **wide-angle telephoto lens**: it zooms in on the zero cluster while pulling far-away outliers closer so the machine learning model can see everything on one scale.
-
-#### 🎨 Compression of Right-Skewed Data
-
-```mermaid
-flowchart TD
-    SKEW["Raw Prices: [ 0, 100, 500, 10_000_000 ] (Extreme Skew!)"] --> LOG["np.log1p(prices)"]
-    LOG --> NORMALIZED["Transformed: [ 0.0, 4.61, 6.21, 16.11 ] (Normally Distributed)"]
-
-    style NORMALIZED fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-# ❌ TRAP: np.log(0) raises DivideByZeroError (-inf)!
-# np.log(0)  # -> -inf!
-
-# ✅ SAFE IDIOM: Handles zero values smoothly
-prices_transformed = np.log1p(df["price"])
-```
-**Why It Matters**: Linear regression and neural networks perform poorly on skewed data. `log1p` normalizes feature distributions and prevents numerical overflow during training.
-
----
-
-### 9.9 — `Agg` Backend (Matplotlib)
-
-Matplotlib's non-interactive Anti-Grain Geometry (`Agg`) rendering engine that outputs raster graphics (`PNG`, `JPEG`) directly to file buffers without requiring a GUI desktop window manager.
-
-#### 💡 The Beginner Analogy: Headless Virtual Camera
-Standard plot rendering attempts to pop up a physical window on your desktop monitor. The **`Agg` backend** is a **headless virtual camera**: it renders high-resolution plots directly to disk in the background, making it work over remote SSH servers without a physical monitor attached.
-
-#### 🎨 GUI vs. Headless Rendering
-
-```mermaid
-flowchart TD
-    subgraph GUI ["❌ Default GUI Backend (Needs Desktop Display)"]
-        G1["plt.show()"] --> G2["Tries to open X11/Windows GUI Window"]
-        G2 --> G3["💥 Crash over remote SSH / Docker: TclError: no display name"]
-    end
-
-    subgraph Headless ["✅ Agg Backend (Headless File Exporter)"]
-        H1["import matplotlib; matplotlib.use('Agg')"] --> H2["plt.savefig('output.png')"]
-        H2 --> H3["Renders cleanly directly to PNG disk file"]
-    end
-
-    style G3 fill:#9b2226,stroke:#ae2012,color:#fff
-    style H3 fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-import matplotlib
-# MUST be set BEFORE importing pyplot!
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
-plt.plot([1, 2], [3, 4])
-plt.savefig("chart.png") # Safe headless export for SSH servers and Docker containers
-```
-**Why It Matters**: Prevents Matplotlib scripts from crashing when executed inside headless cloud VMs (like AWS/OCI), Docker containers, or automated CI/CD pipelines.
 
 ---
 

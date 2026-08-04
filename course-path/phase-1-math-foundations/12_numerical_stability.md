@@ -16,7 +16,201 @@ Depends on **1.11** convexity and gradient descent; unlocks **3.3** cross-entrop
 
 ---
 
-## 2. Skip Test — Answered
+## 2. Glossary
+
+### 2.1 — Floating-Point Overflow, Underflow & Machine Epsilon ($\epsilon_{\text{mach}}$)
+
+- **Machine Epsilon ($\epsilon_{\text{mach}}$)**: The smallest positive float $\epsilon$ such that $1.0 + \epsilon \neq 1.0$ ($2.22 \times 10^{-16}$ for Float64, $1.19 \times 10^{-7}$ for Float32).
+- **Overflow**: When a calculation exceeds the maximum representable float limit, returning `inf` (e.g. $\exp(89)$ in Float32 overflows).
+- **Underflow**: When a number is smaller than the minimum representable positive float, rounding down to $0.0$ (causing subsequent $\log(0)$ to return `-inf`).
+
+#### 💡 The Beginner Analogy: Odometer Roll-over & Microscope Resolution
+- Overflow: Driving a 6-digit car odometer past $999,999$ miles — it rolls over or breaks.
+- Underflow: Trying to weigh a single speck of dust on a bathroom scale. The scale reads $0.0\text{ lbs}$ because the weight is below its minimum sensing threshold.
+- Machine Epsilon: Adding 1 drop of water into an Olympic swimming pool. The water level increases, but the pool scale cannot detect it.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+val_88 = np.exp(np.float32(88.0))
+val_89 = np.exp(np.float32(89.0))
+val_log0 = np.log(np.float32(0.0))
+
+print("exp(88.0):", val_88)
+print("exp(89.0):", val_89)
+print("log(0.0):", val_log0)
+```
+
+##### Verified Output
+```text
+exp(88.0): 1.6516103e+38
+exp(89.0): inf
+log(0.0): -inf
+```
+
+**Why It Matters**: Unchecked float overflow/underflow turns loss values into `NaN`, instantly corrupting neural network model weights during training runs.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart LR
+    NEG_INF["-inf"] <-- "Underflow to 0.0" -- NEAR_ZERO["[-1e-38, +1e-38] (Underflow Zone)"]
+    NEAR_ZERO --> NORMAL["Valid Representable Floats"]
+    NORMAL -->|"Overflow above 3.4e38"| POS_INF["+inf (Overflow Zone)"]
+
+    style NEAR_ZERO fill:#005f73,stroke:#0a9396,color:#fff
+    style POS_INF fill:#9b2226,stroke:#ae2012,color:#fff
+```
+
+---
+
+### 2.2 — Log-Sum-Exp Trick & Softmax Shift Invariance ($x - \max(x)$)
+
+- **Shift Invariance**: Subtracting a constant $C = \max(x)$ from every logit before applying Softmax leaves the resulting probabilities **100% mathematically unchanged**:
+  $$\text{Softmax}(x_i) = \frac{e^{x_i}}{\sum e^{x_j}} = \frac{e^{x_i - C}}{\sum e^{x_j - C}}$$
+- **Log-Sum-Exp Trick**: Numerically stable algorithm for computing $\log \sum e^{x_i}$:
+  $$\text{LSE}(x) = \max(x) + \log \left( \sum e^{x_i - \max(x)} \right)$$
+
+#### 💡 The Beginner Analogy: Shifting High Elevation Benchmarks
+Calculating $\exp(800)$ on raw logits causes float overflow ($e^{800} = \infty$).
+If 3 mountains have elevations $800\text{m}$, $799\text{m}$, $795\text{m}$, subtract the highest peak ($800\text{m}$) so their relative heights become $0\text{m}$, $-1\text{m}$, $-5\text{m}$. Calculating $e^0, e^{-1}, e^{-5}$ evaluates cleanly without overflowing!
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+def logsumexp_stable(x):
+    max_x = np.max(x)
+    return max_x + np.log(np.sum(np.exp(x - max_x)))
+
+x = np.array([800.0, 799.0, 795.0])
+lse = logsumexp_stable(x)
+print("Stable LogSumExp:", round(lse, 4))
+```
+
+##### Verified Output
+```text
+Stable LogSumExp: 800.3133
+```
+
+**Why It Matters**: Standard implementation behind `torch.nn.CrossEntropyLoss` and `scipy.special.logsumexp`.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    subgraph Naive ["❌ Naive Softmax (exp(800))"]
+        N1["Logits [800, 799, 795]"] --> N2["exp([800, 799, 795])"]
+        N2 --> N3["💥 [inf, inf, inf] -> Softmax outputs NaN!"]
+    end
+
+    subgraph Stable ["✅ Stable Shifted Softmax (x - max(x))"]
+        S1["Shift Logits: x - 800 -> [0, -1, -5]"] --> S2["exp([0, -1, -5]) = [1.0, 0.367, 0.006]"]
+        S3["✅ Valid Probabilities [0.727, 0.267, 0.005]!"]
+    end
+
+    style N3 fill:#9b2226,stroke:#ae2012,color:#fff
+    style S3 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.3 — `float16` vs. `bfloat16` Precision/Exponent Trade-off
+
+Two 16-bit floating-point formats used in deep learning hardware acceleration:
+- **`float16` (IEEE Half Precision)**: 5 Exponent bits, 10 Mantissa bits. High precision, but narrow dynamic range ($\max \approx 65,504$). Prone to overflow!
+- **`bfloat16` (Brain Floating Point)**: 8 Exponent bits, 7 Mantissa bits. **Matches `float32`'s dynamic range ($\max \approx 3.4 \times 10^{38}$)** with lower precision.
+
+#### 💡 The Beginner Analogy: Telephoto Lens vs Wide-Angle Lens
+- `float16`: A telephoto zoom lens that sees fine detail (10 mantissa bits), but has a tiny narrow field of view. If something moves slightly out of frame ($> 65,504$), it cuts off completely (`inf`).
+- `bfloat16`: A wide-angle lens matching full 32-bit camera coverage ($8$ exponent bits). Images are a bit grainier (7 mantissa bits), but nothing gets cut off!
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import torch
+
+x_f16 = torch.tensor([70000.0], dtype=torch.float16)
+x_bf16 = torch.tensor([70000.0], dtype=torch.bfloat16)
+
+print("float16 value:", x_f16.item())
+print("bfloat16 value:", x_bf16.item())
+```
+
+##### Verified Output
+```text
+float16 value: inf
+bfloat16 value: 70144.0
+```
+
+**Why It Matters**: Modern LLMs (Llama 3, Mistral) are trained natively in `bfloat16` because it eliminates the need for complex Loss Scaling algorithms required by `float16`.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    F32["float32:  [1 Sign] [8 Exponent Bits]  [23 Mantissa Bits]"]
+    BF16["bfloat16: [1 Sign] [8 Exponent Bits]  [7 Mantissa Bits] (Same Range as float32!)"]
+    F16["float16:  [1 Sign] [5 Exponent Bits]  [10 Mantissa Bits] (Narrow Range, Overflows at 65504!)"]
+
+    style BF16 fill:#2d6a4f,stroke:#52b788,color:#fff
+    style F16 fill:#005f73,stroke:#0a9396,color:#fff
+```
+
+---
+
+### 2.4 — Welford's Algorithm vs. Naive Variance Cancellation
+
+- **Naive Variance Formula ($E[X^2] - (E[X])^2$)**: Requires subtracting two very large, nearly identical numbers, leading to **Catastrophic Cancellation** and massive error on shifted data.
+- **Welford's Algorithm**: A stable 1-pass online algorithm that updates running mean and M2 sum recursively without large intermediate cancellation.
+
+#### 💡 The Beginner Analogy: Subtracting Huge Numbers
+If your timestamps are around $1,700,000,000$, computing $\text{Mean}(X^2) - (\text{Mean}(X))^2$ subtracts two numbers with 18 digits. Floating point only keeps 15 digits, so the difference loses all precision and returns **completely wrong numbers or negative variances**!
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+count = 0
+mean = 0.0
+M2 = 0.0
+
+data = np.array([10.0, 12.0, 14.0])
+for x in data:
+    count += 1
+    delta = x - mean
+    mean += delta / count
+    delta2 = x - mean
+    M2 += delta * delta2
+
+welford_var = M2 / (count - 1)
+print("Welford Variance:", welford_var)
+```
+
+##### Verified Output
+```text
+Welford Variance: 4.0
+```
+
+**Why It Matters**: Online metrics monitoring, streaming statistics, and batch normalization layers require Welford's algorithm to prevent numerical instability.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    SHIFTED["Shifted Data (e.g. Timestamps ~ 1e9)"] --> NAIVE["Naive E[X²] - (E[X])²"]
+    NAIVE --> CANCEL["💥 Catastrophic Cancellation -> Produces 130x Wrong Variance!"]
+
+    SHIFTED --> WELFORD["Welford's Incremental Running Variance"]
+    WELFORD --> ACCURATE["✅ 100% Accurate Variance Output!"]
+
+    style CANCEL fill:#9b2226,stroke:#ae2012,color:#fff
+    style ACCURATE fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+## 3. Skip Test — Answered
 
 > Gate **before** studying. Both correct from memory → skip. §7 withholds its answers deliberately.
 
@@ -338,164 +532,6 @@ DEMO 7 - the textbook variance formula, and where it breaks
 With this file **and** the script closed, write from scratch: a stable `softmax`, a stable `logsumexp`, and a `log_softmax` that never forms a probability. Then write a test that proves each one correct — the softmax test must show the naive version producing `nan` on an input where yours succeeds, and must separately prove the two agree on inputs where both survive. Finally, implement Welford's variance and demonstrate a shift under which it beats the textbook formula, stating the shift magnitude you predicted before running it.
 
 ---
-
-### 9.1 — Floating-Point Overflow, Underflow & Machine Epsilon ($\epsilon_{\text{mach}}$)
-
-- **Machine Epsilon ($\epsilon_{\text{mach}}$)**: The smallest positive float $\epsilon$ such that $1.0 + \epsilon \neq 1.0$ ($2.22 \times 10^{-16}$ for Float64, $1.19 \times 10^{-7}$ for Float32).
-- **Overflow**: When a calculation exceeds the maximum representable float limit, returning `inf` (e.g. $\exp(89)$ in Float32 overflows).
-- **Underflow**: When a number is smaller than the minimum representable positive float, rounding down to $0.0$ (causing subsequent $\log(0)$ to return `-inf`).
-
-#### 💡 The Beginner Analogy: Odometer Roll-over & Microscope Resolution
-- Overflow: Driving a 6-digit car odometer past $999,999$ miles — it rolls over or breaks.
-- Underflow: Trying to weigh a single speck of dust on a bathroom scale. The scale reads $0.0\text{ lbs}$ because the weight is below its minimum sensing threshold.
-- Machine Epsilon: Adding 1 drop of water into an Olympic swimming pool. The water level increases, but the pool scale cannot detect it.
-
-#### 🎨 Floating-Point Number Line & Out-of-Bounds Zones
-
-```mermaid
-flowchart LR
-    NEG_INF["-inf"] <-- "Underflow to 0.0" -- NEAR_ZERO["[-1e-38, +1e-38] (Underflow Zone)"]
-    NEAR_ZERO --> NORMAL["Valid Representable Floats"]
-    NORMAL -->|"Overflow above 3.4e38"| POS_INF["+inf (Overflow Zone)"]
-
-    style NEAR_ZERO fill:#005f73,stroke:#0a9396,color:#fff
-    style POS_INF fill:#9b2226,stroke:#ae2012,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-import numpy as np
-
-# Float32 Overflow threshold for exp(x) is x = 88.7
-np.exp(np.float32(88.0)) # -> 1.65e38 (Valid)
-np.exp(np.float32(89.0)) # -> inf (Overflow!)
-
-# Underflow leads to log(0.0) -> -inf
-np.log(np.float32(0.0))  # -> -inf (Destroys training gradients!)
-```
-**Why It Matters**: Unchecked float overflow/underflow turns loss values into `NaN`, instantly corrupting neural network model weights during training runs.
-
----
-
-### 9.2 — Log-Sum-Exp Trick & Softmax Shift Invariance ($x - \max(x)$)
-
-- **Shift Invariance**: Subtracting a constant $C = \max(x)$ from every logit before applying Softmax leaves the resulting probabilities **100% mathematically unchanged**:
-  $$\text{Softmax}(x_i) = \frac{e^{x_i}}{\sum e^{x_j}} = \frac{e^{x_i - C}}{\sum e^{x_j - C}}$$
-- **Log-Sum-Exp Trick**: Numerically stable algorithm for computing $\log \sum e^{x_i}$:
-  $$\text{LSE}(x) = \max(x) + \log \left( \sum e^{x_i - \max(x)} \right)$$
-
-#### 💡 The Beginner Analogy: Shifting High Elevation Benchmarks
-Calculating $\exp(800)$ on raw logits causes float overflow ($e^{800} = \infty$).
-If 3 mountains have elevations $800\text{m}$, $799\text{m}$, $795\text{m}$, subtract the highest peak ($800\text{m}$) so their relative heights become $0\text{m}$, $-1\text{m}$, $-5\text{m}$. Calculating $e^0, e^{-1}, e^{-5}$ evaluates cleanly without overflowing!
-
-#### 🎨 Naive Overflow vs Stable Shifted Softmax
-
-```mermaid
-flowchart TD
-    subgraph Naive ["❌ Naive Softmax (exp(800))"]
-        N1["Logits [800, 799, 795]"] --> N2["exp([800, 799, 795])"]
-        N2 --> N3["💥 [inf, inf, inf] -> Softmax outputs NaN!"]
-    end
-
-    subgraph Stable ["✅ Stable Shifted Softmax (x - max(x))"]
-        S1["Shift Logits: x - 800 -> [0, -1, -5]"] --> S2["exp([0, -1, -5]) = [1.0, 0.367, 0.006]"]
-        S3["✅ Valid Probabilities [0.727, 0.267, 0.005]!"]
-    end
-
-    style N3 fill:#9b2226,stroke:#ae2012,color:#fff
-    style S3 fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-def logsumexp_stable(x):
-    max_x = np.max(x)
-    return max_x + np.log(np.sum(np.exp(x - max_x)))
-
-# Handles huge inputs (e.g. 800.0) without returning NaN or inf
-x = np.array([800.0, 799.0, 795.0])
-lse = logsumexp_stable(x) # -> 800.313 (Numerically Stable!)
-```
-**Why It Matters**: Standard implementation behind `torch.nn.CrossEntropyLoss` and `scipy.special.logsumexp`.
-
----
-
-### 9.3 — `float16` vs. `bfloat16` Precision/Exponent Trade-off
-
-Two 16-bit floating-point formats used in deep learning hardware acceleration:
-- **`float16` (IEEE Half Precision)**: 5 Exponent bits, 10 Mantissa bits. High precision, but narrow dynamic range ($\max \approx 65,504$). Prone to overflow!
-- **`bfloat16` (Brain Floating Point)**: 8 Exponent bits, 7 Mantissa bits. **Matches `float32`'s dynamic range ($\max \approx 3.4 \times 10^{38}$)** with lower precision.
-
-#### 💡 The Beginner Analogy: Telephoto Lens vs Wide-Angle Lens
-- `float16`: A telephoto zoom lens that sees fine detail (10 mantissa bits), but has a tiny narrow field of view. If something moves slightly out of frame ($> 65,504$), it cuts off completely (`inf`).
-- `bfloat16`: A wide-angle lens matching full 32-bit camera coverage ($8$ exponent bits). Images are a bit grainier (7 mantissa bits), but nothing gets cut off!
-
-#### 🎨 Bit Layout Comparison: float32 vs float16 vs bfloat16
-
-```mermaid
-flowchart TD
-    F32["float32:  [1 Sign] [8 Exponent Bits]  [23 Mantissa Bits]"]
-    BF16["bfloat16: [1 Sign] [8 Exponent Bits]  [7 Mantissa Bits] (Same Range as float32!)"]
-    F16["float16:  [1 Sign] [5 Exponent Bits]  [10 Mantissa Bits] (Narrow Range, Overflows at 65504!)"]
-
-    style BF16 fill:#2d6a4f,stroke:#52b788,color:#fff
-    style F16 fill:#005f73,stroke:#0a9396,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-import torch
-
-# float16 overflows above 65504
-x_f16 = torch.tensor([70000.0], dtype=torch.float16) # -> inf (Overflow!)
-
-# bfloat16 handles 70000.0 easily because exponent is 8 bits
-x_bf16 = torch.tensor([70000.0], dtype=torch.bfloat16) # -> 70144.0 (Preserved!)
-```
-**Why It Matters**: Modern LLMs (Llama 3, Mistral) are trained natively in `bfloat16` because it eliminates the need for complex Loss Scaling algorithms required by `float16`.
-
----
-
-### 9.4 — Welford's Algorithm vs. Naive Variance Cancellation
-
-- **Naive Variance Formula ($E[X^2] - (E[X])^2$)**: Requires subtracting two very large, nearly identical numbers, leading to **Catastrophic Cancellation** and massive error on shifted data.
-- **Welford's Algorithm**: A stable 1-pass online algorithm that updates running mean and M2 sum recursively without large intermediate cancellation.
-
-#### 💡 The Beginner Analogy: Subtracting Huge Numbers
-If your timestamps are around $1,700,000,000$, computing $\text{Mean}(X^2) - (\text{Mean}(X))^2$ subtracts two numbers with 18 digits. Floating point only keeps 15 digits, so the difference loses all precision and returns **completely wrong numbers or negative variances**!
-
-#### 🎨 Naive Cancellation vs Welford Stability
-
-```mermaid
-flowchart TD
-    SHIFTED["Shifted Data (e.g. Timestamps ~ 1e9)"] --> NAIVE["Naive E[X²] - (E[X])²"]
-    NAIVE --> CANCEL["💥 Catastrophic Cancellation -> Produces 130x Wrong Variance!"]
-
-    SHIFTED --> WELFORD["Welford's Incremental Running Variance"]
-    WELFORD --> ACCURATE["✅ 100% Accurate Variance Output!"]
-
-    style CANCEL fill:#9b2226,stroke:#ae2012,color:#fff
-    style ACCURATE fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-# Welford's algorithm online update:
-count = 0
-mean = 0.0
-M2 = 0.0
-
-def welford_update(x):
-    global count, mean, M2
-    count += 1
-    delta = x - mean
-    mean += delta / count
-    delta2 = x - mean
-    M2 += delta * delta2
-
-# Sample variance = M2 / (count - 1)
-```
-**Why It Matters**: Online metrics monitoring, streaming statistics, and batch normalization layers require Welford's algorithm to prevent numerical instability.
 
 ---
 

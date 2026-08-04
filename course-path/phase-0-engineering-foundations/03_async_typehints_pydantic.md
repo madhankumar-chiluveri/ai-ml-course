@@ -20,7 +20,339 @@ Depends on **0.2**; unlocks **0.9**, **4.8**, **6.3**, **6.14**.
 
 ---
 
-## 2. Skip Test — Answered
+## 2. Glossary
+
+### 2.1 — Coroutine (`async` / `await`)
+
+A special Python function declared with `async def` that can pause execution at an `await` expression, releasing control back to the event loop while waiting for I/O operations.
+
+#### 💡 The Beginner Analogy: Coffee Shop Pager
+Calling a normal function is like standing at a coffee counter while the barista brews your cup — you block the entire line until it's done. A **Coroutine** gives you a **buzzing pager**: you step aside so other people can order (event loop moves to other tasks), and you step back to the counter only when your pager buzzes (`await` completes).
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import asyncio
+
+async def fetch_db():
+    return "database_result"
+
+# ❌ TRAP: Forgot await! Returns <coroutine object fetch_db at 0x...>, does NOT run body!
+coro_obj = fetch_db()
+print("Unawaited Result:", type(coro_obj))
+
+# ✅ CORRECT: Suspends execution until event loop returns result
+async def main():
+    result = await fetch_db()
+    print("Aawaited Result:", result)
+
+asyncio.run(main())
+```
+
+##### Verified Output
+```text
+Unawaited Result: <class 'coroutine'>
+Aawaited Result: database_result
+```
+
+**Why It Matters**: Omitting `await` is a top source of silent bugs in async Python. Operations like database commits or API network calls are completely skipped without throwing an error at the call site.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    subgraph CoroutineFlow ["Async Function Call"]
+        CALL["coro = fetch_db()"] --> CHECK{"Was 'await' used?"}
+        CHECK -->|"No"| TRAP["💥 Returns un-executed Coroutine Object (Silent Failure!)"]
+        CHECK -->|"Yes"| EXEC["Event Loop executes body -> Returns result"]
+    end
+
+    style TRAP fill:#9b2226,stroke:#ae2012,color:#fff
+    style EXEC fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.2 — `asyncio.gather`
+
+A concurrent execution utility that schedules multiple awaitable objects (coroutines/tasks) on the event loop simultaneously and pauses until **all** of them complete, returning a list of their results in original order.
+
+#### 💡 The Beginner Analogy: Ordering at a Fast Food Counter
+Executing requests sequentially with `await` is like sending 3 people to order food **one after another in line** (total time = 5s + 5s + 5s = 15s). `asyncio.gather` is like sending all 3 people to **3 separate cashier counters at the same time** (total time = 5s max).
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import asyncio
+
+async def fetch_api_1():
+    await asyncio.sleep(0.1)
+    return "API 1 Data"
+
+async def fetch_api_2():
+    await asyncio.sleep(0.1)
+    return "API 2 Data"
+
+async def main():
+    # ✅ Concurrent execution of both tasks
+    res1, res2 = await asyncio.gather(fetch_api_1(), fetch_api_2())
+    print("Gathered Results:", [res1, res2])
+
+asyncio.run(main())
+```
+
+##### Verified Output
+```text
+Gathered Results: ['API 1 Data', 'API 2 Data']
+```
+
+**Why It Matters**: Dramatically reduces network latency in AI microservices and LangChain tool executions by overlapping independent API requests.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    subgraph Sequential ["❌ Sequential await (Sum of times: 6 seconds)"]
+        S1["await fetch(A) [2s]"] --> S2["await fetch(B) [3s]"]
+        S2 --> S3["await fetch(C) [1s]"]
+    end
+
+    subgraph Concurrent ["✅ asyncio.gather (Max time: 3 seconds)"]
+        G1["asyncio.gather(fetch(A), fetch(B), fetch(C))"]
+        G1 --> P1["fetch(A) [2s]"]
+        G1 --> P2["fetch(B) [3s]"]
+        G1 --> P3["fetch(C) [1s]"]
+        P1 & P2 & P3 --> DONE["All Complete in 3.0s"]
+    end
+
+    style DONE fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.3 — `asyncio.wait_for`
+
+A timeout wrapper that bounds the total execution time of an awaitable, raising `TimeoutError` and cancelling the underlying task if it exceeds the specified duration.
+
+#### 💡 The Beginner Analogy: Restaurant Timer
+If an oven timer is set for 10 minutes (`timeout=10.0`), and the chef hasn't finished baking by minute 10, the kitchen manager immediately pulls the dish out and sounds an alarm (`TimeoutError`).
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import asyncio
+
+async def slow_web_search():
+    await asyncio.sleep(5.0)
+    return "Search Complete"
+
+async def main():
+    try:
+        # Protects graph nodes from hanging infinitely on external APIs
+        result = await asyncio.wait_for(slow_web_search(), timeout=0.1)
+    except asyncio.TimeoutError:
+        result = "Search timed out. Fallback triggered."
+    print("Timeout Result:", result)
+
+asyncio.run(main())
+```
+
+##### Verified Output
+```text
+Timeout Result: Search timed out. Fallback triggered.
+```
+
+**Why It Matters**: Prevents a hung web scraper or stalled LLM API request from permanently locking background workers or agent execution graphs.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    W1["asyncio.wait_for(tool.run(), timeout=5.0)"] --> W2{"Execution completes within 5s?"}
+    W2 -->|"Yes"| SUCCESS["Return Tool Output"]
+    W2 -->|"No (Hangs / Stalls)"| CANCEL["Cancel Task & Raise asyncio.TimeoutError"]
+
+    style CANCEL fill:#9b2226,stroke:#ae2012,color:#fff
+    style SUCCESS fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.4 — GIL (Global Interpreter Lock)
+
+A mutex lock inside CPython that ensures only **one operating system thread executes Python bytecode at a single time**.
+
+#### 💡 The Beginner Analogy: Single Microphone in a Debate
+No matter how many speakers (threads) are standing on stage, there is only **one physical microphone** (the GIL). Only the person holding the microphone can talk. If a speaker stops to read a document (I/O waiting), they hand off the microphone to someone else. But two people cannot talk simultaneously.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import sys
+
+# Inspect Python GIL setting status
+print("Active GIL status:", getattr(sys, "_is_gil_enabled", lambda: True)())
+```
+
+##### Verified Output
+```text
+Active GIL status: True
+```
+
+**Why It Matters**: Explains why `asyncio` and threading accelerate web server I/O, but heavy CPU model training must use multiprocessing or CUDA C extensions to bypass Python's thread lock.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    subgraph IOBound ["✅ I/O-Bound (Async / Multi-threading Works!)"]
+        IO1["Thread 1: Waiting for Network HTTP"] -->|Releases GIL| IO2["Thread 2: Processes API Response"]
+    end
+
+    subgraph CPUBound ["❌ CPU-Bound Math (Blocked by GIL)"]
+        CPU1["Thread 1: Heavy Matrix Math (Holds GIL)"] -->|Blocks| CPU2["Thread 2: Must WAIT (0 Speedup!)"]
+    end
+
+    style CPUBound fill:#9b2226,stroke:#ae2012,color:#fff
+    style IOBound fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.5 — `TypedDict`
+
+A dictionary structure defined at type-checking time using `typing.TypedDict` that enforces explicit key names and value types without changing the runtime dict representation.
+
+#### 💡 The Beginner Analogy: Standardized Form Paper
+A plain Python `dict` is like a blank sheet of paper — you can write any key-value pair on it. A `TypedDict` is a **printed application form**: it enforces exact box labels (`messages: list`, `next_step: str`) while remaining standard paper (a plain Python dictionary at runtime).
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+from typing import TypedDict
+
+class AgentState(TypedDict):
+    messages: list[str]
+    next_node: str
+
+state: AgentState = {"messages": ["hello"], "next_node": "agent"}
+print("TypedDict Runtime Data:", state)
+print("Is Plain Dict?", type(state) is dict)
+```
+
+##### Verified Output
+```text
+TypedDict Runtime Data: {'messages': ['hello'], 'next_node': 'agent'}
+Is Plain Dict? True
+```
+
+**Why It Matters**: Essential for LangGraph state management. LangGraph requires plain serializable dicts for state checkpointing and persistence, making `TypedDict` superior to full OOP classes for graph state.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    TD["class AgentState(TypedDict):<br>messages: list[str]<br>sender: str"] --> RT["Runtime Object: {'messages': [...], 'sender': 'user'}"]
+    RT --> CHECK["Passes to LangGraph Checkpointer (100% JSON Serializable)"]
+
+    style CHECK fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.6 — `Annotated[T, metadata]` & Reducers
+
+A Python type hint wrapper that attaches arbitrary domain metadata (such as a LangGraph state **Reducer** function) to a field type `T`.
+
+#### 💡 The Beginner Analogy: Luggage Tag Rules
+The type `list[str]` specifies *what* is inside the suitcase (strings). `Annotated[list[str], operator.add]` attaches a **special handling luggage tag** instructing the state manager: *"When new items arrive, do NOT overwrite the suitcase — append them to the existing list!"*
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import operator
+from typing import Annotated, TypedDict, get_type_hints, get_args
+
+class GraphState(TypedDict):
+    messages: Annotated[list[str], operator.add]
+
+# Inspect attached reducer metadata
+hints = get_type_hints(GraphState, include_extras=True)
+field_type, reducer = get_args(hints["messages"])
+print("Attached Reducer:", reducer.__name__)
+```
+
+##### Verified Output
+```text
+Attached Reducer: add
+```
+
+**Why It Matters**: Without `Annotated` reducers, multi-agent updates in LangGraph overwrite previous chat history and state context instead of accumulating updates.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    subgraph DefaultOverwrite ["❌ Without Reducer (Default Overwrite)"]
+        O1["State: ['msg1']"] -->|New Write: ['msg2']| O2["Result: ['msg2'] (msg1 ERASED!)"]
+    end
+
+    subgraph AnnotatedReducer ["✅ Annotated[list, operator.add] (Reducer Append)"]
+        R1["State: ['msg1']"] -->|New Write: ['msg2']| R2["Result: ['msg1', 'msg2'] (Concatenated!)"]
+    end
+
+    style O2 fill:#9b2226,stroke:#ae2012,color:#fff
+    style R2 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.7 — Field Validator & `ValidationError`
+
+- **Field Validator**: A `@field_validator` method hook in Pydantic that intercepts parsed input values to enforce business rules and data normalization.
+- **`ValidationError`**: Pydantic's structured error exception raised when input data fails type coercion or validation rules.
+
+#### 💡 The Beginner Analogy: Bouncer & Form Reject Slip
+A Pydantic model is a club venue. A **Field Validator** is the bouncer at the door checking IDs (e.g. verifying `age >= 18`). If an invalid guest attempts entry, the bouncer issues a detailed **`ValidationError` slip** detailing exactly which field failed and why.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+from pydantic import BaseModel, field_validator, ValidationError
+
+class UserProfile(BaseModel):
+    username: str
+
+    @field_validator("username")
+    def must_be_lowercase(cls, v: str) -> str:
+        if not v.islower():
+            raise ValueError("Username must be lowercase")
+        return v
+
+try:
+    user = UserProfile(username="ADMIN")
+except ValidationError as e:
+    print("Validation Error Count:", len(e.errors()))
+    print("Error Msg:", e.errors()[0]["msg"])
+```
+
+##### Verified Output
+```text
+Validation Error Count: 1
+Error Msg: Value error, Username must be lowercase
+```
+
+**Why It Matters**: Structured `ValidationError` outputs are feedable back to LLMs as targeted retry prompts, enabling self-healing LLM output pipelines.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    IN["Raw LLM JSON Output"] --> VAL{"Pydantic Field Validation"}
+    VAL -->|"Valid"| SUCCESS["Parsed Model Object"]
+    VAL -->|"Invalid (e.g. invalid date format)"| ERR["ValidationError (Carries field path & reason)"]
+    ERR --> RETRY["Feed error text back to LLM for Self-Correction Turn"]
+
+    style ERR fill:#9b2226,stroke:#ae2012,color:#fff
+    style SUCCESS fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+## 3. Skip Test — Answered
 
 > Gate **before** studying. Both correct from memory → skip. §7 withholds its answers deliberately.
 
@@ -239,232 +571,36 @@ flowchart TD
 
 #### 💻 Code Example & ⚠️ Why It Matters
 ```python
+import asyncio
+
 async def fetch_db():
-    return "data"
+    return "database_result"
 
 # ❌ TRAP: Forgot await! Returns <coroutine object fetch_db at 0x...>, does NOT run body!
-result = fetch_db() 
+coro_obj = fetch_db()
+print("Unawaited Result:", type(coro_obj))
 
 # ✅ CORRECT: Suspends execution until event loop returns result
-result = await fetch_db()
+async def main():
+    result = await fetch_db()
+    print("Aawaited Result:", result)
+
+asyncio.run(main())
 ```
+
+##### Verified Output
+```text
+Unawaited Result: <class 'coroutine'>
+Aawaited Result: database_result
+```
+
 **Why It Matters**: Omitting `await` is a top source of silent bugs in async Python. Operations like database commits or API network calls are completely skipped without throwing an error at the call site.
 
 ---
 
-### 9.2 — `asyncio.gather`
+## Review again in
 
-A concurrent execution utility that schedules multiple awaitable objects (coroutines/tasks) on the event loop simultaneously and pauses until **all** of them complete, returning a list of their results in original order.
-
-#### 💡 The Beginner Analogy: Ordering at a Fast Food Counter
-Executing requests sequentially with `await` is like sending 3 people to order food **one after another in line** (total time = 5s + 5s + 5s = 15s). `asyncio.gather` is like sending all 3 people to **3 separate cashier counters at the same time** (total time = 5s max).
-
-#### 🎨 Sequential vs. Concurrent Execution Timeline
-
-```mermaid
-flowchart TD
-    subgraph Sequential ["❌ Sequential await (Sum of times: 6 seconds)"]
-        S1["await fetch(A) [2s]"] --> S2["await fetch(B) [3s]"]
-        S2 --> S3["await fetch(C) [1s]"]
-    end
-
-    subgraph Concurrent ["✅ asyncio.gather (Max time: 3 seconds)"]
-        G1["asyncio.gather(fetch(A), fetch(B), fetch(C))"]
-        G1 --> P1["fetch(A) [2s]"]
-        G1 --> P2["fetch(B) [3s]"]
-        G1 --> P3["fetch(C) [1s]"]
-        P1 & P2 & P3 --> DONE["All Complete in 3.0s"]
-    end
-
-    style DONE fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-import asyncio
-
-# ❌ Sequential (Total wall-clock: 3.0s)
-res1 = await fetch_api_1() # 1.0s
-res2 = await fetch_api_2() # 2.0s
-
-# ✅ Concurrent (Total wall-clock: 2.0s max)
-res1, res2 = await asyncio.gather(fetch_api_1(), fetch_api_2())
-```
-**Why It Matters**: Dramatically reduces network latency in AI microservices and LangChain tool executions by overlapping independent API requests.
-
----
-
-### 9.3 — `asyncio.wait_for`
-
-A timeout wrapper that bounds the total execution time of an awaitable, raising `TimeoutError` and cancelling the underlying task if it exceeds the specified duration.
-
-#### 💡 The Beginner Analogy: Restaurant Timer
-If an oven timer is set for 10 minutes (`timeout=10.0`), and the chef hasn't finished baking by minute 10, the kitchen manager immediately pulls the dish out and sounds an alarm (`TimeoutError`).
-
-#### 🎨 Timeout Circuit Breaker
-
-```mermaid
-flowchart TD
-    W1["asyncio.wait_for(tool.run(), timeout=5.0)"] --> W2{"Execution completes within 5s?"}
-    W2 -->|"Yes"| SUCCESS["Return Tool Output"]
-    W2 -->|"No (Hangs / Stalls)"| CANCEL["Cancel Task & Raise asyncio.TimeoutError"]
-
-    style CANCEL fill:#9b2226,stroke:#ae2012,color:#fff
-    style SUCCESS fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-try:
-    # Protects graph nodes from hanging infinitely on external APIs
-    result = await asyncio.wait_for(slow_web_search(), timeout=3.0)
-except asyncio.TimeoutError:
-    result = "Search timed out. Fallback triggered."
-```
-**Why It Matters**: Prevents a hung web scraper or stalled LLM API request from permanently locking background workers or agent execution graphs.
-
----
-
-### 9.4 — GIL (Global Interpreter Lock)
-
-A mutex lock inside CPython that ensures only **one operating system thread executes Python bytecode at a single time**.
-
-#### 💡 The Beginner Analogy: Single Microphone in a Debate
-No matter how many speakers (threads) are standing on stage, there is only **one physical microphone** (the GIL). Only the person holding the microphone can talk. If a speaker stops to read a document (I/O waiting), they hand off the microphone to someone else. But two people cannot talk simultaneously.
-
-#### 🎨 I/O-Bound Parallelism vs. CPU-Bound Block
-
-```mermaid
-flowchart TD
-    subgraph IOBound ["✅ I/O-Bound (Async / Multi-threading Works!)"]
-        IO1["Thread 1: Waiting for Network HTTP"] -->|Releases GIL| IO2["Thread 2: Processes API Response"]
-    end
-
-    subgraph CPUBound ["❌ CPU-Bound Math (Blocked by GIL)"]
-        CPU1["Thread 1: Heavy Matrix Math (Holds GIL)"] -->|Blocks| CPU2["Thread 2: Must WAIT (0 Speedup!)"]
-    end
-
-    style CPUBound fill:#9b2226,stroke:#ae2012,color:#fff
-    style IOBound fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-# ❌ Threads give ZERO speedup for heavy CPU computation in Python!
-# For CPU math (matrix multiplication, image processing), use multiprocessing or NumPy/C extensions.
-```
-**Why It Matters**: Explains why `asyncio` and threading accelerate web server I/O, but heavy CPU model training must use multiprocessing or CUDA C extensions to bypass Python's thread lock.
-
----
-
-### 9.5 — `TypedDict`
-
-A dictionary structure defined at type-checking time using `typing.TypedDict` that enforces explicit key names and value types without changing the runtime dict representation.
-
-#### 💡 The Beginner Analogy: Standardized Form Paper
-A plain Python `dict` is like a blank sheet of paper — you can write any key-value pair on it. A `TypedDict` is a **printed application form**: it enforces exact box labels (`messages: list`, `next_step: str`) while remaining standard paper (a plain Python dictionary at runtime).
-
-#### 🎨 State Enforcement in LangGraph
-
-```mermaid
-flowchart TD
-    TD["class AgentState(TypedDict):<br>messages: list[str]<br>sender: str"] --> RT["Runtime Object: {'messages': [...], 'sender': 'user'}"]
-    RT --> CHECK["Passes to LangGraph Checkpointer (100% JSON Serializable)"]
-
-    style CHECK fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-from typing import TypedDict
-
-class AgentState(TypedDict):
-    messages: list[str]
-    next_node: str
-
-# Pure dict at runtime, but type checkers ensure state contract compliance!
-state: AgentState = {"messages": ["hello"], "next_node": "agent"}
-```
-**Why It Matters**: Essential for LangGraph state management. LangGraph requires plain serializable dicts for state checkpointing and persistence, making `TypedDict` superior to full OOP classes for graph state.
-
----
-
-### 9.6 — `Annotated[T, metadata]` & Reducers
-
-A Python type hint wrapper that attaches arbitrary domain metadata (such as a LangGraph state **Reducer** function) to a field type `T`.
-
-#### 💡 The Beginner Analogy: Luggage Tag Rules
-The type `list[str]` specifies *what* is inside the suitcase (strings). `Annotated[list[str], operator.add]` attaches a **special handling luggage tag** instructing the state manager: *"When new items arrive, do NOT overwrite the suitcase — append them to the existing list!"*
-
-#### 🎨 Default Overwrite vs. Annotated Reducer Append
-
-```mermaid
-flowchart TD
-    subgraph DefaultOverwrite ["❌ Without Reducer (Default Overwrite)"]
-        O1["State: ['msg1']"] -->|New Write: ['msg2']| O2["Result: ['msg2'] (msg1 ERASED!)"]
-    end
-
-    subgraph AnnotatedReducer ["✅ Annotated[list, operator.add] (Reducer Append)"]
-        R1["State: ['msg1']"] -->|New Write: ['msg2']| R2["Result: ['msg1', 'msg2'] (Concatenated!)"]
-    end
-
-    style O2 fill:#9b2226,stroke:#ae2012,color:#fff
-    style R2 fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-import operator
-from typing import Annotated, TypedDict
-
-class GraphState(TypedDict):
-    # operator.add tells LangGraph to CONCATENATE incoming lists instead of overwriting
-    messages: Annotated[list[str], operator.add]
-```
-**Why It Matters**: Without `Annotated` reducers, multi-agent updates in LangGraph overwrite previous chat history and state context instead of accumulating updates.
-
----
-
-### 9.7 — Field Validator & `ValidationError`
-
-- **Field Validator**: A `@field_validator` method hook in Pydantic that intercepts parsed input values to enforce business rules and data normalization.
-- **`ValidationError`**: Pydantic's structured error exception raised when input data fails type coercion or validation rules.
-
-#### 💡 The Beginner Analogy: Bouncer & Form Reject Slip
-A Pydantic model is a club venue. A **Field Validator** is the bouncer at the door checking IDs (e.g. verifying `age >= 18`). If an invalid guest attempts entry, the bouncer issues a detailed **`ValidationError` slip** detailing exactly which field failed and why.
-
-#### 🎨 Validation & Self-Correction Flow
-
-```mermaid
-flowchart TD
-    IN["Raw LLM JSON Output"] --> VAL{"Pydantic Field Validation"}
-    VAL -->|"Valid"| SUCCESS["Parsed Model Object"]
-    VAL -->|"Invalid (e.g. invalid date format)"| ERR["ValidationError (Carries field path & reason)"]
-    ERR --> RETRY["Feed error text back to LLM for Self-Correction Turn"]
-
-    style ERR fill:#9b2226,stroke:#ae2012,color:#fff
-    style SUCCESS fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-from pydantic import BaseModel, field_validator, ValidationError
-
-class UserProfile(BaseModel):
-    username: str
-
-    @field_validator("username")
-    def must_be_lowercase(cls, v: str) -> str:
-        if not v.islower():
-            raise ValueError("Username must be lowercase")
-        return v
-
-try:
-    user = UserProfile(username="ADMIN")
-except ValidationError as e:
-    print(e.json()) # Structured error report sent back to model or API client
-```
-**Why It Matters**: Structured `ValidationError` outputs are feedable back to LLMs as targeted retry prompts, enabling self-healing LLM output pipelines.
+**3 days** — high density, three distinct subjects in one topic. The `Annotated` reducer will not stick on one pass and is load-bearing for all of Phase 6.
 
 ---
 

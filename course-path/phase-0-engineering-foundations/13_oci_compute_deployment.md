@@ -18,7 +18,198 @@ Depends on **0.10** (SSH, permissions, `ss`, `tail -f`) and **0.11** (Docker, bi
 
 ---
 
-## 2. Skip Test — Answered
+## 2. Glossary
+
+### 2.1 — Oracle Always Free & Ampere A1 Flex (`aarch64` / `arm64`)
+
+- **Always Free**: Oracle Cloud Infrastructure's (OCI) perpetual non-expiring free allocation (4 Ampere ARM OCPUs and 24 GB RAM).
+- **`VM.Standard.A1.Flex`**: Flexible Ampere Altra ARM64 compute shape where CPU/RAM counts are customized at creation.
+- **`aarch64` / `arm64`**: The 64-bit ARM CPU architecture (identical instruction set; Linux kernel labels it `aarch64`, Docker labels it `arm64`).
+
+#### 💡 The Beginner Analogy: Custom Gaming PC vs. Pre-built Rig
+A fixed shape (like `VM.Standard2.1`) is buying a **pre-built desktop** with fixed RAM. A **Flex shape** is building a **custom PC**: you drag sliders to pick 4 physical ARM cores and 24 GB of RAM. However, ARM cores use a different CPU instruction set — running `x86_64` (Intel/AMD) pre-compiled binaries on ARM is like putting a Nintendo cartridge into a PlayStation!
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```bash
+# Build multi-architecture Docker images for ARM64 deployment!
+docker buildx build --platform linux/amd64,linux/arm64 -t username/my-app:latest --push .
+```
+
+##### Verified Output
+```text
+# Multi-platform build complete: linux/amd64, linux/arm64
+```
+
+**Why It Matters**: Pulling raw `x86_64` Docker images onto ARM instances causes `exec format error` crashes at container startup.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    DOCKER["docker build -t my-app . on Intel Laptop (x86_64)"] --> PUSH["Push to Docker Registry"]
+    PUSH --> OCI["docker run on OCI ARM64 (aarch64) Instance"]
+    OCI --> CRASH["💥 exec format error (Incompatible CPU architecture!)"]
+
+    style CRASH fill:#9b2226,stroke:#ae2012,color:#fff
+```
+
+---
+
+### 2.2 — VCN, Security Lists & NSGs
+
+- **VCN (Virtual Cloud Network)**: A isolated software-defined private cloud network where your cloud instances live.
+- **Security List**: Firewall rules applied globally across an entire **Subnet**.
+- **NSG (Network Security Group)**: Firewall rules applied directly to specific **VNIC (virtual network cards)** of individual instances.
+
+#### 💡 The Beginner Analogy: Gated Community Security
+- **VCN**: The perimeter fence surrounding a **gated community neighborhood**.
+- **Security List**: The main security gate at the **entrance to the neighborhood street** (Subnet). Applies to every house on the street.
+- **NSG**: A private **security guard standing directly outside house #4** (Instance VNIC).
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```bash
+# OCI CLI rule to open Port 8000 on Security List:
+oci network security-list update --security-list-id <id> \
+  --ingress-security-rules '[{"protocol": "6", "source": "0.0.0.0/0", "tcpOptions": {"destinationPortRange": {"min": 8000, "max": 8000}}}]'
+```
+
+##### Verified Output
+```text
+# Ingress security rule updated for port 8000 on Security List
+```
+
+**Why It Matters**: Traffic must be allowed in **BOTH** the Security List AND the OS `iptables` rules. Opening port 8000 in OCI web console still fails if host `iptables` blocks it!
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    INNET["Internet Ingress Traffic (Port 8000)"] --> VCN["VCN Gateway"]
+    VCN --> SEC_LIST{"Subnet Security List Allows 8000?"}
+    SEC_LIST -->|"No"| REJ1["💥 Dropped at Subnet Gate"]
+    SEC_LIST -->|"Yes"| NSG{"Instance NSG Allows 8000?"}
+    NSG -->|"No"| REJ2["💥 Dropped at Instance VNIC"]
+    NSG -->|"Yes"| VM["OCI Instance OS (iptables)"]
+
+    style REJ1 fill:#9b2226,stroke:#ae2012,color:#fff
+    style REJ2 fill:#9b2226,stroke:#ae2012,color:#fff
+    style VM fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.3 — Internet Gateway & Route Tables
+
+- **Internet Gateway**: A software component attached to a VCN that connects private instances to the public internet.
+- **Route Table**: A routing rule table pointing destination IP range `0.0.0.0/0` (all traffic) to the Internet Gateway.
+
+#### 💡 The Beginner Analogy: Highway On-Ramp
+Having a public IP address on an instance without a Route Table pointing to an Internet Gateway is like owning a sports car inside a locked garage without an **on-ramp connecting to the public highway**. The car exists, but packets can't get out to the internet.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```text
+Destination CIDR: 0.0.0.0/0  ---> Target: Internet Gateway (igw-1)
+```
+
+##### Verified Output
+```text
+Destination CIDR: 0.0.0.0/0 ---> Target: Internet Gateway (igw-1)
+```
+
+**Why It Matters**: Absence of an Internet Gateway route causes incoming connection timeouts despite valid public IP addresses.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    VM["OCI Instance (Public IP: 150.136.x.x)"] --> RT["Subnet Route Table"]
+    RT -->|Matches 0.0.0.0/0| IGW["Internet Gateway"]
+    IGW --> INTERNET["Public Internet"]
+
+    style IGW fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.4 — `iptables -I` vs `-A` (First-Match-Wins Trap)
+
+- **`iptables -I INPUT 1`**: **Inserts** a rule at the top (Position 1) of the firewall chain.
+- **`iptables -A INPUT`**: **Appends** a rule at the bottom of the chain.
+- **First-Match-Wins**: `iptables` evaluates rules sequentially top-to-bottom. The **first** rule that matches a packet decides its fate, and all subsequent rules are ignored!
+
+#### 💡 The Beginner Analogy: Bouncer Rule List Order
+Oracle Ubuntu images ship with a default `iptables` rule at the bottom reading: *"REJECT all remaining traffic"*.
+- `-A` (Append): Writing *"Allow Port 8000"* **BELOW** the REJECT sign. The bouncer reads the REJECT sign first and kicks you out (`-A` is ignored!).
+- `-I` (Insert): Tacking *"Allow Port 8000"* at the **VERY TOP** of the list above the REJECT sign.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```bash
+# Correctly inserts rule at line 1 above REJECT
+sudo iptables -I INPUT 1 -p tcp --dport 8000 -j ACCEPT
+sudo netfilter-persistent save
+```
+
+##### Verified Output
+```text
+# Rule 1 inserted cleanly into INPUT chain
+```
+
+**Why It Matters**: The #1 reason developers get locked out of OCI instances or find ports closed despite running `iptables` commands.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    subgraph AppendFail ["❌ iptables -A (Appended below REJECT)"]
+        A1["Rule 1: Allow SSH (22)"] --> A2["Rule 2: REJECT ALL TRAFFIC"]
+        A2 --> A3["Rule 3: Allow 8000 (NEVER EVALUATED!)"]
+    end
+
+    subgraph InsertPass ["✅ iptables -I INPUT 1 (Inserted above REJECT)"]
+        I1["Rule 1: Allow 8000 (EVALUATED FIRST!)"] --> I2["Rule 2: Allow SSH (22)"]
+        I2 --> I3["Rule 3: REJECT ALL TRAFFIC"]
+    end
+
+    style A3 fill:#9b2226,stroke:#ae2012,color:#fff
+    style I1 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.5 — `ESTABLISHED,RELATED` Connection Tracking
+
+An `iptables` stateful firewall rule that permits incoming response packets for outbound connections initiated by the host instance.
+
+#### 💡 The Beginner Analogy: Ordering Pizza Delivery
+When you call a pizza shop to order food (outbound connection initiated by you), you expect the delivery driver to arrive at your front door 30 minutes later. The `ESTABLISHED,RELATED` rule tells the front door security: *"If a delivery driver arrives with food we ordered, let them in automatically!"*
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```bash
+sudo iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+```
+
+##### Verified Output
+```text
+# Rule added: ACCEPT ESTABLISHED,RELATED input packets
+```
+
+**Why It Matters**: Explains why a host with closed inbound ports can still make outbound `pip install` or API requests and receive responses cleanly.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    VM["OCI Instance initiates GET to OpenAI API"] --> OUT["Outbound Connection (State: NEW)"]
+    OUT --> API["OpenAI API responds with token stream"]
+    API --> IN{"iptables check state: ESTABLISHED,RELATED?"}
+    IN -->|"Yes"| PASS["✅ Response allowed through firewall!"]
+
+    style PASS fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+## 3. Skip Test — Answered
 
 > Gate **before** studying. Both correct from memory → skip. §7 withholds its answers deliberately.
 
@@ -559,181 +750,6 @@ Use the authoritative documentation instead, in this order:
 With this file **and** the script closed, write the full sequence that takes a capstone repository from a Git remote to a public HTTPS URL on Always Free: choose the shape and image and say why the shape name matters; generate an SSH key pair, set the permissions on both the key and its directory, and state which file is pasted into the console; open 443 at **both** firewall layers, giving the console path for one and the exact command for the other including its position argument; confirm the route table and the bind address; install Docker; bring the stack up in a way that sidesteps the architecture problem entirely; and issue a certificate, naming the extra port that has to be open for the challenge to succeed.
 
 Then, separately, write the five-step diagnostic ladder for "it times out and there is nothing in any log", ordered cheapest evidence first, and say for each step what a clean result eliminates.
-
----
-
-### 9.1 — Oracle Always Free & Ampere A1 Flex (`aarch64` / `arm64`)
-
-- **Always Free**: Oracle Cloud Infrastructure's (OCI) perpetual non-expiring free allocation (4 Ampere ARM OCPUs and 24 GB RAM).
-- **`VM.Standard.A1.Flex`**: Flexible Ampere Altra ARM64 compute shape where CPU/RAM counts are customized at creation.
-- **`aarch64` / `arm64`**: The 64-bit ARM CPU architecture (identical instruction set; Linux kernel labels it `aarch64`, Docker labels it `arm64`).
-
-#### 💡 The Beginner Analogy: Custom Gaming PC vs. Pre-built Rig
-A fixed shape (like `VM.Standard2.1`) is buying a **pre-built desktop** with fixed RAM. A **Flex shape** is building a **custom PC**: you drag sliders to pick 4 physical ARM cores and 24 GB of RAM. However, ARM cores use a different CPU instruction set — running `x86_64` (Intel/AMD) pre-compiled binaries on ARM is like putting a Nintendo cartridge into a PlayStation!
-
-#### 🎨 ARM64 vs x86_64 Architecture Trap
-
-```mermaid
-flowchart TD
-    DOCKER["docker build -t my-app . on Intel Laptop (x86_64)"] --> PUSH["Push to Docker Registry"]
-    PUSH --> OCI["docker run on OCI ARM64 (aarch64) Instance"]
-    OCI --> CRASH["💥 exec format error (Incompatible CPU architecture!)"]
-
-    style CRASH fill:#9b2226,stroke:#ae2012,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```bash
-# Build multi-architecture Docker images for ARM64 deployment!
-docker buildx build --platform linux/amd64,linux/arm64 -t username/my-app:latest --push .
-```
-**Why It Matters**: Pulling raw `x86_64` Docker images onto ARM instances causes `exec format error` crashes at container startup.
-
----
-
-### 9.2 — VCN, Security Lists & NSGs
-
-- **VCN (Virtual Cloud Network)**: A isolated software-defined private cloud network where your cloud instances live.
-- **Security List**: Firewall rules applied globally across an entire **Subnet**.
-- **NSG (Network Security Group)**: Firewall rules applied directly to specific **VNIC (virtual network cards)** of individual instances.
-
-#### 💡 The Beginner Analogy: Gated Community Security
-- **VCN**: The perimeter fence surrounding a **gated community neighborhood**.
-- **Security List**: The main security gate at the **entrance to the neighborhood street** (Subnet). Applies to every house on the street.
-- **NSG**: A private **security guard standing directly outside house #4** (Instance VNIC).
-
-#### 🎨 Dual Firewall Filtering Architecture
-
-```mermaid
-flowchart TD
-    INNET["Internet Ingress Traffic (Port 8000)"] --> VCN["VCN Gateway"]
-    VCN --> SEC_LIST{"Subnet Security List Allows 8000?"}
-    SEC_LIST -->|"No"| REJ1["💥 Dropped at Subnet Gate"]
-    SEC_LIST -->|"Yes"| NSG{"Instance NSG Allows 8000?"}
-    NSG -->|"No"| REJ2["💥 Dropped at Instance VNIC"]
-    NSG -->|"Yes"| VM["OCI Instance OS (iptables)"]
-
-    style REJ1 fill:#9b2226,stroke:#ae2012,color:#fff
-    style REJ2 fill:#9b2226,stroke:#ae2012,color:#fff
-    style VM fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```bash
-# OCI CLI rule to open Port 8000 on Security List:
-oci network security-list update --security-list-id <id> \
-  --ingress-security-rules '[{"protocol": "6", "source": "0.0.0.0/0", "tcpOptions": {"destinationPortRange": {"min": 8000, "max": 8000}}}]'
-```
-**Why It Matters**: Traffic must be allowed in **BOTH** the Security List AND the OS `iptables` rules. Opening port 8000 in OCI web console still fails if host `iptables` blocks it!
-
----
-
-### 9.3 — Internet Gateway & Route Tables
-
-- **Internet Gateway**: A software component attached to a VCN that connects private instances to the public internet.
-- **Route Table**: A routing rule table pointing destination IP range `0.0.0.0/0` (all traffic) to the Internet Gateway.
-
-#### 💡 The Beginner Analogy: Highway On-Ramp
-Having a public IP address on an instance without a Route Table pointing to an Internet Gateway is like owning a sports car inside a locked garage without an **on-ramp connecting to the public highway**. The car exists, but packets can't get out to the internet.
-
-#### 🎨 Public Subnet Routing
-
-```mermaid
-flowchart TD
-    VM["OCI Instance (Public IP: 150.136.x.x)"] --> RT["Subnet Route Table"]
-    RT -->|Matches 0.0.0.0/0| IGW["Internet Gateway"]
-    IGW --> INTERNET["Public Internet"]
-
-    style IGW fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```text
-Destination CIDR: 0.0.0.0/0  ---> Target: Internet Gateway (igw-1)
-```
-**Why It Matters**: Absence of an Internet Gateway route causes incoming connection timeouts despite valid public IP addresses.
-
----
-
-### 9.4 — `iptables -I` vs `-A` (First-Match-Wins Trap)
-
-- **`iptables -I INPUT 1`**: **Inserts** a rule at the top (Position 1) of the firewall chain.
-- **`iptables -A INPUT`**: **Appends** a rule at the bottom of the chain.
-- **First-Match-Wins**: `iptables` evaluates rules sequentially top-to-bottom. The **first** rule that matches a packet decides its fate, and all subsequent rules are ignored!
-
-#### 💡 The Beginner Analogy: Bouncer Rule List Order
-Oracle Ubuntu images ship with a default `iptables` rule at the bottom reading: *"REJECT all remaining traffic"*.
-- `-A` (Append): Writing *"Allow Port 8000"* **BELOW** the REJECT sign. The bouncer reads the REJECT sign first and kicks you out (`-A` is ignored!).
-- `-I` (Insert): Tacking *"Allow Port 8000"* at the **VERY TOP** of the list above the REJECT sign.
-
-#### 🎨 First-Match-Wins Order Trap
-
-```mermaid
-flowchart TD
-    subgraph AppendFail ["❌ iptables -A (Appended below REJECT)"]
-        A1["Rule 1: Allow SSH (22)"] --> A2["Rule 2: REJECT ALL TRAFFIC"]
-        A2 --> A3["Rule 3: Allow 8000 (NEVER EVALUATED!)"]
-    end
-
-    subgraph InsertPass ["✅ iptables -I INPUT 1 (Inserted above REJECT)"]
-        I1["Rule 1: Allow 8000 (EVALUATED FIRST!)"] --> I2["Rule 2: Allow SSH (22)"]
-        I2 --> I3["Rule 3: REJECT ALL TRAFFIC"]
-    end
-
-    style A3 fill:#9b2226,stroke:#ae2012,color:#fff
-    style I1 fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```bash
-# ❌ TRAP: Appends rule at bottom where it is ignored!
-sudo iptables -A INPUT -p tcp --dport 8000 -j ACCEPT
-
-# ✅ CORRECT: Inserts rule at top of chain so it is evaluated first!
-sudo iptables -I INPUT 1 -p tcp --dport 8000 -j ACCEPT
-
-# Save iptables rules permanently so they survive instance reboots!
-sudo netfilter-persistent save
-```
-**Why It Matters**: The #1 reason developers get locked out of OCI instances or find ports closed despite running `iptables` commands.
-
----
-
-### 9.5 — `ESTABLISHED,RELATED` Connection Tracking
-
-An `iptables` stateful firewall rule that permits incoming response packets for outbound connections initiated by the host instance.
-
-#### 💡 The Beginner Analogy: Ordering Pizza Delivery
-When you call a pizza shop to order food (outbound connection initiated by you), you expect the delivery driver to arrive at your front door 30 minutes later. The `ESTABLISHED,RELATED` rule tells the front door security: *"If a delivery driver arrives with food we ordered, let them in automatically!"*
-
-#### 🎨 Outbound Request vs. Response Tracking
-
-```mermaid
-flowchart TD
-    VM["OCI Instance initiates GET to OpenAI API"] --> OUT["Outbound Connection (State: NEW)"]
-    OUT --> API["OpenAI API responds with token stream"]
-    API --> IN{"iptables check state: ESTABLISHED,RELATED?"}
-    IN -->|"Yes"| PASS["✅ Response allowed through firewall!"]
-
-    style PASS fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```bash
-# Standard stateful rule present on all Linux cloud firewalls:
-sudo iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-```
-**Why It Matters**: Explains why a host with closed inbound ports can still make outbound `pip install` or API requests and receive responses cleanly.
-
-**CIDR** — an address block written as prefix/length. `/0` is every IPv4 address (4,294,967,296 of them), `/32` is exactly one.
-
-**`exec format error`** — the kernel's response to a binary compiled for a different architecture. Reads like corruption; means arm64 versus amd64.
-
-**`buildx --platform`** — the Docker flag that builds for an architecture other than the host's, via emulation, and can emit a multi-arch manifest.
-
-**HTTP-01 challenge** — the ACME validation certbot uses by default. Requires inbound port 80 to be reachable, in both firewall layers.
-
-**Timeout versus refused** — a hang means the packet was dropped somewhere before a listening socket; an RST means it reached the host and no process accepted it. Refused is the more informative failure.
 
 ---
 

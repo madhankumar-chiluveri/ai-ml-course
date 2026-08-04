@@ -20,7 +20,201 @@ Depends on **1.1** for norms; feeds **4.2**, **5.1**, **5.5**, and connects to t
 
 ---
 
-## 2. Skip Test — Answered
+## 2. Glossary
+
+### 2.1 — Dot Product & Geometric Cosine Equivalence
+
+- **Dot Product ($a \cdot b$)**: The sum of entrywise products $\sum_{i} a_i b_i$. Geometrically, $a \cdot b = \|a\| \|b\| \cos(\theta)$.
+- **Cosine Similarity**: The cosine of the angle between two vectors ($\cos(\theta) = \frac{a \cdot b}{\|a\| \|b\|}$), measuring direction alignment independent of magnitude.
+
+#### 💡 The Beginner Analogy: Solar Panel Sunlight Exposure
+Imagine a solar panel (Vector $b$) and sunlight rays (Vector $a$).
+- The **Dot Product** measures total energy captured — which depends on **both** how bright the sun is ($\|a\|$), how large the solar panel is ($\|b\|$), and whether the panel faces directly into the sun ($\cos(\theta)$).
+- **Cosine Similarity** measures ONLY the **facing angle of the panel**, ignoring how big the panel or sun is.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+a = np.array([3.0, 0.0])
+b = np.array([4.0, 4.0])
+
+dot_val = np.dot(a, b)
+cosine_val = dot_val / (np.linalg.norm(a) * np.linalg.norm(b))
+
+print("Dot Product:", dot_val)
+print("Cosine Similarity:", round(cosine_val, 4))
+```
+
+##### Verified Output
+```text
+Dot Product: 12.0
+Cosine Similarity: 0.7071
+```
+
+**Why It Matters**: The fundamental retrieval metric for RAG systems. If document vectors are long, raw dot products return long documents regardless of relevance. Cosine similarity fixes length bias.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart LR
+    A["Vector a (Length ||a||)"] --> DOT["a · b = ||a|| ||b|| cos(θ)"]
+    B["Vector b (Length ||b||)"] --> DOT
+    DOT --> RESULT["Single Scalar Score"]
+
+    style RESULT fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.2 — Vector Projection & Orthogonal Residual ($a = \text{proj}_b(a) + r$)
+
+- **Vector Projection ($\text{proj}_b(a)$)**: The component vector of $a$ lying directly along the line of target vector $b$.
+- **Orthogonal Residual ($r = a - \text{proj}_b(a)$)**: The component of $a$ perpendicular to $b$, satisfying $r \cdot b = 0$.
+
+#### 💡 The Beginner Analogy: Sun Overhead & Walking Shadow
+If the sun is directly overhead, **$\text{proj}_b(a)$** is the shadow vector cast by walking stick $a$ onto the floor line $b$. The **Residual $r$** is the vertical height of the stick above the shadow.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+a = np.array([3.0, 4.0])
+b = np.array([1.0, 0.0])
+
+b_unit = b / np.linalg.norm(b)
+proj_b_a = np.dot(a, b_unit) * b_unit
+residual = a - proj_b_a
+
+print("Projection:", proj_b_a)
+print("Residual:", residual)
+print("Dot with b:", np.dot(residual, b))
+```
+
+##### Verified Output
+```text
+Projection: [3. 0.]
+Residual: [0. 4.]
+Dot with b: 0.0
+```
+
+**Why It Matters**: Gram-Schmidt orthogonalization, linear regression error residuals, and concept removal in LLMs all rely on subtracting vector projections.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    VEC_A["Vector a"] --> DECOMP["Decompose a = proj_b(a) + r"]
+    DECOMP --> PROJ["proj_b(a): Parallel component along b"]
+    DECOMP --> RES["Residual r: Perpendicular component (r · b = 0)"]
+
+    style PROJ fill:#005f73,stroke:#0a9396,color:#fff
+    style RES fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.3 — Normalized Vector Search Equivalence (Dot vs Cosine vs $L_2$)
+
+When input vectors are **$L_2$-normalized** to unit length ($\|a\|_2 = \|b\|_2 = 1.0$):
+$$\text{Dot Product } (a \cdot b) \equiv \text{Cosine Similarity } \cos(\theta)$$
+$$\text{Squared Euclidean Distance } \|a - b\|_2^2 = 2 - 2(a \cdot b)$$
+All three similarity metrics produce **100% identical retrieval rankings**.
+
+#### 💡 The Beginner Analogy: Scaling Players onto a Standard Globe
+If all cities are projected onto a **unit globe of radius 1**, measuring straight-line distance through the earth ($L_2$) or angle along the surface ($\theta$) or dot product produces the exact same rank order of closest neighbor cities!
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+a = np.array([3.0, 0.0])
+b = np.array([4.0, 4.0])
+
+a_norm = a / np.linalg.norm(a)
+b_norm = b / np.linalg.norm(b)
+
+dot_norm = np.dot(a_norm, b_norm)
+cosine_val = np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+print("Dot of Normalized:", round(dot_norm, 4))
+print("Cosine Similarity:", round(cosine_val, 4))
+```
+
+##### Verified Output
+```text
+Dot of Normalized: 0.7071
+Cosine Similarity: 0.7071
+```
+
+**Why It Matters**: Pre-normalizing embedding vectors allows vector databases (pgvector, FAISS) to use blazing-fast dot product operations instead of expensive square-root calculations.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    RAW["Raw Un-normalized Embeddings"] --> TRAP["💥 Dot, Cosine, & L2 give DIFFERENT rankings!"]
+
+    NORM["Normalize Vectors (a / ||a||)"] --> EQUIV["✅ Dot Product == Cosine Similarity == L2 Ranking!"]
+
+    style TRAP fill:#9b2226,stroke:#ae2012,color:#fff
+    style EQUIV fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.4 — Scaled Dot-Product Attention Scaling ($1 / \sqrt{d}$) & Softmax Saturation
+
+In Transformer attention ($\text{Softmax}\left(\frac{Q K^T}{\sqrt{d_k}}\right) V$), multiplying two $d$-dimensional random vectors with mean 0 and variance 1 yields a dot product with **Variance equal to $d$** ($\text{Var}(q \cdot k) = d$). Dividing by $\sqrt{d}$ keeps the variance at $1.0$.
+
+#### 💡 The Beginner Analogy: Megaphone Volume Control
+Without the $\sqrt{d}$ divisor, at $d=512$, dot product scores explode to huge values (e.g. $+800$). Feeding $+800$ into a Softmax function is like **screaming into a megaphone until the speaker blows out** — Softmax outputs $1.0$ for the top item and $0.0$ for all others, killing all neural network gradient learning!
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+np.random.seed(42)
+d = 512
+q = np.random.randn(d)
+k = np.random.randn(d)
+
+raw_dot = np.dot(q, k)
+scaled_dot = np.dot(q, k) / np.sqrt(d)
+
+print("Raw Dot Product:", round(raw_dot, 2))
+print("Scaled Dot Product:", round(scaled_dot, 2))
+```
+
+##### Verified Output
+```text
+Raw Dot Product: 33.15
+Scaled Dot Product: 1.46
+```
+
+**Why It Matters**: Removing `/ sqrt(d)` from Transformer attention causes immediate gradient collapse during LLM training.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    subgraph Unscaled ["❌ Unscaled Attention (d=512)"]
+        U1["Raw Dot Product Variance = 512"] --> U2["Softmax([800, 795, 780])"]
+        U2 --> U3["💥 Softmax Outputs [1.0, 0.0, 0.0] (Gradients vanish to 0!)"]
+    end
+
+    subgraph Scaled ["✅ Scaled Attention (divide by sqrt(d))"]
+        S1["Scaled Dot Product Variance = 1.0"] --> S2["Softmax([800/22.6, 795/22.6])"]
+        S3["✅ Smooth probability distribution & active gradients!"]
+    end
+
+    style U3 fill:#9b2226,stroke:#ae2012,color:#fff
+    style S3 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+## 3. Skip Test — Answered
 
 > Gate **before** studying. Both correct from memory → skip. §7 withholds its answers deliberately.
 
@@ -652,151 +846,6 @@ Two named references for the parts the video does not cover: for the `sqrt(d)` s
 With this file and the script closed, in a fresh Python file: write a dot product as an explicit loop and check it against `np.dot`; recover the same number from lengths alone using the polarization identity; compute the angle between two vectors in degrees; write scalar and vector projection and verify that the residual dots to zero against the target; build a small set of candidate vectors where raw dot product and cosine disagree on the top hit, then normalise them and show the two rankings become identical; measure how the standard deviation of `q . k` grows with dimension and confirm that dividing by `sqrt(d)` holds it at 1; and finally, take one query and eight keys at `d = 512` and print the largest softmax weight both with and without that scaling.
 
 ---
-
-## 9. Glossary
-
-### 9.1 — Dot Product & Geometric Cosine Equivalence
-
-- **Dot Product ($a \cdot b$)**: The sum of entrywise products $\sum_{i} a_i b_i$. Geometrically, $a \cdot b = \|a\| \|b\| \cos(\theta)$.
-- **Cosine Similarity**: The cosine of the angle between two vectors ($\cos(\theta) = \frac{a \cdot b}{\|a\| \|b\|}$), measuring direction alignment independent of magnitude.
-
-#### 💡 The Beginner Analogy: Solar Panel Sunlight Exposure
-Imagine a solar panel (Vector $b$) and sunlight rays (Vector $a$).
-- The **Dot Product** measures total energy captured — which depends on **both** how bright the sun is ($\|a\|$), how large the solar panel is ($\|b\|$), and whether the panel faces directly into the sun ($\cos(\theta)$).
-- **Cosine Similarity** measures ONLY the **facing angle of the panel**, ignoring how big the panel or sun is.
-
-#### 🎨 Geometric Dot Product & Angle Component
-
-```mermaid
-flowchart LR
-    A["Vector a (Length ||a||)"] --> DOT["a · b = ||a|| ||b|| cos(θ)"]
-    B["Vector b (Length ||b||)"] --> DOT
-    DOT --> RESULT["Single Scalar Score"]
-
-    style RESULT fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-import numpy as np
-
-a = np.array([3.0, 0.0])
-b = np.array([4.0, 4.0])
-
-dot_val = np.dot(a, b) # -> 12.0
-cosine_val = dot_val / (np.linalg.norm(a) * np.linalg.norm(b)) # -> 0.707 (45 degrees)
-```
-**Why It Matters**: The fundamental retrieval metric for RAG systems. If document vectors are long, raw dot products return long documents regardless of relevance. Cosine similarity fixes length bias.
-
----
-
-### 9.2 — Vector Projection & Orthogonal Residual ($a = \text{proj}_b(a) + r$)
-
-- **Vector Projection ($\text{proj}_b(a)$)**: The component vector of $a$ lying directly along the line of target vector $b$.
-- **Orthogonal Residual ($r = a - \text{proj}_b(a)$)**: The component of $a$ perpendicular to $b$, satisfying $r \cdot b = 0$.
-
-#### 💡 The Beginner Analogy: Sun Overhead & Walking Shadow
-If the sun is directly overhead, **$\text{proj}_b(a)$** is the shadow vector cast by walking stick $a$ onto the floor line $b$. The **Residual $r$** is the vertical height of the stick above the shadow.
-
-#### 🎨 Vector Projection & Orthogonal Decomposition
-
-```mermaid
-flowchart TD
-    VEC_A["Vector a"] --> DECOMP["Decompose a = proj_b(a) + r"]
-    DECOMP --> PROJ["proj_b(a): Parallel component along b"]
-    DECOMP --> RES["Residual r: Perpendicular component (r · b = 0)"]
-
-    style PROJ fill:#005f73,stroke:#0a9396,color:#fff
-    style RES fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-# Project vector a onto vector b
-b_unit = b / np.linalg.norm(b)
-proj_b_a = np.dot(a, b_unit) * b_unit
-
-# Orthogonal residual
-residual = a - proj_b_a
-assert np.isclose(np.dot(residual, b), 0.0) # Always perpendicular!
-```
-**Why It Matters**: Gram-Schmidt orthogonalization, linear regression error residuals, and concept removal in LLMs all rely on subtracting vector projections.
-
----
-
-### 9.3 — Normalized Vector Search Equivalence (Dot vs Cosine vs $L_2$)
-
-When input vectors are **$L_2$-normalized** to unit length ($\|a\|_2 = \|b\|_2 = 1.0$):
-$$\text{Dot Product } (a \cdot b) \equiv \text{Cosine Similarity } \cos(\theta)$$
-$$\text{Squared Euclidean Distance } \|a - b\|_2^2 = 2 - 2(a \cdot b)$$
-All three similarity metrics produce **100% identical retrieval rankings**.
-
-#### 💡 The Beginner Analogy: Scaling Players onto a Standard Globe
-If all cities are projected onto a **unit globe of radius 1**, measuring straight-line distance through the earth ($L_2$) or angle along the surface ($\theta$) or dot product produces the exact same rank order of closest neighbor cities!
-
-#### 🎨 Normalized Metric Equivalence
-
-```mermaid
-flowchart TD
-    RAW["Raw Un-normalized Embeddings"] --> TRAP["💥 Dot, Cosine, & L2 give DIFFERENT rankings!"]
-
-    NORM["Normalize Vectors (a / ||a||)"] --> EQUIV["✅ Dot Product == Cosine Similarity == L2 Ranking!"]
-
-    style TRAP fill:#9b2226,stroke:#ae2012,color:#fff
-    style EQUIV fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-# Normalizing vectors once at index creation time
-a_norm = a / np.linalg.norm(a)
-b_norm = b / np.linalg.norm(b)
-
-# Dot product on unit vectors equals cosine similarity:
-assert np.isclose(np.dot(a_norm, b_norm), cosine_val)
-```
-**Why It Matters**: Pre-normalizing embedding vectors allows vector databases (pgvector, FAISS) to use blazing-fast dot product operations instead of expensive square-root calculations.
-
----
-
-### 9.4 — Scaled Dot-Product Attention Scaling ($1 / \sqrt{d}$) & Softmax Saturation
-
-In Transformer attention ($\text{Softmax}\left(\frac{Q K^T}{\sqrt{d_k}}\right) V$), multiplying two $d$-dimensional random vectors with mean 0 and variance 1 yields a dot product with **Variance equal to $d$** ($\text{Var}(q \cdot k) = d$). Dividing by $\sqrt{d}$ keeps the variance at $1.0$.
-
-#### 💡 The Beginner Analogy: Megaphone Volume Control
-Without the $\sqrt{d}$ divisor, at $d=512$, dot product scores explode to huge values (e.g. $+800$). Feeding $+800$ into a Softmax function is like **screaming into a megaphone until the speaker blows out** — Softmax outputs $1.0$ for the top item and $0.0$ for all others, killing all neural network gradient learning!
-
-#### 🎨 Attention Scaling vs Softmax Saturation
-
-```mermaid
-flowchart TD
-    subgraph Unscaled ["❌ Unscaled Attention (d=512)"]
-        U1["Raw Dot Product Variance = 512"] --> U2["Softmax([800, 795, 780])"]
-        U2 --> U3["💥 Softmax Outputs [1.0, 0.0, 0.0] (Gradients vanish to 0!)"]
-    end
-
-    subgraph Scaled ["✅ Scaled Attention (divide by sqrt(d))"]
-        S1["Scaled Dot Product Variance = 1.0"] --> S2["Softmax([800/22.6, 795/22.6])"]
-        S3["✅ Smooth probability distribution & active gradients!"]
-    end
-
-    style U3 fill:#9b2226,stroke:#ae2012,color:#fff
-    style S3 fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-d = 512
-q = np.random.randn(d)
-k = np.random.randn(d)
-
-# Unscaled variance is ~512
-raw_dot = np.dot(q, k) 
-
-# Scaled variance is 1.0 (Prevents gradient vanishing!)
-scaled_dot = np.dot(q, k) / np.sqrt(d)
-```
-**Why It Matters**: Removing `/ sqrt(d)` from Transformer attention causes immediate gradient collapse during LLM training.
 
 ---
 

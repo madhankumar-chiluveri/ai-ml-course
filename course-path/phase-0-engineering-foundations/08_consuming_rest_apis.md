@@ -16,7 +16,177 @@ Depends on **0.7**; feeds **5.6** reranker calls, **6.13** MCP tool implementati
 
 ---
 
-## 2. Skip Test — Answered
+## 2. Glossary
+
+### 2.1 — `Session` & Connection Pooling (`HTTPAdapter`)
+
+- **`Session`**: An HTTP client object that maintains persistent TCP connections, SSL contexts, and cookies across multiple requests.
+- **`HTTPAdapter(pool_maxsize=N)`**: Configures connection pool limits, capping how many concurrent TCP connections Pytest/requests reuses per host.
+
+#### 💡 The Beginner Analogy: Dedicated Express Toll Lane
+`requests.get()` without a `Session` is like dialing a phone number, speaking 1 sentence, and hanging up — then dialing the number again from scratch for the next sentence (re-doing DNS, TCP, and TLS handshakes every time!). A **`Session`** is keeping an **open telephone line** active so you can instantly send messages back and forth.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import requests
+from requests.adapters import HTTPAdapter
+
+session = requests.Session()
+adapter = HTTPAdapter(pool_connections=10, pool_maxsize=20)
+session.mount("https://", adapter)
+
+print("Session connection pool configured cleanly.")
+```
+
+##### Verified Output
+```text
+Session connection pool configured cleanly.
+```
+
+**Why It Matters**: Creating a new connection per API call consumes socket file descriptors, leading to `OSError: [Errno 99] Cannot assign requested address` in high-throughput microservices.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    subgraph WithoutSession ["❌ requests.get() (No Session Pooling)"]
+        W1["Req 1: DNS -> TCP Handshake -> TLS Handshake -> Request (300ms)"]
+        W2["Req 2: DNS -> TCP Handshake -> TLS Handshake -> Request (300ms)"]
+    end
+
+    subgraph WithSession ["✅ session.get() (Reused Connection Pool)"]
+        S1["Req 1: DNS -> TCP -> TLS -> Request (300ms)"] --> KEEP["Keep TCP socket open in Pool"]
+        KEEP --> S2["Req 2: Reuses Open Socket -> Request (20ms!)"]
+    end
+
+    style S2 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.2 — Connect Timeout vs. Read Timeout
+
+- **Connect Timeout**: Maximum budget allowed for DNS resolution, TCP handshake, and TLS negotiation (typically set low, e.g. 3.0s).
+- **Read Timeout**: Maximum budget allowed between receiving chunks of data from the server once the connection is established (set higher for long LLM generation, e.g. 30.0s).
+
+#### 💡 The Beginner Analogy: Phone Pick-up vs. Speech Delivery
+- **Connect Timeout**: How long you let the phone ring before hanging up if no one answers (3 seconds).
+- **Read Timeout**: How long you wait for the speaker to say their next sentence once they've already answered the phone (30 seconds).
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+timeout_config = (3.0, 30.0) # (connect_timeout, read_timeout)
+print(f"Connect Timeout: {timeout_config[0]}s, Read Timeout: {timeout_config[1]}s")
+```
+
+##### Verified Output
+```text
+Connect Timeout: 3.0s, Read Timeout: 30.0s
+```
+
+**Why It Matters**: Passing a single integer `timeout=30` allows a dead server to hang DNS/TCP negotiation for 30 full seconds before failing.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    START["Initiate Request"] --> C1{"Connect Timeout (3.0s)"}
+    C1 -->|"Server unreachable"| E1["💥 ConnectTimeout (Host offline / Firewall)"]
+    C1 -->|"Connected"| C2{"Read Timeout (30.0s)"}
+    C2 -->|"Server stalled mid-generation"| E2["💥 ReadTimeout (LLM hung / DB lock)"]
+    C2 -->|"Data Arrives"| SUCCESS["200 OK"]
+
+    style E1 fill:#9b2226,stroke:#ae2012,color:#fff
+    style E2 fill:#9b2226,stroke:#ae2012,color:#fff
+    style SUCCESS fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.3 — Exponential Backoff & Full Jitter
+
+- **Exponential Backoff**: Increasing retry delays exponentially ($2^1, 2^2, 2^3...$) so every subsequent retry waits twice as long.
+- **Full Jitter**: Adding a random delay distribution (`random.uniform(0, backoff_window)`) to spread out retry timestamps.
+
+#### 💡 The Beginner Analogy: Knocking on a Locked Door
+If a room is locked, knocking every 1 second just annoys the occupant. **Exponential Backoff** means knocking after 2 seconds, then 4 seconds, then 8 seconds. **Full Jitter** means throwing in random variations so 100 people don't all knock on the door at the exact same millisecond.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import random
+
+def get_delay_with_jitter(attempt: int, base: float = 1.0, max_delay: float = 30.0) -> float:
+    backoff = min(max_delay, base * (2 ** attempt))
+    return random.uniform(0, backoff)
+
+random.seed(42)
+delay = get_delay_with_jitter(attempt=2)
+print(f"Attempt 2 Jittered Delay: {delay:.2f}s")
+```
+
+##### Verified Output
+```text
+Attempt 2 Jittered Delay: 2.56s
+```
+
+**Why It Matters**: Essential for enterprise API consumption. Prevents rate-limit recovery loops from crashing remote services.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    subgraph FixedRetry ["❌ Fixed Retry (Spike Arrival)"]
+        F1["100 Clients fail at T=0s"] --> F2["All 100 Clients retry simultaneously at T=2s (Spike!)"]
+    end
+
+    subgraph JitterRetry ["✅ Full Jitter (Randomized Spread)"]
+        J1["100 Clients fail at T=0s"] --> J2["Client 1 retries at 0.3s\nClient 2 retries at 1.7s\nClient 3 retries at 2.1s"]
+    end
+
+    style F2 fill:#9b2226,stroke:#ae2012,color:#fff
+    style J2 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.4 — The Thundering Herd Problem
+
+A failure mode where hundreds of concurrent API clients experience a brief network drop or rate limit, and all retry at the exact same millisecond, creating a giant traffic spike that instantly knocks the API server back down.
+
+#### 💡 The Beginner Analogy: Door Slam in a Crowd
+Imagine a stadium door jamming for 10 seconds. A crowd of 5,000 people builds up outside. The instant the guard unlocks the door, all 5,000 people **stampede the doorway at once**, crushing the entrance and forcing the guard to lock the door again.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# Randomizing sleep times prevents synchronized client retry stampedes
+jitter_enabled = True
+print(f"Thundering Herd Mitigated: {jitter_enabled}")
+```
+
+##### Verified Output
+```text
+Thundering Herd Mitigated: True
+```
+
+**Why It Matters**: Explains why simple `time.sleep(2)` retry loops ruin production server recoveries during outages.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    CRASH["API Server recovers from brief glitch"] --> STAMPEDE["1,000 clients retry simultaneously at exact same second!"]
+    STAMPEDE --> RECRASH["💥 Server overloaded -> Crashes again!"]
+
+    FIX["Clients use Full Jitter"] --> SPREAD["Retries arrive smoothly over 10-second window"]
+    SPREAD --> RECOVERED["✅ API Server recovers cleanly!"]
+
+    style RECRASH fill:#9b2226,stroke:#ae2012,color:#fff
+    style RECOVERED fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+## 3. Skip Test — Answered
 
 > Gate **before** studying. Both correct from memory → skip. §7 withholds its answers deliberately.
 
@@ -316,166 +486,13 @@ Then write a second function that consumes a streaming endpoint and prints time-
 
 ---
 
-### 9.1 — `Session` & Connection Pooling (`HTTPAdapter`)
-
-- **`Session`**: An HTTP client object that maintains persistent TCP connections, SSL contexts, and cookies across multiple requests.
-- **`HTTPAdapter(pool_maxsize=N)`**: Configures connection pool limits, capping how many concurrent TCP connections Pytest/requests reuses per host.
-
-#### 💡 The Beginner Analogy: Dedicated Express Toll Lane
-`requests.get()` without a `Session` is like dialing a phone number, speaking 1 sentence, and hanging up — then dialing the number again from scratch for the next sentence (re-doing DNS, TCP, and TLS handshakes every time!). A **`Session`** is keeping an **open telephone line** active so you can instantly send messages back and forth.
-
-#### 🎨 Cold Handshake vs. Reused Session Pool
-
-```mermaid
-flowchart TD
-    subgraph WithoutSession ["❌ requests.get() (No Session Pooling)"]
-        W1["Req 1: DNS -> TCP Handshake -> TLS Handshake -> Request (300ms)"]
-        W2["Req 2: DNS -> TCP Handshake -> TLS Handshake -> Request (300ms)"]
-    end
-
-    subgraph WithSession ["✅ session.get() (Reused Connection Pool)"]
-        S1["Req 1: DNS -> TCP -> TLS -> Request (300ms)"] --> KEEP["Keep TCP socket open in Pool"]
-        KEEP --> S2["Req 2: Reuses Open Socket -> Request (20ms!)"]
-    end
-
-    style S2 fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-import requests
-from requests.adapters import HTTPAdapter
-
-# ❌ Slow & exhausts OS sockets under high concurrency
-# for _ in range(100): requests.get("https://api.com")
-
-# ✅ Fast connection pooling (10x faster)
-session = requests.Session()
-adapter = HTTPAdapter(pool_connections=10, pool_maxsize=20)
-session.mount("https://", adapter)
-
-response = session.get("https://api.com/v1/data")
-```
-**Why It Matters**: Creating a new connection per API call consumes socket file descriptors, leading to `OSError: [Errno 99] Cannot assign requested address` in high-throughput microservices.
-
----
-
-### 9.2 — Connect Timeout vs. Read Timeout
-
-- **Connect Timeout**: Maximum budget allowed for DNS resolution, TCP handshake, and TLS negotiation (typically set low, e.g. 3.0s).
-- **Read Timeout**: Maximum budget allowed between receiving chunks of data from the server once the connection is established (set higher for long LLM generation, e.g. 30.0s).
-
-#### 💡 The Beginner Analogy: Phone Pick-up vs. Speech Delivery
-- **Connect Timeout**: How long you let the phone ring before hanging up if no one answers (3 seconds).
-- **Read Timeout**: How long you wait for the speaker to say their next sentence once they've already answered the phone (30 seconds).
-
-#### 🎨 Timeout Split Mechanics
-
-```mermaid
-flowchart TD
-    START["Initiate Request"] --> C1{"Connect Timeout (3.0s)"}
-    C1 -->|"Server unreachable"| E1["💥 ConnectTimeout (Host offline / Firewall)"]
-    C1 -->|"Connected"| C2{"Read Timeout (30.0s)"}
-    C2 -->|"Server stalled mid-generation"| E2["💥 ReadTimeout (LLM hung / DB lock)"]
-    C2 -->|"Data Arrives"| SUCCESS["200 OK"]
-
-    style E1 fill:#9b2226,stroke:#ae2012,color:#fff
-    style E2 fill:#9b2226,stroke:#ae2012,color:#fff
-    style SUCCESS fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-import requests
-
-try:
-    # Tuple format: (connect_timeout, read_timeout)
-    resp = requests.get("https://api.com/llm", timeout=(3.0, 30.0))
-except requests.Timeout as e:
-    print(f"Network timeout: {e}")
-```
-**Why It Matters**: Passing a single integer `timeout=30` allows a dead server to hang DNS/TCP negotiation for 30 full seconds before failing.
-
----
-
-### 9.3 — Exponential Backoff & Full Jitter
-
-- **Exponential Backoff**: Increasing retry delays exponentially ($2^1, 2^2, 2^3...$) so every subsequent retry waits twice as long.
-- **Full Jitter**: Adding a random delay distribution (`random.uniform(0, backoff_window)`) to spread out retry timestamps.
-
-#### 💡 The Beginner Analogy: Knocking on a Locked Door
-If a room is locked, knocking every 1 second just annoys the occupant. **Exponential Backoff** means knocking after 2 seconds, then 4 seconds, then 8 seconds. **Full Jitter** means throwing in random variations so 100 people don't all knock on the door at the exact same millisecond.
-
-#### 🎨 Backoff + Jitter Spread
-
-```mermaid
-flowchart TD
-    subgraph FixedRetry ["❌ Fixed Retry (Spike Arrival)"]
-        F1["100 Clients fail at T=0s"] --> F2["All 100 Clients retry simultaneously at T=2s (Spike!)"]
-    end
-
-    subgraph JitterRetry ["✅ Full Jitter (Randomized Spread)"]
-        J1["100 Clients fail at T=0s"] --> J2["Client 1 retries at 0.3s\nClient 2 retries at 1.7s\nClient 3 retries at 2.1s"]
-    end
-
-    style F2 fill:#9b2226,stroke:#ae2012,color:#fff
-    style J2 fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-import time, random
-
-def get_delay_with_jitter(attempt: int, base: float = 1.0, max_delay: float = 30.0) -> float:
-    # Calculate exponential window: min(max_delay, base * 2 ** attempt)
-    backoff = min(max_delay, base * (2 ** attempt))
-    # Full jitter: random float between 0 and backoff window
-    return random.uniform(0, backoff)
-
-# Sleep randomized time before retry
-time.sleep(get_delay_with_jitter(attempt=2))
-```
-**Why It Matters**: Essential for enterprise API consumption. Prevents rate-limit recovery loops from crashing remote services.
-
----
-
-### 9.4 — The Thundering Herd Problem
-
-A failure mode where hundreds of concurrent API clients experience a brief network drop or rate limit, and all retry at the exact same millisecond, creating a giant traffic spike that instantly knocks the API server back down.
-
-#### 💡 The Beginner Analogy: Door Slam in a Crowd
-Imagine a stadium door jamming for 10 seconds. A crowd of 5,000 people builds up outside. The instant the guard unlocks the door, all 5,000 people **stampede the doorway at once**, crushing the entrance and forcing the guard to lock the door again.
-
-#### 🎨 Thundering Herd Crash Cycle
-
-```mermaid
-flowchart TD
-    CRASH["API Server recovers from brief glitch"] --> STAMPEDE["1,000 clients retry simultaneously at exact same second!"]
-    STAMPEDE --> RECRASH["💥 Server overloaded -> Crashes again!"]
-
-    FIX["Clients use Full Jitter"] --> SPREAD["Retries arrive smoothly over 10-second window"]
-    SPREAD --> RECOVERED["✅ API Server recovers cleanly!"]
-
-    style RECRASH fill:#9b2226,stroke:#ae2012,color:#fff
-    style RECOVERED fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-# The Thundering Herd is prevented explicitly by adding JITTER to exponential backoff formulas.
-```
-**Why It Matters**: Explains why simple `time.sleep(2)` retry loops ruin production server recoveries during outages.
-
-**`Retry-After`** — a response header stating how many seconds to wait. When present it overrides your formula — the provider knows its own recovery time.
-
-**Idempotency key** — a client-generated unique ID sent with a write so the server can recognise a duplicate retry and not apply the effect twice. The only safe way to retry a timed-out `POST`.
-
-**`iter_lines(chunk_size=N)`** — iterates the response body line by line, reading `N` bytes at a time from the socket. The default 512 buffers small streaming responses into a single delivery.
-
-**Time to first token (TTFT)** — the measurement that tells you whether streaming is genuinely working. A flag does not.
-
----
-
 ## Review again in
 
+**7 days.** Three rules to keep.
+
+Always set **`(connect, read)` as a tuple**, because a single number leaves the connect phase able to consume your whole budget before read ever starts.
+
+Always add **jitter** to an exponential backoff formula, because pure powers of two synchronize retries across thousands of instances into a thundering herd.
+
+And always measure **TTFT** when you claim an endpoint streams — setting `stream=True` in a client library that still buffers under the hood is the most common quiet bug in LLM integrations.
 **7 days** — mechanically simple, but the retry policy is the thing to retain. Re-derive it from **0.7**'s decision tree rather than memorising the code, and keep the two measured numbers: **5 requests versus 1** for retrying a `400`, and **peak 24 versus 5** for dropping jitter.

@@ -16,7 +16,284 @@ Depends on **0.3** and **0.7**; unlocks **6.13** MCP servers, **7.11** deploymen
 
 ---
 
-## 2. Skip Test — Answered
+## 2. Glossary
+
+### 2.1 — `lifespan` Async Context Manager
+
+An asynchronous context manager passed to the FastAPI application constructor that executes setup code **once** during application startup and teardown code **once** during shutdown.
+
+#### 💡 The Beginner Analogy: Opening and Closing a Restaurant
+`lifespan` is like the kitchen prep routine before a restaurant opens:
+- **Startup (`yield` before)**: Turning on ovens, firing up refrigerators, loading AI models into GPU memory.
+- **Serving (during `yield`)**: Customers arrive and endpoints process requests.
+- **Shutdown (`yield` after)**: Turning off gas valves, closing database connection pools, unloading memory.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+
+ml_models = {}
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    ml_models["classifier"] = "Loaded PyTorch Model"
+    print("Startup: Loaded heavy ML model into VRAM.")
+    yield
+    ml_models.clear()
+    print("Shutdown: Unloaded ML models cleanly.")
+
+app = FastAPI(lifespan=lifespan)
+print("FastAPI app configured with lifespan.")
+```
+
+##### Verified Output
+```text
+FastAPI app configured with lifespan.
+```
+
+**Why It Matters**: Replaces deprecated `@app.on_event("startup")` hooks. Ensures expensive ML models load once into memory at boot rather than reloading per request.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    START["FastAPI App Boots"] --> SETUP["1. Startup (Load PyTorch Model / Open DB Pool)"]
+    SETUP --> YIELD["2. yield -> App receives HTTP requests"]
+    YIELD --> SHUTDOWN["3. App SIGTERM -> Shutdown (Close DB Connections / Flush Logs)"]
+
+    style SETUP fill:#005f73,stroke:#0a9396,color:#fff
+    style SHUTDOWN fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.2 — Request Model vs `response_model` (Allow-list Filtering)
+
+- **Request Model**: Pydantic model parameter verifying incoming JSON payloads. Returns `422 Unprocessable Content` before the endpoint logic ever runs if validation fails.
+- **`response_model`**: Pydantic model specified on the route decorator that filters and validates outgoing JSON responses against an **allow-list**.
+
+#### 💡 The Beginner Analogy: Security Desk Bouncer & Exit Scanner
+- **Request Model**: A bouncer at the front door verifying guests have valid tickets.
+- **`response_model`**: A security scanner at the exit ensuring employees don't accidentally leave the building with confidential company files (`password_hash`, `internal_id`).
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+from pydantic import BaseModel, EmailStr
+
+class UserPublic(BaseModel):
+    id: int
+    email: EmailStr
+
+db_record = {"id": 1, "email": "user@example.com", "password_hash": "secret_hash_123"}
+filtered_output = UserPublic(**db_record).model_dump()
+
+print("Filtered Output:", filtered_output)
+```
+
+##### Verified Output
+```text
+Filtered Output: {'id': 1, 'email': 'user@example.com'}
+```
+
+**Why It Matters**: Prevents accidental data leaks by stripping sensitive internal fields (hashed passwords, internal database IDs) from API responses.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    DB["Database User Record: {'id': 1, 'email': 'a@b.com', 'password_hash': 'secret123'}"] --> ROUTE["Route Handler returns raw DB dict"]
+    ROUTE --> FILTER["response_model = UserPublic (Allow-list: id, email)"]
+    FILTER --> OUT["JSON Client Output: {'id': 1, 'email': 'a@b.com'}"]
+
+    style FILTER fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.3 — Dependency Injection (`Depends`) & `dependency_overrides`
+
+- **`Depends(callable)`**: Instructs FastAPI to resolve and inject a reusable dependency (e.g. database session, authenticated user) into the endpoint parameter.
+- **`app.dependency_overrides`**: A dictionary mapping real dependencies to mock dependencies during unit testing.
+
+#### 💡 The Beginner Analogy: Plug-and-Play Power Socket
+`Depends` is like equipping your app with a standard **3-prong power wall outlet**. During normal operation (production), you plug in the **city grid power** (real Postgres DB). During maintenance testing, you unplug the grid and plug in a **portable generator** (Mock DB in `app.dependency_overrides`).
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+from fastapi import FastAPI, Depends
+
+app = FastAPI()
+
+def get_db():
+    return "Real Postgres Session"
+
+def get_test_db():
+    return "Mock SQLite Session"
+
+app.dependency_overrides[get_db] = get_test_db
+print("Dependency Overridden:", app.dependency_overrides[get_db]())
+```
+
+##### Verified Output
+```text
+Dependency Overridden: Mock SQLite Session
+```
+
+**Why It Matters**: Makes API endpoints 100% testable offline without modifying production route handler code.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    subgraph Production ["Production Flow"]
+        REQ1["HTTP Request"] --> DEP1["Depends(get_db) -> Real Postgres DB"]
+    end
+
+    subgraph Testing ["Testing Flow"]
+        REQ2["TestClient Request"] --> OVER["app.dependency_overrides[get_db] = get_test_db"]
+        OVER --> DEP2["Returns In-Memory SQLite Mock DB"]
+    end
+
+    style DEP1 fill:#005f73,stroke:#0a9396,color:#fff
+    style DEP2 fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.4 — Event Loop vs. Threadpool (`async def` vs. plain `def`)
+
+- **`async def` endpoints**: Run directly on the single non-blocking **Event Loop** thread. Must NEVER contain blocking synchronous calls (`time.sleep()`, `requests.get()`).
+- **Plain `def` endpoints**: Run inside FastAPI's background **Threadpool** worker threads, safely isolating blocking synchronous operations from the main Event Loop.
+
+#### 💡 The Beginner Analogy: Single Chef vs. Kitchen Staff
+- `async def`: A high-speed chef standing at an electric stove. If they freeze for 10 seconds staring at a pot (`time.sleep(10)`), **the whole kitchen stops serving food**.
+- Plain `def`: Handing a task off to one of 40 sous-chefs (threadpool) in the back room so the main chef keeps working.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import time
+
+# Plain def endpoint runs safely in background threadpool
+def plain_def_sync_handler():
+    time.sleep(0.01)
+    return "Handled by Threadpool"
+
+print("Plain Def Status:", plain_def_sync_handler())
+```
+
+##### Verified Output
+```text
+Plain Def Status: Handled by Threadpool
+```
+
+**Why It Matters**: A single synchronous blocking call inside an `async def` function drops FastAPI server concurrency from thousands of requests per second down to 1 request at a time!
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    subgraph BadAsync ["❌ Blocking code in async def (Freezes App)"]
+        A1["async def endpoint(): time.sleep(5)"] --> A2["Event Loop BLOCKED for 5 seconds!"]
+        A2 --> FAIL["💥 ALL concurrent API requests hang across the entire app!"]
+    end
+
+    subgraph PlainDef ["✅ Plain def endpoint (Safely offloaded)"]
+        P1["def endpoint(): time.sleep(5)"] --> P2["Offloaded to background Threadpool"]
+        P2 --> PASS["Event loop remains free to process concurrent traffic!"]
+    end
+
+    style FAIL fill:#9b2226,stroke:#ae2012,color:#fff
+    style PASS fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.5 — `asyncio.to_thread`
+
+A standard library async utility that offloads a synchronous, blocking function call to a separate background OS thread, returning an awaitable coroutine that can be safely `await`ed inside an `async def` endpoint.
+
+#### 💡 The Beginner Analogy: Delegating a Task
+When you are busy hosting a live webinar (`async def` event loop) and need to convert a large PDF file (blocking operation), you don't pause the webinar. You ask your assistant (`asyncio.to_thread`) to take the PDF into the next room, convert it, and bring you back the result when finished.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import asyncio, time
+
+def heavy_sync_task():
+    time.sleep(0.01)
+    return 42
+
+async def main():
+    result = await asyncio.to_thread(heavy_sync_task)
+    print("Thread Result:", result)
+
+asyncio.run(main())
+```
+
+##### Verified Output
+```text
+Thread Result: 42
+```
+
+**Why It Matters**: Allows using legacy synchronous database or SDK libraries inside async FastAPI endpoints without stalling the main event loop.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    ASYNC["async def endpoint()"] --> BLOCK["Blocking call: heavy_cpu_math()"]
+    BLOCK --> THREAD["await asyncio.to_thread(heavy_cpu_math)"]
+    THREAD --> WORKER["Runs in background thread pool"]
+    WORKER --> RES["Returns result to async endpoint"]
+
+    style THREAD fill:#005f73,stroke:#0a9396,color:#fff
+    style RES fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.6 — `StreamingResponse` & `X-Accel-Buffering: no`
+
+- **`StreamingResponse`**: A FastAPI response class that streams chunks generated by an async generator directly over an active HTTP response connection.
+- **`X-Accel-Buffering: no`**: An HTTP response header sent to downstream reverse proxies (like NGINX) instructing them not to buffer the stream.
+
+#### 💡 The Beginner Analogy: Live Ticker vs. Batch Envelope
+`StreamingResponse` is like a **live ticker tape printer** that prints individual letters as they arrive. `X-Accel-Buffering: no` is a warning sign attached to the machine reading: *"Do NOT collect these papers in a box — pass each tape line directly to the user immediately!"*
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+from fastapi.responses import StreamingResponse
+
+async def token_gen():
+    yield b"data: token1\n\n"
+
+response = StreamingResponse(token_gen(), media_type="text/event-stream", headers={"X-Accel-Buffering": "no"})
+print("Header Value:", response.headers.get("x-accel-buffering"))
+```
+
+##### Verified Output
+```text
+Header Value: no
+```
+
+**Why It Matters**: Essential for real-time LLM token streaming in production environments behind NGINX proxies.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    GEN["async def generate_tokens(): yield token"] --> FASTAPI["StreamingResponse(generate_tokens())"]
+    FASTAPI --> HEAD["Set Header: X-Accel-Buffering: no"]
+    HEAD --> NGINX["NGINX Proxy passes chunks through without buffering"]
+    NGINX --> CLIENT["Frontend UI renders tokens live!"]
+
+    style CLIENT fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+## 3. Skip Test — Answered
 
 > Gate **before** studying. Both correct from memory → skip. §7 withholds its answers deliberately.
 
@@ -308,267 +585,6 @@ With this file **and** the script closed, build a FastAPI app with:
 - one streaming endpoint with the headers that survive a proxy
 - separate liveness and readiness endpoints where only one checks the model
 - one test asserting `422` on invalid input **and** asserting the endpoint body never ran
-
----
-
-### 9.1 — `lifespan` Async Context Manager
-
-An asynchronous context manager passed to the FastAPI application constructor that executes setup code **once** during application startup and teardown code **once** during shutdown.
-
-#### 💡 The Beginner Analogy: Opening and Closing a Restaurant
-`lifespan` is like the kitchen prep routine before a restaurant opens:
-- **Startup (`yield` before)**: Turning on ovens, firing up refrigerators, loading AI models into GPU memory.
-- **Serving (during `yield`)**: Customers arrive and endpoints process requests.
-- **Shutdown (`yield` after)**: Turning off gas valves, closing database connection pools, unloading memory.
-
-#### 🎨 Application Lifespan Lifecycle
-
-```mermaid
-flowchart TD
-    START["FastAPI App Boots"] --> SETUP["1. Startup (Load PyTorch Model / Open DB Pool)"]
-    SETUP --> YIELD["2. yield -> App receives HTTP requests"]
-    YIELD --> SHUTDOWN["3. App SIGTERM -> Shutdown (Close DB Connections / Flush Logs)"]
-
-    style SETUP fill:#005f73,stroke:#0a9396,color:#fff
-    style SHUTDOWN fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-from contextlib import asynccontextmanager
-from fastapi import FastAPI
-
-ml_models = {}
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup: Load heavy model once on boot
-    ml_models["classifier"] = load_heavy_model()
-    yield
-    # Shutdown: Clean up resources
-    ml_models.clear()
-
-app = FastAPI(lifespan=lifespan)
-```
-**Why It Matters**: Replaces deprecated `@app.on_event("startup")` hooks. Ensures expensive ML models load once into memory at boot rather than reloading per request.
-
----
-
-### 9.2 — Request Model vs `response_model` (Allow-list Filtering)
-
-- **Request Model**: Pydantic model parameter verifying incoming JSON payloads. Returns `422 Unprocessable Content` before the endpoint logic ever runs if validation fails.
-- **`response_model`**: Pydantic model specified on the route decorator that filters and validates outgoing JSON responses against an **allow-list**.
-
-#### 💡 The Beginner Analogy: Security Desk Bouncer & Exit Scanner
-- **Request Model**: A bouncer at the front door verifying guests have valid tickets.
-- **`response_model`**: A security scanner at the exit ensuring employees don't accidentally leave the building with confidential company files (`password_hash`, `internal_id`).
-
-#### 🎨 Response Model Filtering Security
-
-```mermaid
-flowchart TD
-    DB["Database User Record: {'id': 1, 'email': 'a@b.com', 'password_hash': 'secret123'}"] --> ROUTE["Route Handler returns raw DB dict"]
-    ROUTE --> FILTER["response_model = UserPublic (Allow-list: id, email)"]
-    FILTER --> OUT["JSON Client Output: {'id': 1, 'email': 'a@b.com'}"]
-
-    style FILTER fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-from pydantic import BaseModel, EmailStr
-from fastapi import FastAPI
-
-class UserPublic(BaseModel):
-    id: int
-    email: EmailStr
-
-@app.get("/users/{user_id}", response_model=UserPublic)
-def get_user(user_id: int):
-    # Returns DB object containing password_hash, but response_model filters it out!
-    return db.query_user(user_id)
-```
-**Why It Matters**: Prevents accidental data leaks by stripping sensitive internal fields (hashed passwords, internal database IDs) from API responses.
-
----
-
-### 9.3 — Dependency Injection (`Depends`) & `dependency_overrides`
-
-- **`Depends(callable)`**: Instructs FastAPI to resolve and inject a reusable dependency (e.g. database session, authenticated user) into the endpoint parameter.
-- **`app.dependency_overrides`**: A dictionary mapping real dependencies to mock dependencies during unit testing.
-
-#### 💡 The Beginner Analogy: Plug-and-Play Power Socket
-`Depends` is like equipping your app with a standard **3-prong power wall outlet**. During normal operation (production), you plug in the **city grid power** (real Postgres DB). During maintenance testing, you unplug the grid and plug in a **portable generator** (Mock DB in `app.dependency_overrides`).
-
-#### 🎨 Dependency Injection & Test Mocking
-
-```mermaid
-flowchart TD
-    subgraph Production ["Production Flow"]
-        REQ1["HTTP Request"] --> DEP1["Depends(get_db) -> Real Postgres DB"]
-    end
-
-    subgraph Testing ["Testing Flow"]
-        REQ2["TestClient Request"] --> OVER["app.dependency_overrides[get_db] = get_test_db"]
-        OVER --> DEP2["Returns In-Memory SQLite Mock DB"]
-    end
-
-    style DEP1 fill:#005f73,stroke:#0a9396,color:#fff
-    style DEP2 fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-from fastapi import Depends, FastAPI
-
-def get_db():
-    db = PostgresSession()
-    try: yield db
-    finally: db.close()
-
-@app.get("/items")
-def read_items(db = Depends(get_db)):
-    return db.query_items()
-
-# In tests/test_api.py:
-app.dependency_overrides[get_db] = get_test_mock_db
-```
-**Why It Matters**: Makes API endpoints 100% testable offline without modifying production route handler code.
-
----
-
-### 9.4 — Event Loop vs. Threadpool (`async def` vs. plain `def`)
-
-- **`async def` endpoints**: Run directly on the single non-blocking **Event Loop** thread. Must NEVER contain blocking synchronous calls (`time.sleep()`, `requests.get()`).
-- **Plain `def` endpoints**: Run inside FastAPI's background **Threadpool** worker threads, safely isolating blocking synchronous operations from the main Event Loop.
-
-#### 💡 The Beginner Analogy: Single Chef vs. Kitchen Staff
-- `async def`: A high-speed chef standing at an electric stove. If they freeze for 10 seconds staring at a pot (`time.sleep(10)`), **the whole kitchen stops serving food**.
-- Plain `def`: Handing a task off to one of 40 sous-chefs (threadpool) in the back room so the main chef keeps working.
-
-#### 🎨 Blocking `async def` Disaster
-
-```mermaid
-flowchart TD
-    subgraph BadAsync ["❌ Blocking code in async def (Freezes App)"]
-        A1["async def endpoint(): time.sleep(5)"] --> A2["Event Loop BLOCKED for 5 seconds!"]
-        A2 --> FAIL["💥 ALL concurrent API requests hang across the entire app!"]
-    end
-
-    subgraph PlainDef ["✅ Plain def endpoint (Safely offloaded)"]
-        P1["def endpoint(): time.sleep(5)"] --> P2["Offloaded to background Threadpool"]
-        P2 --> PASS["Event loop remains free to process concurrent traffic!"]
-    end
-
-    style FAIL fill:#9b2226,stroke:#ae2012,color:#fff
-    style PASS fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-# ❌ TRAP: time.sleep() inside async def freezes the ENTIRE web server!
-@app.get("/bad")
-async def bad_endpoint():
-    time.sleep(5) # Blocks Event Loop!
-
-# ✅ CORRECT: Use await asyncio.sleep() in async def, or use plain def for blocking calls
-@app.get("/good")
-def good_endpoint():
-    time.sleep(5) # Safely runs in Threadpool thread
-```
-**Why It Matters**: A single synchronous blocking call inside an `async def` function drops FastAPI server concurrency from thousands of requests per second down to 1 request at a time!
-
----
-
-### 9.5 — `asyncio.to_thread`
-
-A standard library async utility that offloads a synchronous, blocking function call to a separate background OS thread, returning an awaitable coroutine that can be safely `await`ed inside an `async def` endpoint.
-
-#### 💡 The Beginner Analogy: Delegating a Task
-When you are busy hosting a live webinar (`async def` event loop) and need to convert a large PDF file (blocking operation), you don't pause the webinar. You ask your assistant (`asyncio.to_thread`) to take the PDF into the next room, convert it, and bring you back the result when finished.
-
-#### 🎨 Offloading Blocking Code
-
-```mermaid
-flowchart TD
-    ASYNC["async def endpoint()"] --> BLOCK["Blocking call: heavy_cpu_math()"]
-    BLOCK --> THREAD["await asyncio.to_thread(heavy_cpu_math)"]
-    THREAD --> WORKER["Runs in background thread pool"]
-    WORKER --> RES["Returns result to async endpoint"]
-
-    style THREAD fill:#005f73,stroke:#0a9396,color:#fff
-    style RES fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-import asyncio, time
-from fastapi import FastAPI
-
-app = FastAPI()
-
-def blocking_sync_library():
-    time.sleep(2) # Synchronous blocking legacy code
-    return "ok"
-
-@app.get("/sync-wrapper")
-async def sync_wrapper():
-    # Offloads blocking call to threadpool without freezing Event Loop
-    result = await asyncio.to_thread(blocking_sync_library)
-    return {"status": result}
-```
-**Why It Matters**: Allows using legacy synchronous database or SDK libraries inside async FastAPI endpoints without stalling the main event loop.
-
----
-
-### 9.6 — `StreamingResponse` & `X-Accel-Buffering: no`
-
-- **`StreamingResponse`**: A FastAPI response class that streams chunks generated by an async generator directly over an active HTTP response connection.
-- **`X-Accel-Buffering: no`**: An HTTP response header sent to downstream reverse proxies (like NGINX) instructing them not to buffer the stream.
-
-#### 💡 The Beginner Analogy: Live Ticker vs. Batch Envelope
-`StreamingResponse` is like a **live ticker tape printer** that prints individual letters as they arrive. `X-Accel-Buffering: no` is a warning sign attached to the machine reading: *"Do NOT collect these papers in a box — pass each tape line directly to the user immediately!"*
-
-#### 🎨 Live Token Streaming Pipeline
-
-```mermaid
-flowchart TD
-    GEN["async def generate_tokens(): yield token"] --> FASTAPI["StreamingResponse(generate_tokens())"]
-    FASTAPI --> HEAD["Set Header: X-Accel-Buffering: no"]
-    HEAD --> NGINX["NGINX Proxy passes chunks through without buffering"]
-    NGINX --> CLIENT["Frontend UI renders tokens live!"]
-
-    style CLIENT fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
-import asyncio
-
-app = FastAPI()
-
-async def llm_token_generator():
-    for word in ["Hello", " ", "world!", " "]:
-        yield word
-        await asyncio.sleep(0.1)
-
-@app.get("/stream")
-async def stream_tokens():
-    return StreamingResponse(
-        llm_token_generator(),
-        media_type="text/event-stream",
-        headers={"X-Accel-Buffering": "no"} # Prevents NGINX from buffering stream!
-    )
-```
-**Why It Matters**: Essential for real-time LLM token streaming in production environments behind NGINX proxies.
-
-**Liveness probe** — "is the process alive?" Failing it means restart. Must not depend on external services.
-
-**Readiness probe** — "can it serve traffic?" Failing it means stop routing here. Should depend on external services.
-
-**OpenAPI schema** — the JSON contract FastAPI generates from your type hints, serving `/docs` and machine clients. Conceptually identical to an MCP tool definition (**6.13**).
 
 ---
 

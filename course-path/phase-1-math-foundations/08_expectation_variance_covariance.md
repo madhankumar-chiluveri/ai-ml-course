@@ -23,7 +23,185 @@ The single most expensive misunderstanding in the topic — the one that skip-te
 
 ---
 
-## 2. Skip Test — Answered
+## 2. Glossary
+
+### 2.1 — Expectation ($E[X]$) & Variance ($\text{Var}(X)$)
+
+- **Expectation ($E[X]$)**: The probability-weighted average of all possible values of random variable $X$:
+  $$E[X] = \sum x_i P(x_i) \quad \text{(Discrete)} \quad \text{or} \quad \int x f(x) dx \quad \text{(Continuous)}$$
+- **Variance ($\text{Var}(X)$)**: The expected squared deviation from the mean:
+  $$\text{Var}(X) = E[(X - E[X])^2] = E[X^2] - (E[X])^2$$
+
+#### 💡 The Beginner Analogy: Center of Mass & Spread of Dart Throws
+- **Expectation ($E[X]$)**: The exact **center of mass** of where your darts land on a dartboard.
+- **Variance ($\text{Var}(X)$)**: How **scattered** your dart throws are around that center bullseye. A low variance means tight grouping; a high variance means wild scattering.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+data = np.array([2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0])
+mean = np.mean(data)
+var = np.var(data)
+
+print("Expectation (Mean):", mean)
+print("Variance:", var)
+```
+
+##### Verified Output
+```text
+Expectation (Mean): 5.0
+Variance: 4.0
+```
+
+**Why It Matters**: Expectation and variance are the foundational building blocks of machine learning loss functions (MSE), risk metrics, and batch normalization layers.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    DIST["Probability Distribution f(x)"] --> EX["Expectation E[X] = Center of Mass"]
+    DIST --> VAR["Variance Var(X) = Average Squared Distance from E[X]"]
+
+    style EX fill:#005f73,stroke:#0a9396,color:#fff
+    style VAR fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.2 — Covariance ($\text{Cov}(X, Y)$) vs. Correlation ($\text{Corr}(X, Y)$)
+
+- **Covariance**: Measures joint variability between two variables:
+  $$\text{Cov}(X, Y) = E[(X - E[X])(Y - E[Y])]$$
+  Scale depends on measurement units ($-\infty, +\infty$).
+- **Correlation**: Scale-invariant measure of linear association obtained by dividing covariance by individual standard deviations:
+  $$\text{Corr}(X, Y) = \frac{\text{Cov}(X, Y)}{\sigma_X \sigma_Y} \quad \in [-1.0, +1.0]$$
+
+#### 💡 The Beginner Analogy: Height vs. Weight (Un-normalized vs Normalized)
+- **Covariance**: Measuring how height (in mm) and weight (in mg) move together. Result is a huge number ($+50,000,000$) purely because of tiny millimeter units!
+- **Correlation**: Normalizing the measurement onto a standardized $-1.0$ to $+1.0$ scale ($+0.85$), making it easy to compare height/weight association against income/education.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+x = np.array([1, 2, 3, 4, 5])
+y = np.array([2, 4, 6, 8, 10])
+
+cov_xy = np.cov(x, y)[0, 1]
+corr_xy = np.corrcoef(x, y)[0, 1]
+
+print("Covariance:", cov_xy)
+print("Correlation:", round(corr_xy, 4))
+```
+
+##### Verified Output
+```text
+Covariance: 5.0
+Correlation: 1.0
+```
+
+**Why It Matters**: Zero covariance does NOT imply statistical independence unless variables are jointly Gaussian! Non-linear dependencies (e.g. $Y = X^2$ centered at 0) yield $\text{Cov}(X, Y) = 0.0$.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart LR
+    P["Positive Corr (+0.9)<br>X increases -> Y increases"] --> ZERO["Zero Corr (0.0)<br>No linear relationship"]
+    ZERO --> N["Negative Corr (-0.9)<br>X increases -> Y decreases"]
+
+    style ZERO fill:#005f73,stroke:#0a9396,color:#fff
+    style P fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.3 — Covariance Matrix ($\Sigma$) & PCA Diagonalization
+
+- **Covariance Matrix ($\Sigma$)**: A symmetric $d \times d$ matrix storing feature variances along the diagonal ($\Sigma_{ii} = \text{Var}(X_i)$) and pairwise covariances in off-diagonal entries ($\Sigma_{ij} = \text{Cov}(X_i, X_j)$).
+- **PCA Diagonalization**: Factoring $\Sigma = Q \Lambda Q^T$ to project correlated features onto orthogonal principal component directions ($Q$), resulting in a diagonal covariance matrix ($\Lambda$).
+
+#### 💡 The Beginner Analogy: Untangling a Correlated Yarn Ball
+A raw dataset has features that pull in diagonal directions (non-zero off-diagonal covariances). **PCA Diagonalization** rotates the coordinate axes so every new feature axis is completely independent and perpendicular to all others (zero off-diagonal covariances).
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+np.random.seed(42)
+X = np.random.randn(100, 2)
+cov_matrix = np.cov(X, rowvar=False)
+
+eigenvalues, Q = np.linalg.eigh(cov_matrix)
+print("Covariance Matrix:\n", np.round(cov_matrix, 3))
+print("Eigenvalues:", np.round(eigenvalues, 3))
+```
+
+##### Verified Output
+```text
+Covariance Matrix:
+ [[ 0.941 -0.116]
+ [-0.116  0.945]]
+Eigenvalues: [0.827 1.059]
+```
+
+**Why It Matters**: Principal Component Analysis (PCA), Whitening transforms, and Mahalanobis distance all operate by diagonalizing the dataset covariance matrix.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    RAW_COV["Raw Covariance Matrix (Off-diagonals ≠ 0)"] --> PCA["Rotate Axes by Eigenvectors Q"]
+    PCA --> DIAG_COV["Diagonalized Matrix Λ (Off-diagonals = 0.0!)"]
+
+    style DIAG_COV fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.4 — Bessel's Correction ($n-1$ vs. $n$, `ddof`)
+
+- **Biased Variance Estimator ($\frac{1}{n} \sum (x_i - \bar{x})^2$)**: Dividing by $n$ underestimates true population variance because sample mean $\bar{x}$ is fitted from the exact same sample data.
+- **Bessel's Correction ($\frac{1}{n-1} \sum (x_i - \bar{x})^2$)**: Dividing by $n-1$ (`ddof=1`) removes sample bias, yielding an **unbiased estimator** of population variance.
+
+#### 💡 The Beginner Analogy: Fitting a Shoe to Your Own Foot
+If you measure how well a shoe fits on your own foot (sample mean derived from sample), the shoe looks like a perfect fit. If you try to predict how well the shoe fits the general public (population), your sample estimate is slightly too optimistic. You must subtract 1 degree of freedom ($n-1$) to compensate for using your own foot measurements!
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+data = np.array([10.0, 12.0, 14.0, 16.0, 18.0])
+
+var_biased = np.var(data, ddof=0)
+var_unbiased = np.var(data, ddof=1)
+
+print("Biased (ddof=0):", var_biased)
+print("Unbiased (ddof=1):", var_unbiased)
+```
+
+##### Verified Output
+```text
+Biased (ddof=0): 8.0
+Unbiased (ddof=1): 10.0
+```
+
+**Why It Matters**: Mixing up `ddof=0` and `ddof=1` between `np.var` and `np.cov` causes subtle numerical discrepancies in scientific pipelines and unit tests.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    DATA["Sample Data (size n)"] --> BIASED["np.var(data, ddof=0) -> Divides by n (Systematically underestimates σ²!)"]
+    DATA --> UNBIASED["np.var(data, ddof=1) -> Divides by n-1 (Unbiased Population Estimate)"]
+
+    style BIASED fill:#9b2226,stroke:#ae2012,color:#fff
+    style UNBIASED fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+## 3. Skip Test — Answered
 
 > Gate **before** studying. Both correct from memory → skip. §7 withholds its answers deliberately.
 
@@ -643,136 +821,21 @@ Fourth, measure Bessel's correction. Over at least 50,000 trials at `n = 4`, ave
 
 **Computational identity** — `Var(X) = E[X^2] - (E[X])^2`. Exact algebra; numerically dangerous on data far from zero because of catastrophic cancellation (**1.12**).
 
-### 9.1 — Expectation ($E[X]$) & Variance ($\text{Var}(X)$)
+**Random variable** — a numerical outcome of a random process. Written `X`; a particular observed value is written `x`.
 
-- **Expectation ($E[X]$)**: The probability-weighted average of all possible values of random variable $X$:
-  $$E[X] = \sum x_i P(x_i) \quad \text{(Discrete)} \quad \text{or} \quad \int x f(x) dx \quad \text{(Continuous)}$$
-- **Variance ($\text{Var}(X)$)**: The expected squared deviation from the mean:
-  $$\text{Var}(X) = E[(X - E[X])^2] = E[X^2] - (E[X])^2$$
+**Distribution** — the assignment of probability to the possible values of a random variable. Probabilities are non-negative and sum (or integrate) to 1.
 
-#### 💡 The Beginner Analogy: Center of Mass & Spread of Dart Throws
-- **Expectation ($E[X]$)**: The exact **center of mass** of where your darts land on a dartboard.
-- **Variance ($\text{Var}(X)$)**: How **scattered** your dart throws are around that center bullseye. A low variance means tight grouping; a high variance means wild scattering.
+**Expectation `E[X]`** — the probability-weighted average of the outcomes, `sum p_i * x_i`. The balance point of the distribution. It need not be an attainable value.
 
-#### 🎨 Expectation & Variance Geometry
+**Linearity of expectation** — `E[aX + bY + c] = aE[X] + bE[Y] + c`, true whether or not `X` and `Y` are related. The workhorse of every derivation in this topic.
 
-```mermaid
-flowchart TD
-    DIST["Probability Distribution f(x)"] --> EX["Expectation E[X] = Center of Mass"]
-    DIST --> VAR["Variance Var(X) = Average Squared Distance from E[X]"]
+**`E[g(X)]`** — the expectation of a transformed variable: apply `g` to each value, weight by the *original* probabilities. Generally not equal to `g(E[X])`.
 
-    style EX fill:#005f73,stroke:#0a9396,color:#fff
-    style VAR fill:#2d6a4f,stroke:#52b788,color:#fff
-```
+**Variance `Var(X)`** — `E[(X - E[X])^2]`, the average squared distance from the mean. Units are the square of `X`'s units.
 
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-import numpy as np
+**Standard deviation `sd(X)`** — `sqrt(Var(X))`. Same units as `X`, which is why it is the one usually reported.
 
-data = np.array([2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0])
-mean = np.mean(data) # -> 5.0 (Expectation)
-var = np.var(data)   # -> 4.0 (Variance)
-```
-**Why It Matters**: Expectation and variance are the foundational building blocks of machine learning loss functions (MSE), risk metrics, and batch normalization layers.
-
----
-
-### 9.2 — Covariance ($\text{Cov}(X, Y)$) vs. Correlation ($\text{Corr}(X, Y)$)
-
-- **Covariance**: Measures joint variability between two variables:
-  $$\text{Cov}(X, Y) = E[(X - E[X])(Y - E[Y])]$$
-  Scale depends on measurement units ($-\infty, +\infty$).
-- **Correlation**: Scale-invariant measure of linear association obtained by dividing covariance by individual standard deviations:
-  $$\text{Corr}(X, Y) = \frac{\text{Cov}(X, Y)}{\sigma_X \sigma_Y} \quad \in [-1.0, +1.0]$$
-
-#### 💡 The Beginner Analogy: Height vs. Weight (Un-normalized vs Normalized)
-- **Covariance**: Measuring how height (in mm) and weight (in mg) move together. Result is a huge number ($+50,000,000$) purely because of tiny millimeter units!
-- **Correlation**: Normalizing the measurement onto a standardized $-1.0$ to $+1.0$ scale ($+0.85$), making it easy to compare height/weight association against income/education.
-
-#### 🎨 Positive, Zero, and Negative Correlation
-
-```mermaid
-flowchart LR
-    P["Positive Corr (+0.9)<br>X increases -> Y increases"] --> ZERO["Zero Corr (0.0)<br>No linear relationship"]
-    ZERO --> N["Negative Corr (-0.9)<br>X increases -> Y decreases"]
-
-    style ZERO fill:#005f73,stroke:#0a9396,color:#fff
-    style P fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-x = np.array([1, 2, 3, 4, 5])
-y = np.array([2, 4, 6, 8, 10]) # Exact linear 2x
-
-cov_xy = np.cov(x, y)[0, 1] # -> 5.0 (Un-normalized)
-corr_xy = np.corrcoef(x, y)[0, 1] # -> 1.0 (Normalized scale)
-```
-**Why It Matters**: Zero covariance does NOT imply statistical independence unless variables are jointly Gaussian! Non-linear dependencies (e.g. $Y = X^2$ centered at 0) yield $\text{Cov}(X, Y) = 0.0$.
-
----
-
-### 9.3 — Covariance Matrix ($\Sigma$) & PCA Diagonalization
-
-- **Covariance Matrix ($\Sigma$)**: A symmetric $d \times d$ matrix storing feature variances along the diagonal ($\Sigma_{ii} = \text{Var}(X_i)$) and pairwise covariances in off-diagonal entries ($\Sigma_{ij} = \text{Cov}(X_i, X_j)$).
-- **PCA Diagonalization**: Factoring $\Sigma = Q \Lambda Q^T$ to project correlated features onto orthogonal principal component directions ($Q$), resulting in a diagonal covariance matrix ($\Lambda$).
-
-#### 💡 The Beginner Analogy: Untangling a Correlated Yarn Ball
-A raw dataset has features that pull in diagonal directions (non-zero off-diagonal covariances). **PCA Diagonalization** rotates the coordinate axes so every new feature axis is completely independent and perpendicular to all others (zero off-diagonal covariances).
-
-#### 🎨 Covariance Matrix Rotation & Diagonalization
-
-```mermaid
-flowchart TD
-    RAW_COV["Raw Covariance Matrix (Off-diagonals ≠ 0)"] --> PCA["Rotate Axes by Eigenvectors Q"]
-    PCA --> DIAG_COV["Diagonalized Matrix Λ (Off-diagonals = 0.0!)"]
-
-    style DIAG_COV fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-# Compute sample covariance matrix for 2 features
-X = np.random.randn(100, 2)
-cov_matrix = np.cov(X, rowvar=False)
-
-# Eigendecomposition yields principal directions & variances
-eigenvalues, Q = np.linalg.eigh(cov_matrix)
-```
-**Why It Matters**: Principal Component Analysis (PCA), Whitening transforms, and Mahalanobis distance all operate by diagonalizing the dataset covariance matrix.
-
----
-
-### 9.4 — Bessel's Correction ($n-1$ vs. $n$, `ddof`)
-
-- **Biased Variance Estimator ($\frac{1}{n} \sum (x_i - \bar{x})^2$)**: Dividing by $n$ underestimates true population variance because sample mean $\bar{x}$ is fitted from the exact same sample data.
-- **Bessel's Correction ($\frac{1}{n-1} \sum (x_i - \bar{x})^2$)**: Dividing by $n-1$ (`ddof=1`) removes sample bias, yielding an **unbiased estimator** of population variance.
-
-#### 💡 The Beginner Analogy: Fitting a Shoe to Your Own Foot
-If you measure how well a shoe fits on your own foot (sample mean derived from sample), the shoe looks like a perfect fit. If you try to predict how well the shoe fits the general public (population), your sample estimate is slightly too optimistic. You must subtract 1 degree of freedom ($n-1$) to compensate for using your own foot measurements!
-
-#### 🎨 Biased ($n$) vs Unbiased ($n-1$) Estimation
-
-```mermaid
-flowchart TD
-    DATA["Sample Data (size n)"] --> BIASED["np.var(data, ddof=0) -> Divides by n (Systematically underestimates σ²!)"]
-    DATA --> UNBIASED["np.var(data, ddof=1) -> Divides by n-1 (Unbiased Population Estimate)"]
-
-    style BIASED fill:#9b2226,stroke:#ae2012,color:#fff
-    style UNBIASED fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-data = np.array([10.0, 12.0, 14.0, 16.0, 18.0])
-
-# ❌ numpy.var defaults to ddof=0 (Biased!)
-var_biased = np.var(data) # -> 8.0 (divides by 5)
-
-# ✅ numpy.cov defaults to ddof=1 (Unbiased!)
-var_unbiased = np.var(data, ddof=1) # -> 10.0 (divides by 4)
-```
-**Why It Matters**: Mixing up `ddof=0` and `ddof=1` between `np.var` and `np.cov` causes subtle numerical discrepancies in scientific pipelines and unit tests.
+**Computational identity** — `Var(X) = E[X^2] - (E[X])^2`. Exact algebra; numerically dangerous on data far from zero because of catastrophic cancellation (**1.12**).
 
 ---
 

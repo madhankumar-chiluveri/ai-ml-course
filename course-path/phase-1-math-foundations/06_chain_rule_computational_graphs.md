@@ -16,7 +16,231 @@ Depends on **1.5** gradients; unlocks **3.4** backpropagation, **3.10** PyTorch 
 
 ---
 
-## 2. Skip Test — Answered
+## 2. Glossary
+
+### 2.1 — Chain Rule & Reverse-Mode Autodiff (Backpropagation)
+
+- **Chain Rule**: The calculus rule $\frac{d}{dx} f(g(x)) = f'(g(x)) \cdot g'(x)$ stating that the derivative of a composite function is the product of local derivatives.
+- **Reverse-Mode Autodiff (Backpropagation)**: An algorithm that computes gradients by running a **single backward pass** from a scalar Loss output back to millions of input parameters, propagating adjoint gradients $\frac{\partial L}{\partial v}$ via local chain-rule multiplications.
+
+#### 💡 The Beginner Analogy: Assembly Line Quality Control
+In a factory, raw parts pass through 5 assembly workers to produce a final product.
+- **Forward Pass**: Building the product step-by-step.
+- **Reverse Mode**: When a final quality flaw (Loss) is found, the inspector walks **backwards from the final box to the starting raw materials**, multiplying penalty points at each station to determine exactly how much worker #1 contributed to the final defect!
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+class Value:
+    def __init__(self, data, _children=()):
+        self.data = data
+        self.grad = 0.0
+        self._backward = lambda: None
+        self._prev = set(_children)
+
+    def __mul__(self, other):
+        other = other if isinstance(other, Value) else Value(other)
+        out = Value(self.data * other.data, (self, other))
+        def _backward():
+            self.grad += other.data * out.grad
+            other.grad += self.data * out.grad
+        out._backward = _backward
+        return out
+
+a = Value(3.0)
+b = Value(4.0)
+c = a * b
+c.grad = 1.0
+c._backward()
+
+print("a.grad:", a.grad)
+print("b.grad:", b.grad)
+```
+
+##### Verified Output
+```text
+a.grad: 4.0
+b.grad: 3.0
+```
+
+**Why It Matters**: Reverse-mode autodiff computes gradients for $N=70\text{ billion}$ LLM parameters in a **single backward pass** ($O(1)$ complexity), whereas forward mode would require 70 billion passes ($O(N)$).
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart RL
+    LOSS["Loss Output L (Seed Grad = 1.0)"] -->|"∂L/∂c"| C["Node c = a * b"]
+    C -->|"∂L/∂a = (∂L/∂c) * b"| A["Node a (Input)"]
+    C -->|"∂L/∂b = (∂L/∂c) * a"| B["Node b (Input)"]
+
+    style LOSS fill:#005f73,stroke:#0a9396,color:#fff
+    style A fill:#2d6a4f,stroke:#52b788,color:#fff
+    style B fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.2 — Topological Sorting in Autograd Graphs
+
+A graph-ordering algorithm that sorts computational nodes into a sequence where **every node appears before any consumer node that depends on its output value**.
+
+#### 💡 The Beginner Analogy: Cooking Recipe Prerequisites
+You cannot frost a cake until the cake is baked. You cannot bake the cake until the batter is mixed. A **Topological Sort** arranges recipe instructions so every dependent step occurs strictly after all its prerequisite ingredients are prepared.
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+class Node:
+    def __init__(self, name, parents=()):
+        self.name = name
+        self.parents = parents
+
+def build_topo(node):
+    topo = []
+    visited = set()
+    def build(v):
+        if v not in visited:
+            visited.add(v)
+            for p in v.parents:
+                build(p)
+            topo.append(v)
+    build(node)
+    return topo
+
+x = Node("x")
+a = Node("a", (x,))
+loss = Node("loss", (a,))
+
+order = [n.name for n in build_topo(loss)]
+print("Topological Execution Order:", order)
+```
+
+##### Verified Output
+```text
+Topological Execution Order: ['x', 'a', 'loss']
+```
+
+**Why It Matters**: Walking a computational graph in arbitrary order without topological sorting causes gradients to be propagated before all child paths have accumulated, leading to silent calculation errors.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    x["Input x"] --> a["a = x^2"]
+    x --> b["b = 2*x"]
+    a --> loss["Loss = a + b"]
+    b --> loss
+
+    TOPOLOGY["Topological Backward Order:<br>1. Loss -> 2. Node a & Node b -> 3. Input x"]
+
+    style TOPOLOGY fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.3 — Gradient Accumulation & The Fan-Out Trap (`+=` vs `=`)
+
+- **Fan-Out**: When a single node's output value is consumed by **multiple downstream consumer nodes** (e.g. residual connections, shared weights).
+- **Multivariate Chain Rule**: Gradients from multiple downstream paths **MUST BE SUMMED (`+=`)** together ($\frac{\partial L}{\partial x} = \sum_{k} \frac{\partial L}{\partial y_k} \frac{\partial y_k}{\partial x}$).
+
+#### 💡 The Beginner Analogy: Multiple Tributary Streams
+If a river splits into two channels (Fan-Out) that both eventually flow into the ocean (Loss), the total water flowing out of the main river is the **SUM of water from Channel A + Channel B**. Overwriting (`=`) instead of adding (`+=`) throws away Channel A's water completely!
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+x_grad = 0.0
+
+# ❌ Overwrite bug (=):
+path_a = 3.0
+x_grad = path_a
+path_b = 5.0
+x_grad = path_b # Overwrites path_a!
+
+print("Overwrite Result:", x_grad)
+
+# ✅ Correct accumulation (+=):
+x_grad_correct = 0.0
+x_grad_correct += path_a
+x_grad_correct += path_b
+
+print("Accumulated Result:", x_grad_correct)
+```
+
+##### Verified Output
+```text
+Overwrite Result: 5.0
+Accumulated Result: 8.0
+```
+
+**Why It Matters**: The #1 silent bug when implementing custom autograd engines. Residual networks (ResNets) and Transformer attention mechanisms rely heavily on fan-out summation.
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    subgraph OverwriteTrap ["❌ Overwrite Trap (=)"]
+        X1["Input x"] --> P1["Path A (grad = 3.0)"]
+        X1 --> P2["Path B (grad = 5.0)"]
+        P2 --> OVER["x.grad = 5.0 (Path A lost!)"]
+    end
+
+    subgraph CorrectSum ["✅ Gradient Accumulation (+=)"]
+        X2["Input x"] --> PA["Path A (grad = 3.0)"]
+        X2 --> PB["Path B (grad = 5.0)"]
+        PA & PB --> SUM["x.grad += 3.0 + 5.0 = 8.0!"]
+    end
+
+    style OVER fill:#9b2226,stroke:#ae2012,color:#fff
+    style SUM fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+### 2.4 — Local Derivatives & Cached Activations
+
+- **Local Derivative**: The partial derivative of a single operation with respect to its immediate inputs (e.g. for $y = \text{tanh}(x)$, local deriv is $1 - y^2$).
+- **Cached Activations**: Saving intermediate forward values in RAM because the backward pass requires them to evaluate local derivatives.
+
+#### 💡 The Beginner Analogy: Stashing Receipts for Tax Returns
+When buying business expenses (Forward Pass), you **keep and store physical paper receipts** in a shoebox (Cached Activations). You need those exact saved receipts months later during tax audit season (Backward Pass) to calculate your tax return deductions (Gradients).
+
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+import numpy as np
+
+x = 0.88
+# Forward pass caches output 'y'
+y = np.tanh(x)
+
+# Backward pass uses cached 'y' to compute dx
+grad_out = 1.0
+dx = grad_out * (1.0 - y**2)
+
+print("Cached y:", round(y, 4))
+print("Derivative dx:", round(dx, 4))
+```
+
+##### Verified Output
+```text
+Cached y: 0.7064
+Derivative dx: 0.501
+```
+
+**Why It Matters**: Explains why training deep neural networks consumes **3x to 5x more GPU VRAM** than inference — all forward activations must be cached in VRAM until the backward pass completes!
+
+#### 🎨 Visual Concept
+
+```mermaid
+flowchart TD
+    FWD["Forward Pass: y = tanh(x)"] --> CACHE["Cache Activation: y = 0.707"]
+    CACHE --> RAM["Stored in RAM during Forward Pass"]
+    RAM --> BWD["Backward Pass: dx = grad * (1 - y²)"]
+
+    style CACHE fill:#005f73,stroke:#0a9396,color:#fff
+    style BWD fill:#2d6a4f,stroke:#52b788,color:#fff
+```
+
+---
+
+## 3. Skip Test — Answered
 
 > Gate **before** studying. Both correct from memory → skip. §7 withholds its answers deliberately.
 
@@ -322,160 +546,6 @@ Then prove it works, in three independent ways. Cross-check every gradient again
 ---
 
 ## 9. Glossary
-
-### 9.1 — Chain Rule & Reverse-Mode Autodiff (Backpropagation)
-
-- **Chain Rule**: The calculus rule $\frac{d}{dx} f(g(x)) = f'(g(x)) \cdot g'(x)$ stating that the derivative of a composite function is the product of local derivatives.
-- **Reverse-Mode Autodiff (Backpropagation)**: An algorithm that computes gradients by running a **single backward pass** from a scalar Loss output back to millions of input parameters, propagating adjoint gradients $\frac{\partial L}{\partial v}$ via local chain-rule multiplications.
-
-#### 💡 The Beginner Analogy: Assembly Line Quality Control
-In a factory, raw parts pass through 5 assembly workers to produce a final product.
-- **Forward Pass**: Building the product step-by-step.
-- **Reverse Mode**: When a final quality flaw (Loss) is found, the inspector walks **backwards from the final box to the starting raw materials**, multiplying penalty points at each station to determine exactly how much worker #1 contributed to the final defect!
-
-#### 2 Reverse-Mode Backprop Flow
-
-```mermaid
-flowchart RL
-    LOSS["Loss Output L (Seed Grad = 1.0)"] -->|"∂L/∂c"| C["Node c = a * b"]
-    C -->|"∂L/∂a = (∂L/∂c) * b"| A["Node a (Input)"]
-    C -->|"∂L/∂b = (∂L/∂c) * a"| B["Node b (Input)"]
-
-    style LOSS fill:#005f73,stroke:#0a9396,color:#fff
-    style A fill:#2d6a4f,stroke:#52b788,color:#fff
-    style B fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-# Simple Reverse Autodiff Engine Node
-class Value:
-    def __init__(self, data, _children=()):
-        self.data = data
-        self.grad = 0.0
-        self._backward = lambda: None
-        self._prev = set(_children)
-
-    def __mul__(self, other):
-        other = other if isinstance(other, Value) else Value(other)
-        out = Value(self.data * other.data, (self, other))
-        def _backward():
-            self.grad += other.data * out.grad # Local deriv of mul is swap!
-            other.grad += self.data * out.grad
-        out._backward = _backward
-        return out
-```
-**Why It Matters**: Reverse-mode autodiff computes gradients for $N=70\text{ billion}$ LLM parameters in a **single backward pass** ($O(1)$ complexity), whereas forward mode would require 70 billion passes ($O(N)$).
-
----
-
-### 9.2 — Topological Sorting in Autograd Graphs
-
-A graph-ordering algorithm that sorts computational nodes into a sequence where **every node appears before any consumer node that depends on its output value**.
-
-#### 💡 The Beginner Analogy: Cooking Recipe Prerequisites
-You cannot frost a cake until the cake is baked. You cannot bake the cake until the batter is mixed. A **Topological Sort** arranges recipe instructions so every dependent step occurs strictly after all its prerequisite ingredients are prepared.
-
-#### 🎨 Topological Order in Backward Pass
-
-```mermaid
-flowchart TD
-    x["Input x"] --> a["a = x^2"]
-    x --> b["b = 2*x"]
-    a --> loss["Loss = a + b"]
-    b --> loss
-
-    TOPOLOGY["Topological Backward Order:<br>1. Loss -> 2. Node a & Node b -> 3. Input x"]
-
-    style TOPOLOGY fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-def build_topo(node):
-    topo = []
-    visited = set()
-    def build(v):
-        if v not in visited:
-            visited.add(v)
-            for child in v._prev:
-                build(child)
-            topo.append(v)
-        build(node)
-    return topo
-```
-**Why It Matters**: Walking a computational graph in arbitrary order without topological sorting causes gradients to be propagated before all child paths have accumulated, leading to silent calculation errors.
-
----
-
-### 9.3 — Gradient Accumulation & The Fan-Out Trap (`+=` vs `=`)
-
-- **Fan-Out**: When a single node's output value is consumed by **multiple downstream consumer nodes** (e.g. residual connections, shared weights).
-- **Multivariate Chain Rule**: Gradients from multiple downstream paths **MUST BE SUMMED (`+=`)** together ($\frac{\partial L}{\partial x} = \sum_{k} \frac{\partial L}{\partial y_k} \frac{\partial y_k}{\partial x}$).
-
-#### 💡 The Beginner Analogy: Multiple Tributary Streams
-If a river splits into two channels (Fan-Out) that both eventually flow into the ocean (Loss), the total water flowing out of the main river is the **SUM of water from Channel A + Channel B**. Overwriting (`=`) instead of adding (`+=`) throws away Channel A's water completely!
-
-#### 🎨 Fan-Out Path Summation vs Overwrite Trap
-
-```mermaid
-flowchart TD
-    subgraph OverwriteTrap ["❌ Overwrite Trap (=)"]
-        X1["Input x"] --> P1["Path A (grad = 3.0)"]
-        X1 --> P2["Path B (grad = 5.0)"]
-        P2 --> OVER["x.grad = 5.0 (Path A lost!)"]
-    end
-
-    subgraph CorrectSum ["✅ Gradient Accumulation (+=)"]
-        X2["Input x"] --> PA["Path A (grad = 3.0)"]
-        X2 --> PB["Path B (grad = 5.0)"]
-        PA & PB --> SUM["x.grad += 3.0 + 5.0 = 8.0!"]
-    end
-
-    style OVER fill:#9b2226,stroke:#ae2012,color:#fff
-    style SUM fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-# ❌ TRAP: Using '=' overwrites previous path gradient!
-# self.grad = local_grad * out.grad
-
-# ✅ CORRECT: Always ACCUMULATE with '+='!
-self.grad += local_grad * out.grad
-```
-**Why It Matters**: The #1 silent bug when implementing custom autograd engines. Residual networks (ResNets) and Transformer attention mechanisms rely heavily on fan-out summation.
-
----
-
-### 9.4 — Local Derivatives & Cached Activations
-
-- **Local Derivative**: The partial derivative of a single operation with respect to its immediate inputs (e.g. for $y = \text{tanh}(x)$, local deriv is $1 - y^2$).
-- **Cached Activations**: Saving intermediate forward values in RAM because the backward pass requires them to evaluate local derivatives.
-
-#### 💡 The Beginner Analogy: Stashing Receipts for Tax Returns
-When buying business expenses (Forward Pass), you **keep and store physical paper receipts** in a shoebox (Cached Activations). You need those exact saved receipts months later during tax audit season (Backward Pass) to calculate your tax return deductions (Gradients).
-
-#### 🎨 Forward Caching & Backward Memory Consumption
-
-```mermaid
-flowchart TD
-    FWD["Forward Pass: y = tanh(x)"] --> CACHE["Cache Activation: y = 0.707"]
-    CACHE --> RAM["Stored in RAM during Forward Pass"]
-    RAM --> BWD["Backward Pass: dx = grad * (1 - y²)"]
-
-    style CACHE fill:#005f73,stroke:#0a9396,color:#fff
-    style BWD fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-#### 💻 Code Example & ⚠️ Why It Matters
-```python
-# Forward pass of Tanh caches output 'y' for backward pass:
-y = np.tanh(x)
-# Backward pass uses cached 'y':
-dx = grad * (1.0 - y**2)
-```
-**Why It Matters**: Explains why training deep neural networks consumes **3x to 5x more GPU VRAM** than inference — all forward activations must be cached in VRAM until the backward pass completes!
 
 ---
 
