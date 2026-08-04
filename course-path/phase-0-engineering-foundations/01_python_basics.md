@@ -10,953 +10,440 @@
 
 Python is the language behind every framework in this roadmap — NumPy/Pandas (0.6), scikit-learn (Phase 2), PyTorch (3.10), LangGraph (Phase 6). Nothing downstream works without fluency in these basics.
 
+### 1.1 Python Core Cheat Sheet
+
+| Topic | Concept | Example / Note |
+|---|---|---|
+| Variables | No type declaration needed, Python infers | `x = 10` is `int`, `x = 10.0` is `float` |
+| Strings | Immutable, every method returns a new string | `"hello".upper()` doesn't change original |
+| f-strings | `f"{expr}"` — the modern string formatting | Don't forget the `f` prefix! |
+| Conditionals | `if`/`elif`/`else` control flow | Identation dictates scope |
+| Loops | `for` and `while` iteration | `break` exits, `continue` skips to next |
+| Lists | Ordered, mutable, allows duplicates | `list.sort()` returns `None`, sorted in place |
+| Slicing | Extracts sub-sequences `[start:stop:step]` | `lst[::-1]` reverses a list instantly |
+| Tuples | Ordered, immutable | Single element: `(42,)` not `(42)` |
+| Dicts | Key-value pairs, O(1) lookup | Keys must be hashable (no lists as keys) |
+| Sets | Unordered, unique elements, O(1) lookup | Cannot contain mutable items |
+| Functions | `def` defines scope, `*args`/`**kwargs` for varargs | Functions are first-class objects |
+| Exceptions | `try`/`except`/`finally` handling | Catch specific errors, never bare `except` |
+| Comprehensions | One-line list/dict/set construction | Don't nest more than 2 levels deep |
+| Context managers | `with` guarantees cleanup | Always use for files, connections, locks |
+| `defaultdict` | Auto-initializes missing keys | Convert to plain `dict` before leaking out |
+| Falsy / `.get()` | `.get()` vs `or` for missing/empty keys | `.get(k, default)` fails on empty CSV strings |
+| Lexicographic | String sorting pitfall | `float()` required for sorting numeric CSVs |
+| Vectorization | Pushing loops to C/SIMD | Avoid Python `for` loops in numeric data |
+| Generators | Lazy iteration, memory efficient | Can only iterate once |
+| Decorators | Wrap function behavior | Order matters when stacking `@` decorators |
+| Type hints | Documentation, not enforcement | `list[int]` works in Python 3.9+ |
+| `if __name__` | Makes scripts importable | Required for pytest |
+
 ---
 
 ## 2. Variables & Data Types
 
-**Variables** store values — Python figures out the type automatically (no need to declare `int x`).
-
+### 2.1 — Variables
+In Python, variables are names bound to objects dynamically; there is no need to declare a type before assignment.
+#### 💡 The Beginner Analogy: Sticky Labels
+In C++, variables are strictly labeled boxes ("ONLY INTEGERS HERE"). In Python, a variable is just a sticky note you attach to a balloon.
+#### 💻 Code Example & ⚠️ Why It Matters
 ```python
-name = "Alice"          # str  — text
-age = 25                # int  — whole number
-price = 19.99           # float — decimal number
-is_active = True        # bool — True or False
-nothing = None          # NoneType — absence of value
-
-print(type(name))       # <class 'str'>
-print(type(price))      # <class 'float'>
+x_int = 10
+x_float = 10.0
+```
+**Why It Matters**: Dynamic typing speeds up development but requires discipline (like type hints in 0.3).
+#### 🎨 Visual Concept
+```mermaid
+flowchart LR
+    L1["Label: x"] -->|Bound to| B1(("Int: 10"))
 ```
 
 ---
 
-## 3. Strings
-
-**Strings** are immutable sequences of characters — every string method returns a *new* string.
-
+### 2.2 — Strings
+Strings in Python are immutable; they cannot be changed in place.
+#### 💡 The Beginner Analogy: Carved Stone
+Imagine carving a word into stone. If you want the word in uppercase, you have to carve a brand new stone.
+#### 💻 Code Example & ⚠️ Why It Matters
 ```python
-text = "  Hello, World!  "
-
-print(text.strip())         # "Hello, World!"     — removes whitespace
-print(text.lower())         # "  hello, world!  " — lowercase
-print(text.replace("World", "Python"))  # "  Hello, Python!  "
-print(text.split(","))      # ['  Hello', ' World!  ']
-print("Hello" in text)      # True — membership check
-print(len(text))            # 17
+original = "hello"
+modified = original.upper()
 ```
-
-### f-strings (formatted string literals)
-
-The modern way to embed expressions inside strings — always prefer over `%` or `.format()`.
-
-```python
-name, score = "Alice", 95.678
-print(f"{name} scored {score:.1f}%")   # Alice scored 95.7%
-print(f"{'hi':>10}")                   # "        hi" — right-aligned
-print(f"{1_000_000:,}")                # "1,000,000"  — comma separator
-```
-
-### Multi-line strings
-
-```python
-query = """
-SELECT name, age
-FROM users
-WHERE active = 1
-"""
+**Why It Matters**: Forgetting to capture the returned string is a classic bug that leads to functions doing nothing.
+#### 🎨 Visual Concept
+```mermaid
+flowchart TD
+    S1["Original"] --> M1{"Call .upper()"}
+    M1 -->|Returns| S2["New String"]
 ```
 
 ---
 
-## 4. Numbers & Arithmetic
-
-**Python handles integers of arbitrary size** and follows standard math operator precedence.
-
+### 2.3 — f-strings
+Evaluates expressions embedded inside string literals dynamically.
+#### 💡 The Beginner Analogy: Mad Libs with Auto-Fill
+An f-string is an auto-filling smart form that pulls correct values directly from the environment.
+#### 💻 Code Example & ⚠️ Why It Matters
 ```python
-print(10 + 3)       # 13    — addition
-print(10 - 3)       # 7     — subtraction
-print(10 * 3)       # 30    — multiplication
-print(10 / 3)       # 3.333 — true division (always float)
-print(10 // 3)      # 3     — floor division (integer result)
-print(10 % 3)       # 1     — modulus (remainder)
-print(10 ** 3)      # 1000  — exponentiation
-print(abs(-42))     # 42    — absolute value
-print(round(3.567, 1))  # 3.6 — rounding
+# ❌ TRAP: Forgetting 'f'
+bad = "{vendor}"
+# ✅ CORRECT
+good = f"{vendor}"
 ```
-
-### Type conversion
-
-```python
-print(int("42"))        # 42    — string to int
-print(float("3.14"))    # 3.14  — string to float
-print(str(100))         # "100" — number to string
-print(int(3.9))         # 3     — truncates, does NOT round
+**Why It Matters**: Forgetting the `f` leads to broken diagnostic logs.
+#### 🎨 Visual Concept
+```mermaid
+flowchart LR
+    A["f'{var}'"] --> B["Evaluated Text"]
 ```
 
 ---
 
-## 5. Lists
-
-**Lists** are ordered, mutable sequences — the workhorse data structure of Python.
-
+### 2.4 — Conditionals
+Control flow determining execution based on boolean evaluation (`if`, `elif`, `else`).
+#### 💡 The Beginner Analogy: Train Switches
+Conditionals are track switches deciding which path a train (the execution) takes based on current signals.
+#### 💻 Code Example & ⚠️ Why It Matters
 ```python
-fruits = ["apple", "banana", "cherry"]
-
-fruits.append("date")           # add to end
-fruits.insert(1, "blueberry")   # insert at index
-fruits.remove("banana")         # remove by value
-popped = fruits.pop()           # remove & return last item
-print(len(fruits))              # 3
-
-# Slicing: list[start:stop:step] — stop is exclusive
-nums = [0, 1, 2, 3, 4, 5]
-print(nums[1:4])    # [1, 2, 3]
-print(nums[:3])     # [0, 1, 2]
-print(nums[::2])    # [0, 2, 4]  — every 2nd element
-print(nums[::-1])   # [5, 4, 3, 2, 1, 0] — reversed
-```
-
-### Sorting
-
-```python
-nums = [3, 1, 4, 1, 5]
-print(sorted(nums))              # [1, 1, 3, 4, 5] — returns new list
-nums.sort(reverse=True)          # sorts in place
-print(nums)                      # [5, 4, 3, 1, 1]
-```
-
----
-
-## 6. Tuples
-
-**Tuples** are ordered, **immutable** sequences — use when data should not change after creation.
-
-```python
-point = (10, 20)
-x, y = point           # tuple unpacking
-print(x, y)            # 10 20
-
-# Single-element tuple needs trailing comma
-single = (42,)          # tuple, not just parentheses
-not_tuple = (42)        # this is just the int 42
-```
-
----
-
-## 7. Dictionaries
-
-**Dicts** map keys to values — the most important data structure for real-world Python (JSON, configs, row data).
-
-```python
-person = {"name": "Alice", "age": 25, "city": "NYC"}
-
-print(person["name"])                   # "Alice"
-print(person.get("phone", "N/A"))       # "N/A" — safe access with default
-person["email"] = "alice@example.com"   # add/update key
-del person["city"]                      # delete key
-
-# Looping over dicts
-for key, value in person.items():
-    print(f"{key}: {value}")
-
-print(list(person.keys()))    # ["name", "age", "email"]
-print(list(person.values()))  # ["Alice", 25, "alice@example.com"]
-```
-
-### The CSV `.get()` Trap
-
-CSV's `DictReader` never gives you a missing key — it gives an empty string `""`. So `.get(key, default)` default **never fires**.
-
-```python
-csv_row = {"vendor": "", "amount": "5000"}   # typical CSV row with missing data
-
-bad  = csv_row.get("vendor", "UNKNOWN")      # returns "" — default didn't fire!
-good = csv_row.get("vendor") or "UNKNOWN"    # returns "UNKNOWN" — correct idiom
-```
-
-### `defaultdict` — removes boilerplate
-
-```python
-from collections import defaultdict
-
-totals = defaultdict(float)     # missing keys auto-initialize to 0.0
-for vendor, amount in [("Acme", 100), ("Beta", 50), ("Acme", 75)]:
-    totals[vendor] += amount    # no "if key not in dict" needed
-
-print(dict(totals))             # {'Acme': 175, 'Beta': 50}
-```
-
----
-
-## 8. Sets
-
-**Sets** are unordered collections of **unique** elements — perfect for deduplication and membership tests.
-
-```python
-colors = {"red", "green", "blue", "red"}
-print(colors)                   # {'red', 'green', 'blue'} — duplicate removed
-
-a = {1, 2, 3, 4}
-b = {3, 4, 5, 6}
-print(a & b)    # {3, 4}       — intersection
-print(a | b)    # {1,2,3,4,5,6} — union
-print(a - b)    # {1, 2}       — difference
-print(3 in a)   # True         — O(1) lookup, much faster than list
-```
-
----
-
-## 9. Conditionals
-
-**if/elif/else** control flow — Python uses indentation instead of braces.
-
-```python
-score = 85
-
-if score >= 90:
-    grade = "A"
-elif score >= 80:
-    grade = "B"
-elif score >= 70:
-    grade = "C"
+if status == "OPEN":
+    pass
+elif status == "OVERDUE":
+    pass
 else:
-    grade = "F"
-
-print(grade)  # "B"
-
-# Ternary (one-liner conditional)
-status = "pass" if score >= 60 else "fail"
+    pass
 ```
-
-### Truthy / Falsy values
-
-These values evaluate to `False` in boolean context: `""`, `0`, `0.0`, `[]`, `{}`, `set()`, `None`, `False`.
-
-```python
-name = ""
-print(bool(name))           # False — empty string is falsy
-result = name or "UNKNOWN"  # "UNKNOWN" — falsy triggers the `or` fallback
+**Why It Matters**: Indentation dictates scope; mismatched indentation breaks flow.
+#### 🎨 Visual Concept
+```mermaid
+flowchart TD
+    C{"Is it OPEN?"} -->|Yes| P1["Process"]
+    C -->|No| P2["Skip"]
 ```
 
 ---
 
-## 10. Loops
-
-### `for` loop — iterate over any sequence
-
+### 2.5 — Loops
+Iterating over sequences (`for`) or running until a condition fails (`while`).
+#### 💡 The Beginner Analogy: Assembly Line
+A loop takes a stack of items and places them one by one in front of a worker. `break` stops the line; `continue` skips a damaged item.
+#### 💻 Code Example & ⚠️ Why It Matters
 ```python
-for fruit in ["apple", "banana", "cherry"]:
-    print(fruit)
-
-# range(start, stop, step) — stop is exclusive
-for i in range(0, 10, 2):
-    print(i)    # 0, 2, 4, 6, 8
-
-# enumerate — get index + value
-for i, fruit in enumerate(["apple", "banana"]):
-    print(f"{i}: {fruit}")
+for n in nums:
+    if n < 0:
+        continue # Skip negatives
 ```
-
-### `while` loop — repeat until condition is false
-
-```python
-count = 5
-while count > 0:
-    print(count)
-    count -= 1
-
-# break exits the loop, continue skips to next iteration
-for n in range(10):
-    if n == 3:
-        continue    # skip 3
-    if n == 7:
-        break       # stop at 7
-    print(n)        # prints 0, 1, 2, 4, 5, 6
-```
-
-### `zip` — iterate over multiple sequences in parallel
-
-```python
-names = ["Alice", "Bob"]
-scores = [90, 85]
-for name, score in zip(names, scores):
-    print(f"{name}: {score}")   # Alice: 90, Bob: 85
+**Why It Matters**: Deeply nested loops cause massive performance drops.
+#### 🎨 Visual Concept
+```mermaid
+flowchart LR
+    L1["Item 1"] --> L2["Item 2"] --> L3["..."]
 ```
 
 ---
 
-## 11. Comprehensions
-
-**Comprehensions** build lists, dicts, and sets in one readable line — the dominant idiom in production Python.
-
+### 2.6 — Lists
+Ordered, mutable collections that allow duplicate elements.
+#### 💡 The Beginner Analogy: A Physical Binder
+A binder of paper pages. You can insert a new page in the middle (mutable) or have two identical pages.
+#### 💻 Code Example & ⚠️ Why It Matters
 ```python
-# List comprehension
-squares = [x**2 for x in range(6)]              # [0, 1, 4, 9, 16, 25]
-
-# With filter
-evens = [x for x in range(10) if x % 2 == 0]   # [0, 2, 4, 6, 8]
-
-# Dict comprehension
-word_lengths = {w: len(w) for w in ["hi", "hello", "hey"]}
-# {'hi': 2, 'hello': 5, 'hey': 3}
-
-# Set comprehension
-unique_lengths = {len(w) for w in ["hi", "hello", "hey"]}  # {2, 3, 5}
+lst.sort() # Mutates in-place, returns None
 ```
-
-A comprehension is the *same logic* as a for-loop, just reordered — the append expression moves to the front:
-
-```python
-# These produce identical output:
-loop_result = []
-for r in rows:
-    if float(r["amount"]) > 50000:
-        loop_result.append(r["id"])
-
-comp_result = [r["id"] for r in rows if float(r["amount"]) > 50000]
+**Why It Matters**: Reassigning `x = x.sort()` destroys data by setting `x` to `None`.
+#### 🎨 Visual Concept
+```mermaid
+flowchart LR
+    L1["List"] --> S{"Call .sort()"}
+    S -->|Modifies In-Place| L1
 ```
 
 ---
 
-## 12. Functions
-
-**Functions** encapsulate reusable logic — defined with `def`, return values with `return`.
-
+### 2.7 — Slicing
+Extracting sub-sequences using `[start:stop:step]` syntax.
+#### 💡 The Beginner Analogy: A Bread Slicer
+Slicing tells the slicer exactly which pieces of the loaf you want, from the 2nd piece to the 5th piece, skipping every other one.
+#### 💻 Code Example & ⚠️ Why It Matters
 ```python
-def greet(name: str, greeting: str = "Hello") -> str:
-    """Return a greeting string."""         # docstring
-    return f"{greeting}, {name}!"
-
-print(greet("Alice"))                       # Hello, Alice!
-print(greet("Bob", greeting="Hey"))         # Hey, Bob!
+reversed_seq = seq[::-1]
 ```
-
-### `*args` and `**kwargs`
-
-```python
-def total(*args):               # accepts any number of positional args
-    return sum(args)
-
-def build_profile(**kwargs):    # accepts any number of keyword args
-    return kwargs
-
-print(total(1, 2, 3))                          # 6
-print(build_profile(name="Alice", age=25))     # {'name': 'Alice', 'age': 25}
-```
-
-### Lambda — anonymous one-liner functions
-
-```python
-double = lambda x: x * 2
-print(double(5))    # 10
-
-# Common use: sort key
-pairs = [(1, "b"), (3, "a"), (2, "c")]
-pairs.sort(key=lambda p: p[1])    # sort by second element
-print(pairs)                      # [(3, 'a'), (1, 'b'), (2, 'c')]
+**Why It Matters**: Slicing in Python creates copies, but in NumPy (0.6) it creates views. Memory implications differ drastically.
+#### 🎨 Visual Concept
+```mermaid
+flowchart LR
+    A["[0,1,2,3,4,5]"] -->| [1:4] | B["[1,2,3]"]
 ```
 
 ---
 
-## 13. Exception Handling
+### 2.8 — Tuples
+Ordered, immutable collections.
+#### 💡 The Beginner Analogy: Sealed Laminate
+A tuple is a laminated document. You can read it, but you cannot edit what is inside once sealed.
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+trap = (42)  # Int
+correct = (42,) # Tuple
+```
+**Why It Matters**: Passing `(42)` instead of `(42,)` to database drivers causes iteration crashes.
+#### 🎨 Visual Concept
+```mermaid
+flowchart TD
+    A["(42) = Int"] --> B["(42,) = Tuple"]
+```
 
-**try/except** catches errors gracefully — always catch **specific** exceptions, never use bare `except:`.
+---
 
+### 2.9 — Dicts (Dictionaries)
+Key-value maps providing O(1) lookup speed. Keys must be hashable.
+#### 💡 The Beginner Analogy: A Coat Check
+Hand over a unique tag (Key) to instantly get your coat (Value) without searching the whole room.
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+# ❌ Lists are unhashable
+invalid_dict = {["A"]: 1}
+```
+**Why It Matters**: Trying to use a `list` as a key instantly crashes.
+#### 🎨 Visual Concept
+```mermaid
+flowchart LR
+    K["Key"] -->|Hash| V["Value"]
+```
+
+---
+
+### 2.10 — Sets
+Unordered collections of unique, hashable elements providing O(1) membership testing.
+#### 💡 The Beginner Analogy: VIP Guest List
+Writing a name down twice doesn't change anything—they are either on the list or they aren't.
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+is_present = "apple" in unique_set
+```
+**Why It Matters**: Scanning a 1M-item list takes huge CPU time. A set takes a fraction of a millisecond.
+#### 🎨 Visual Concept
+```mermaid
+flowchart LR
+    S{"set()"} --> D["Duplicates Removed"]
+```
+
+---
+
+### 2.11 — Functions
+Reusable blocks of code. `*args` and `**kwargs` allow arbitrary arguments.
+#### 💡 The Beginner Analogy: A Subcontractor
+A function is a subcontractor: you hand them materials (arguments), they do specialized work, and they hand you back a finished product (return).
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+def my_func(*args, **kwargs):
+    pass
+```
+**Why It Matters**: Decorators (2.20) depend entirely on functions accepting and forwarding `*args` and `**kwargs`.
+#### 🎨 Visual Concept
+```mermaid
+flowchart LR
+    A["Inputs"] --> F{"Function"} --> R["Outputs"]
+```
+
+---
+
+### 2.12 — Exception Handling
+Gracefully handling runtime errors (`try`/`except`/`finally`).
+#### 💡 The Beginner Analogy: A Safety Net
+Running code without a try/except is like walking a tightrope without a net. The net catches you so you can land safely instead of crashing to the floor.
+#### 💻 Code Example & ⚠️ Why It Matters
 ```python
 try:
-    result = int("not_a_number")
-except ValueError as e:
-    print(f"Caught: {e}")       # Caught: invalid literal for int()...
-except FileNotFoundError:
-    print("File missing!")
-else:
-    print("No error occurred")  # runs only if no exception
-finally:
-    print("Always runs")       # cleanup code, runs no matter what
+    1/0
+except ZeroDivisionError:
+    pass
 ```
-
-**Why specific exceptions?** A bare `except:` also swallows `KeyboardInterrupt` and `SystemExit`, making a hung process unkillable with Ctrl+C.
-
----
-
-## 14. File I/O with Context Managers
-
-**`with` statement** guarantees cleanup (closing files, releasing locks) even if an exception occurs.
-
-```python
-# Writing
-with open("output.txt", "w", encoding="utf-8") as f:
-    f.write("Hello, file!\n")
-
-# Reading
-with open("output.txt", "r", encoding="utf-8") as f:
-    content = f.read()
-    print(content)      # Hello, file!
-
-# Reading line by line (memory-efficient for large files)
-with open("output.txt") as f:
-    for line in f:
-        print(line.strip())
-```
-
-### CSV reading with `DictReader`
-
-```python
-import csv
-from pathlib import Path
-
-with Path("invoices.csv").open(newline="", encoding="utf-8") as fh:
-    rows = list(csv.DictReader(fh))     # each row is a dict keyed by header
-
-for row in rows:
-    print(row["invoice_id"], float(row["amount"]))  # always float() CSV numbers!
+**Why It Matters**: A bare `except:` swallows `KeyboardInterrupt`, making a process unkillable.
+#### 🎨 Visual Concept
+```mermaid
+flowchart TD
+    T["Try Block"] -->|Error| E["Except Block"]
 ```
 
 ---
 
-## 15. Modules & Imports
-
-**Modules** are `.py` files — `import` brings in code from the standard library or your own files.
-
-```python
-import os                           # import entire module
-from pathlib import Path            # import specific name
-from collections import defaultdict # import from submodule
-import json as j                    # alias
-
-print(os.getcwd())                  # current working directory
-print(Path.home())                  # user's home directory
-```
-
-### Common standard library modules
-
-| Module | Purpose | Example |
-|---|---|---|
-| `os` | OS interaction (paths, env vars) | `os.getenv("API_KEY")` |
-| `sys` | System info, stdin/stdout | `sys.argv`, `sys.exit()` |
-| `pathlib` | Cross-platform file paths | `Path("data") / "file.csv"` |
-| `json` | Parse/write JSON | `json.loads('{"a":1}')` |
-| `csv` | Read/write CSV files | `csv.DictReader(fh)` |
-| `math` | Math functions | `math.sqrt(16)` → `4.0` |
-| `random` | Random numbers | `random.randint(1, 10)` |
-| `datetime` | Dates and times | `datetime.now()` |
-| `collections` | Specialized containers | `defaultdict`, `Counter` |
-| `itertools` | Iterator utilities | `chain`, `product`, `groupby` |
-| `functools` | Higher-order functions | `lru_cache`, `partial`, `reduce` |
-| `re` | Regular expressions | `re.findall(r"\d+", text)` |
-| `tempfile` | Temporary files/dirs | `tempfile.gettempdir()` |
-| `time` | Timing & delays | `time.perf_counter()` |
-
----
-
-## 16. Classes & OOP Basics
-
-**Classes** bundle data (attributes) and behavior (methods) together.
-
-```python
-class Dog:
-    species = "Canis familiaris"    # class attribute (shared by all instances)
-
-    def __init__(self, name: str, age: int):
-        self.name = name            # instance attribute
-        self.age = age
-
-    def speak(self) -> str:
-        return f"{self.name} says Woof!"
-
-    def __repr__(self) -> str:      # developer-friendly string representation
-        return f"Dog('{self.name}', {self.age})"
-
-buddy = Dog("Buddy", 3)
-print(buddy.speak())       # Buddy says Woof!
-print(buddy)               # Dog('Buddy', 3)
-```
-
-### Inheritance
-
-```python
-class GuideDog(Dog):
-    def __init__(self, name: str, age: int, handler: str):
-        super().__init__(name, age)
-        self.handler = handler
-
-    def speak(self) -> str:     # override parent method
-        return f"{self.name} guides {self.handler} silently."
-```
-
----
-
-## 17. Decorators
-
-**Decorators** wrap a function to add behavior without modifying its code — used heavily in Flask, FastAPI, pytest.
-
-```python
-import time
-
-def timer(func):
-    def wrapper(*args, **kwargs):
-        start = time.perf_counter()
-        result = func(*args, **kwargs)
-        elapsed = time.perf_counter() - start
-        print(f"{func.__name__} took {elapsed:.4f}s")
-        return result
-    return wrapper
-
-@timer
-def slow_add(a, b):
-    time.sleep(0.1)
-    return a + b
-
-print(slow_add(3, 4))  # slow_add took 0.10xxs \n 7
-```
-
----
-
-## 18. Generators
-
-**Generators** produce values lazily one at a time — use when data is too large to fit in memory.
-
-```python
-def count_up(n):
-    i = 0
-    while i < n:
-        yield i     # pauses here, resumes on next() call
-        i += 1
-
-for num in count_up(5):
-    print(num)          # 0, 1, 2, 3, 4
-
-# Generator expression (like a comprehension but lazy)
-squares = (x**2 for x in range(1_000_000))  # uses almost no memory
-print(next(squares))    # 0
-print(next(squares))    # 1
-```
-
----
-
-## 19. Type Hints
-
-**Type hints** document expected types — they don't enforce at runtime but enable IDE autocomplete, error detection, and better documentation.
-
-```python
-def calculate_total(prices: list[float], tax_rate: float = 0.18) -> float:
-    """Calculate total with tax."""
-    return sum(prices) * (1 + tax_rate)
-
-# Common type hints
-from typing import Optional
-
-name: str = "Alice"
-scores: list[int] = [90, 85, 92]
-config: dict[str, str] = {"host": "localhost"}
-maybe_name: Optional[str] = None   # can be str or None
-```
-
----
-
-## 20. Useful Built-in Functions
-
-Quick reference for the most commonly used built-ins:
-
-```python
-# map — apply function to every element
-print(list(map(str.upper, ["hi", "bye"])))     # ['HI', 'BYE']
-
-# filter — keep elements where function returns True
-print(list(filter(lambda x: x > 3, [1,5,2,8])))  # [5, 8]
-
-# any / all — check conditions across iterables
-print(any([False, False, True]))    # True  — at least one
-print(all([True, True, False]))     # False — not every one
-
-# min / max with key
-words = ["python", "is", "awesome"]
-print(max(words, key=len))          # "awesome"
-
-# sorted with key
-data = [{"name": "Bob", "age": 30}, {"name": "Alice", "age": 25}]
-print(sorted(data, key=lambda d: d["age"]))     # Alice first
-
-# isinstance — type checking
-print(isinstance(42, int))         # True
-print(isinstance("hi", (str, int)))  # True — checks multiple types
-```
-
----
-
-## 21. String Sort Bug (CSV Trap)
-
-**Sorting numbers as strings is a silent bug** — `'9000' > '150000'` is `True` because `'9' > '1'` in ASCII.
-
-```python
-amounts = ["9000", "150000", "250"]
-
-wrong = sorted(amounts, reverse=True)               # ['9000', '250', '150000'] — WRONG
-right = sorted(amounts, key=float, reverse=True)     # ['150000', '9000', '250'] — CORRECT
-
-# Rule: always float() before comparing CSV numbers
-```
-
----
-
-## 22. `if __name__ == "__main__"`
-
-**This guard** makes a script importable without executing its top-level code — required for pytest (0.5).
-
-```python
-def main():
-    print("Running as script")
-
-if __name__ == "__main__":
-    main()      # only runs when executed directly, NOT when imported
-```
-
-Without this guard, importing the module from a test file would execute everything, making the script untestable.
-
----
-
-## 23. Pathlib — Cross-Platform Paths
-
-**`pathlib.Path`** handles Windows vs Linux path separators automatically — always prefer over string concatenation.
-
-```python
-from pathlib import Path
-
-data_dir = Path("data")
-file_path = data_dir / "invoices.csv"   # works on Windows AND Linux
-print(file_path.exists())               # True/False
-print(file_path.suffix)                 # ".csv"
-print(file_path.stem)                   # "invoices"
-print(file_path.parent)                 # Path("data")
-```
-
----
-
-## 24. Unpacking & Swap
-
-**Unpacking** assigns multiple values at once — a core Python idiom.
-
-```python
-# Tuple unpacking
-a, b, c = 1, 2, 3
-
-# Swap without temp variable
-a, b = b, a
-
-# Star unpacking — catch "the rest"
-first, *middle, last = [1, 2, 3, 4, 5]
-print(first, middle, last)     # 1 [2, 3, 4] 5
-
-# Dict unpacking
-defaults = {"color": "blue", "size": "M"}
-overrides = {"size": "L", "brand": "Nike"}
-merged = {**defaults, **overrides}
-print(merged)   # {'color': 'blue', 'size': 'L', 'brand': 'Nike'}
-```
-
----
-
-
----
----
-
-# Appendix — Original Detailed Notes
-
-> The sections below are from the original version of this file. They contain detailed analogies, visual diagrams, and deeper explanations for the core topics. Kept here to ensure no content is missed.
-
----
-
-## A.1 — Comprehension (Detailed)
-
-An expression-level loop construct that constructs a new `list`, `dict`, or `set` in a single readable line. The transform expression comes first, followed by the `for` loop and optional `if` filters.
-
+### 2.13 — Comprehensions
+An expression-level loop construct that constructs a new `list`, `dict`, or `set` in a single readable line.
 #### 💡 The Beginner Analogy: Factory Assembly Line Filter
-Instead of taking raw materials into a warehouse, creating an empty bin (`out = []`), walking items over one by one (`for x in items:`), inspecting them (`if condition:`), and dropping them in (`out.append(x)`)... a comprehension is a **smart conveyor belt** with built-in sensors that filters and transforms items directly into the output box in one continuous movement.
-
+A smart conveyor belt with built-in sensors that filters and transforms items directly into the output box.
 #### 💻 Code Example & ⚠️ Why It Matters
 ```python
-rows = [
-    {"id": 101, "status": "OPEN"},
-    {"id": 102, "status": "CLOSED"},
-    {"id": 103, "status": "OPEN"},
-]
-
-# ❌ Verbose & slower (repeated method calls in Python bytecode)
-open_ids_verbose = []
-for row in rows:
-    if row["status"] == "OPEN":
-        open_ids_verbose.append(row["id"])
-
-# ✅ Idiomatic & optimized in C-CPython
-open_ids = [row["id"] for row in rows if row["status"] == "OPEN"]
-print("Filtered Open IDs:", open_ids)
+open_ids = [r["id"] for r in rows if r["status"] == "OPEN"]
 ```
-
-##### Verified Output
-```text
-Filtered Open IDs: [101, 103]
-```
-
-**Why It Matters**: Comprehensions are not just syntactic sugar; they run faster because CPython avoids attribute lookup and function call overhead for `.append()` on every iteration.
-
+**Why It Matters**: Faster because CPython avoids attribute lookup overhead for `.append()`.
 #### 🎨 Visual Concept
-
 ```mermaid
-flowchart TD
-    subgraph MultiLineLoop ["❌ Verbose For-Loop (4 steps)"]
-        L1["Initialize: out = []"] --> L2["Loop: for row in rows"]
-        L2 --> L3{"Filter: if row['status'] == 'OPEN'"}
-        L3 -->|"Yes"| L4["Mutate: out.append(row['id'])"]
-    end
-
-    subgraph Comprehension ["✅ List Comprehension (1 step)"]
-        C1["[row['id'] for row in rows if row['status'] == 'OPEN']"]
-    end
-
-    style C1 fill:#2d6a4f,stroke:#52b788,color:#fff
+flowchart LR
+    C1["[r['id'] for r in rows if condition]"]
 ```
 
 ---
 
-## A.2 — Context Manager (`with` statement) (Detailed)
-
-An object that manages resource setup and teardown automatically via internal `__enter__` and `__exit__` hooks, guaranteeing cleanup even if exceptions are raised inside the block.
-
+### 2.14 — Context Managers (`with` statement)
+An object that manages resource setup and teardown automatically.
 #### 💡 The Beginner Analogy: Auto-Locking Hotel Room
-Opening a resource (file, database connection, network socket) without a context manager is like leaving a hotel room door wide open when you leave. A **Context Manager** is an automatic door closer: the instant you step out of the room (exit the `with` block or crash inside it), the door automatically locks shut behind you (`file.close()`).
-
+The instant you step out of the room, the door automatically locks shut behind you (`file.close()`).
 #### 💻 Code Example & ⚠️ Why It Matters
 ```python
-# ❌ Dangerous: If an error happens during processing, file remains open in OS
-f = open("01_python_basics.md")
-data = f.readline()
-f.close()
-
-# ✅ Safe: Guaranteed cleanup regardless of exceptions
-with open("01_python_basics.md") as f:
-    first_line = f.readline().strip()
-
-print("First Line Read:", first_line)
-print("Is File Closed?", f.closed)
+with open("data.csv") as f:
+    pass
 ```
-
-##### Verified Output
-```text
-First Line Read: # 0.1 — Python Basics
-Is File Closed? True
-```
-
-**Why It Matters**: Unclosed file handles lead to OS file locks and file descriptor exhaustion in high-concurrency applications.
-
+**Why It Matters**: Unclosed file handles lead to OS file locks and descriptor exhaustion.
 #### 🎨 Visual Concept
-
 ```mermaid
-flowchart TD
-    subgraph RawFile ["❌ Manual open() / close() (Leaks on Crash)"]
-        F1["f = open('data.csv')"] --> F2["Process lines..."]
-        F2 -->|💥 Exception Raised| F3["Crash! f.close() NEVER executed!"]
-        F3 --> LEAK["Resource Leak (Locked File / Leaked Socket)"]
-    end
-
-    subgraph ContextMgr ["✅ with open('data.csv') as f (Guaranteed Cleanup)"]
-        W1["with open('data.csv') as f:"] --> W2["Process lines..."]
-        W2 -->|Normal Exit or Exception| W3["__exit__() fires automatically!"]
-        W3 --> CLEAN["File Closed Cleanly"]
-    end
-
-    style LEAK fill:#9b2226,stroke:#ae2012,color:#fff
-    style CLEAN fill:#2d6a4f,stroke:#52b788,color:#fff
+flowchart LR
+    W["with open()"] --> C["Auto Cleanup"]
 ```
 
 ---
 
-## A.3 — `defaultdict` (Detailed)
-
-A subclass of `dict` provided by the `collections` module that calls a zero-argument factory function (like `float`, `int`, or `list`) to supply a default value whenever a missing key is accessed.
-
+### 2.15 — `defaultdict`
+Subclass of `dict` that auto-creates missing keys.
 #### 💡 The Beginner Analogy: Self-Refilling Refreshment Stand
-A standard dictionary is like a vendor counter: if you ask for a drink flavor that isn't on the counter (`d[key]`), the vendor shouts **"KeyError!"** and crashes. A `defaultdict` is an automatic vending machine: if you request a new key, it automatically creates a fresh empty cup (`0.0` or `[]`) for you instantly without throwing a fit.
-
+If you request a new key, it automatically creates a fresh empty cup instantly without crashing.
 #### 💻 Code Example & ⚠️ Why It Matters
 ```python
-from collections import defaultdict
-
-transactions = [("VendorA", 100.0), ("VendorB", 50.0), ("VendorA", 25.0)]
-
-# ❌ Clunky boilerplate required with standard dicts
-totals_dict = {}
-for vendor, amount in transactions:
-    if vendor not in totals_dict:
-        totals_dict[vendor] = 0.0
-    totals_dict[vendor] += amount
-
-# ✅ Clean & fast with defaultdict
 totals = defaultdict(float)
-for vendor, amount in transactions:
-    totals[vendor] += amount
-
-print(dict(totals))
+totals["vendor"] += 100.0
 ```
-
-##### Verified Output
-```text
-{'VendorA': 125.0, 'VendorB': 50.0}
-```
-
-**Why It Matters**: Eliminates repetitive `if key not in dict` checking code and avoids accidental runtime `KeyError` crashes when grouping data.
-
+**Why It Matters**: Eliminates repetitive checking boilerplate.
 #### 🎨 Visual Concept
-
 ```mermaid
-flowchart TD
-    subgraph StandardDict ["❌ Standard dict"]
-        D1["d['vendor_a'] += 100.0"] --> D2{"Is 'vendor_a' in d?"}
-        D2 -->|"No"| D3["💥 KeyError: 'vendor_a'"]
-    end
-
-    subgraph DefaultDict ["✅ defaultdict(float)"]
-        DD1["dd['vendor_a'] += 100.0"] --> DD2{"Is 'vendor_a' in dd?"}
-        DD2 -->|"No"| DD3["Invoke factory: float() -> 0.0"]
-        DD3 --> DD4["Perform: 0.0 + 100.0 -> Store 100.0"]
-    end
-
-    style D3 fill:#9b2226,stroke:#ae2012,color:#fff
-    style DD4 fill:#2d6a4f,stroke:#52b788,color:#fff
+flowchart LR
+    D["defaultdict(float)"] -->|Missing Key| Z["Creates 0.0"]
 ```
 
 ---
 
-## A.4 — Falsy (Detailed)
-
-Values in Python that evaluate to `False` when converted to a boolean context (`bool(value)`), including `""`, `0`, `0.0`, `[]`, `{}`, `set()`, `None`.
-
+### 2.16 — Falsy / `.get()`
+Values evaluating to `False` (`""`, `0`, `[]`).
 #### 💡 The Beginner Analogy: Empty Envelopes
-Imagine receiving envelopes in the mail. An envelope containing a letter is **Truthy**. An empty envelope (`""`, `[]`, `{}`), zero coins (`0`), or a blank piece of paper (`None`) is **Falsy** — even though the envelope physical object exists, its content is effectively "nothing".
-
+An empty envelope exists physically but contains nothing.
 #### 💻 Code Example & ⚠️ Why It Matters
 ```python
-row = {"vendor": ""} # CSV row where key exists, but value is empty
-
-# ❌ TRAP: dict.get() only falls back if key is MISSING, not if empty!
-vendor_1 = row.get("vendor", "UNKNOWN")
-print("dict.get Result:", repr(vendor_1))
-
-# ✅ CORRECT IDIOM: Uses boolean 'or' over falsy value
-vendor_2 = row.get("vendor") or "UNKNOWN"
-print("Fallback Result:", repr(vendor_2))
+# ❌ TRAP: .get() defaults don't trigger on empty string values
+val1 = row.get("vendor", "UNK")
+# ✅ CORRECT for CSV
+val2 = row.get("vendor") or "UNK"
 ```
-
-##### Verified Output
-```text
-dict.get Result: ''
-Fallback Result: 'UNKNOWN'
-```
-
-**Why It Matters**: CSV parsers set missing values to empty strings `""`. Using `.get(key, "default")` fails to fall back because the key *is* present in the dict!
-
+**Why It Matters**: CSV parsers set missing values to empty strings `""`, rendering `.get()` defaults useless.
 #### 🎨 Visual Concept
-
 ```mermaid
-flowchart TD
-    DATA["row = {'vendor': ''} (Key EXISTS, but value is empty string)"] --> TEST1["row.get('vendor', 'UNKNOWN')"]
-    TEST1 --> RESULT1["Returns '' (Empty string! Default skipped because key exists)"]
-
-    DATA --> TEST2["row.get('vendor') or 'UNKNOWN'"]
-    TEST2 --> RESULT2["Returns 'UNKNOWN' (Evaluates falsy '' and returns default)"]
-
-    style RESULT1 fill:#9b2226,stroke:#ae2012,color:#fff
-    style RESULT2 fill:#2d6a4f,stroke:#52b788,color:#fff
+flowchart LR
+    A["row.get('x') or 'DEF'"] --> B["Catches '' properly"]
 ```
 
 ---
 
-## A.5 — Lexicographic Ordering (Detailed)
-
-Character-by-character dictionary sorting based on ASCII/Unicode character codes rather than numerical magnitude.
-
+### 2.17 — Lexicographic Ordering
+Character-by-character dictionary sorting.
 #### 💡 The Beginner Analogy: Alphabetical Phonebook
-In an alphabetical phonebook, the word **"Apple"** comes before **"Banana"**. Similarly, the string **"150000"** comes *before* **"9000"** because the first character `'1'` is smaller than `'9'`, completely ignoring the fact that 150,000 is numerically larger than 9,000.
-
+"150000" comes before "9000" alphabetically because '1' < '9'.
 #### 💻 Code Example & ⚠️ Why It Matters
 ```python
-raw_amounts = ["9000.0", "150000.0", "250.0"]
-
-# ❌ TRAP: Strings read directly from CSV sorting alphabetically
-bad_sort = sorted(raw_amounts, reverse=True)
-print("Bad String Sort:", bad_sort)
-
-# ✅ FIX: Convert to float before sorting
-good_sort = sorted(raw_amounts, key=float, reverse=True)
-print("Good Float Sort:", good_sort)
+wrong = sorted(["9000.0", "150000.0"])
 ```
-
-##### Verified Output
-```text
-Bad String Sort: ['9000.0', '250.0', '150000.0']
-Good Float Sort: ['150000.0', '9000.0', '250.0']
-```
-
-**Why It Matters**: Reading numbers from CSV files leaves them as strings. Comparing or sorting raw CSV strings leads to silent financial and analytical sorting corruption.
-
+**Why It Matters**: Reading numbers from CSV leaves them as strings, corrupting numeric sorts.
 #### 🎨 Visual Concept
-
 ```mermaid
-flowchart TD
-    COMP["Compare: '9000' > '150000'"] --> STEP1["Inspect 1st Character: '9' vs '1'"]
-    STEP1 --> STEP2["'9' > '1' is TRUE in ASCII"]
-    STEP2 --> BUG["💥 '9000' > '150000' evaluates to TRUE!"]
-
-    NUM["Compare: float('9000') > float('150000')"] --> NUM_STEP["9000.0 > 150000.0"]
-    NUM_STEP --> FIX["✅ Evaluates to FALSE (Correct math)"]
-
-    style BUG fill:#9b2226,stroke:#ae2012,color:#fff
-    style FIX fill:#2d6a4f,stroke:#52b788,color:#fff
+flowchart LR
+    A["'9' > '1'"] --> B["'9000' > '150000'"]
 ```
 
 ---
 
-## A.6 — Vectorization (Detailed)
-
-Expressing mathematical operations over an entire array of data simultaneously, pushing computational loops into compiled C/Assembly code rather than interpreting element-by-element Python `for` loops.
-
+### 2.18 — Vectorization
+Expressing math over an entire array simultaneously in C.
 #### 💡 The Beginner Analogy: Stamp Press vs. Hand Pen
-Calculating values in a Python `for` loop is like signing 1,000 documents **by hand, one by one**. **Vectorization** is using a giant **industrial stamp press** that stamps all 1,000 documents simultaneously in a single downward motion.
-
+A giant industrial stamp press that stamps 1,000 documents simultaneously.
 #### 💻 Code Example & ⚠️ Why It Matters
 ```python
-import numpy as np
-
-prices = [10.0, 20.0, 30.0]
-
-# ❌ Slow Python loop (100x slower)
-out_loop = [x * 1.18 for x in prices]
-
-# ✅ Vectorized array computation (SIMD hardware execution)
 out_vec = np.array(prices) * 1.18
-print("Vectorized Output:", out_vec)
 ```
-
-##### Verified Output
-```text
-Vectorized Output: [11.8 23.6 35.4]
-```
-
-**Why It Matters**: Essential for AI/ML data processing. Vectorization delivers 10x to 100x speedups, allowing models to process millions of rows in milliseconds.
-
+**Why It Matters**: Vectorization delivers 10x-100x speedups.
 #### 🎨 Visual Concept
-
 ```mermaid
-flowchart TD
-    subgraph PythonLoop ["❌ Python For-Loop (Slow Interpreted Loop)"]
-        P1["Iterate element 1 -> Type check -> Multiply"] --> P2["Iterate element 2 -> Type check -> Multiply"]
-        P2 --> P3["Iterate element N... (High overhead per step)"]
-    end
+flowchart LR
+    P["Python Loop"] --> V["C/SIMD Array"]
+```
 
-    subgraph Vectorized ["✅ Vectorized NumPy/C Operation"]
-        V1["Pass entire SIMD contiguous memory array to C CPU registers"] --> V2["Process 1000s of numbers in single CPU clock cycle"]
-    end
+---
 
-    style PythonLoop fill:#9b2226,stroke:#ae2012,color:#fff
-    style Vectorized fill:#2d6a4f,stroke:#52b788,color:#fff
+### 2.19 — Generators
+Memory-efficient iterables that yield one item at a time lazily.
+#### 💡 The Beginner Analogy: A Water Hose
+Produces water exactly when you turn the nozzle, but once it flows out, it's gone.
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+gen = (x * 2 for x in range(3))
+list(gen)
+list(gen) # Empty!
+```
+**Why It Matters**: Iterating twice quietly yields nothing, creating notoriously difficult bugs.
+#### 🎨 Visual Concept
+```mermaid
+flowchart LR
+    G["Generator"] -->|Pass 1| D["Data"]
+    G -->|Pass 2| E["Exhausted"]
+```
+
+---
+
+### 2.20 — Decorators
+Functions that wrap other functions in additional behavior.
+#### 💡 The Beginner Analogy: Gift Wrapping
+Wrapping a plain box in shiny paper without changing the gift inside.
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+@log_call
+def my_func():
+    pass
+```
+**Why It Matters**: Essential for routing in web frameworks (0.9).
+#### 🎨 Visual Concept
+```mermaid
+flowchart LR
+    F["Func"] --> W["Wrapper"]
+```
+
+---
+
+### 2.21 — Type Hints
+Annotations for expected types, ignored at runtime.
+#### 💡 The Beginner Analogy: A Sticky Note Request
+A sticky note asking "Blue pens only". It doesn't physically block red pens.
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+def add(a: int): pass
+add("str") # Executes without crash!
+```
+**Why It Matters**: Believing type hints prevent bad data at runtime leads to insecure APIs.
+#### 🎨 Visual Concept
+```mermaid
+flowchart LR
+    T["Type Hint"] -->|Runtime| I["Ignored!"]
+```
+
+---
+
+### 2.22 — `if __name__ == "__main__":`
+An execution guard preventing top-level code from running on import.
+#### 💡 The Beginner Analogy: Reading vs Acting
+A script asking, "Are we on stage right now?"
+#### 💻 Code Example & ⚠️ Why It Matters
+```python
+if __name__ == "__main__":
+    main()
+```
+**Why It Matters**: Missing this breaks pytest by running the application script during test collection.
+#### 🎨 Visual Concept
+```mermaid
+flowchart LR
+    I["Import"] --> S["Skips main()"]
 ```
 
 ---
@@ -1146,59 +633,122 @@ Run: `python 01_python_basics.py` — the script creates its own sample data, no
 ```text
 Python 3.14.6
 ====================================================================
-DEMO 1 — comprehension vs explicit loop: identical output
+DEMO 1 — Variables (No type declaration needed, Python infers)
+====================================================================
+  x = 10   -> int
+  x = 10.0 -> float
+====================================================================
+DEMO 2 — Strings (Immutable, every method returns a new string)
+====================================================================
+  original string : 'hello'
+  after .upper()  : 'hello'  <- unchanged
+  returned string : 'HELLO'
+====================================================================
+DEMO 3 — f-strings (The modern string formatting)
+====================================================================
+  Forgot 'f' prefix : '{vendor} owes {amount}'
+  Correct f-string  : 'Acme owes 51,000'
+====================================================================
+DEMO 4 — Conditionals (if / elif / else)
+====================================================================
+  status is 'OVERDUE'
+  -> ALERT: Invoice is overdue!
+====================================================================
+DEMO 5 — Loops (for / break / continue)
+====================================================================
+  Processing 10
+  Processing 15
+  Encountered -1, skipping (continue).
+  Processing 20
+====================================================================
+DEMO 6 — Lists (Ordered, mutable, allows duplicates)
+====================================================================
+  list.sort() ret: None  <- returns None!
+  mutated list   : [1, 2, 3]  <- sorted in-place
+====================================================================
+DEMO 7 — Slicing ([start:stop:step])
+====================================================================
+  seq[1:4] : [1, 2, 3]  <- excludes stop index 4
+  seq[::-1]: [5, 4, 3, 2, 1, 0]  <- reverses the list
+====================================================================
+DEMO 8 — Tuples (Ordered, immutable, single element trap)
+====================================================================
+  (42)  type is : int
+  (42,) type is : tuple
+====================================================================
+DEMO 9 — Dicts (Key-value pairs, hashable keys only)
+====================================================================
+  Tuple as key  : {('INV', 101): 'OPEN'}
+  List as key   : raised TypeError(cannot use 'list' as a dict key (unhashable type: 'list'))
+====================================================================
+DEMO 10 — Sets (Unordered, unique elements, O(1) lookup)
+====================================================================
+  deduplicated  : ['apple', 'banana', 'orange']  <- duplicates removed
+  'apple' in set: True  <- O(1) check
+====================================================================
+DEMO 11 — Functions & Arguments (*args, **kwargs)
+====================================================================
+  args  : (1, 2)
+  kwargs: {'name': 'Acme', 'status': 'OPEN'}
+====================================================================
+DEMO 12 — Exception Handling (try / except / finally)
+====================================================================
+  Caught specific error: ZeroDivisionError
+  Cleanup happens regardless of errors.
+====================================================================
+DEMO 13 — Comprehensions (vs explicit loop)
 ====================================================================
   loop  : ['INV-001', 'INV-003', 'INV-004', 'INV-005', 'INV-006']
   comp  : ['INV-001', 'INV-003', 'INV-004', 'INV-005', 'INV-006']
   identical? True
 ====================================================================
-DEMO 2 — the CSV trap, then dict.get() vs dict[]
+DEMO 14 — Context Managers (with guarantees cleanup)
+====================================================================
+  File created. After 'with' block, f.closed is: True
+====================================================================
+DEMO 15 — defaultdict (removes accumulator boilerplate)
+====================================================================
+  auto totals : {'Acme': 123000.0, 'Beta': 72000.0, 'Gamma': 150000.0, 'UNKNOWN': 88000.0}
+====================================================================
+DEMO 16 — Falsy / .get() (The CSV empty string trap)
 ====================================================================
   csv row              : {'invoice_id': 'INV-006', 'vendor': '', 'amount': '88000', 'status': 'OPEN'}
-  'vendor' in row?     : True   <- present, not missing
   .get('vendor','UNK') : ''  <- default did NOT fire
   .get('vendor') or UNK: 'UNK'  <- correct for CSV
-
-  llm-style row        : {'invoice_id': 'INV-007', 'amount': '42000'}
-  .get('vendor','UNK') : 'UNK'  <- default DID fire
-  ['vendor']           : raised KeyError('vendor')
 ====================================================================
-DEMO 3 — defaultdict removes accumulator boilerplate
+DEMO 17 — Lexicographic Ordering (Sorting numbers as strings)
 ====================================================================
-  manual : {'Acme': 123000.0, 'Beta': 72000.0, 'Gamma': 150000.0, 'UNKNOWN': 88000.0}
-  auto   : {'Acme': 123000.0, 'Beta': 72000.0, 'Gamma': 150000.0, 'UNKNOWN': 88000.0}
-  identical? True
-====================================================================
-DEMO 4 — the silent bug: sorting numbers as strings
-====================================================================
-  raw from csv        : ['51000', '9000', '72000', '150000', '63000', '88000']
   sorted as strings   : ['9000', '88000', '72000', '63000', '51000', '150000']
   sorted as floats    : [150000, 88000, 72000, 63000, 51000, 9000]
-  '9000' > '150000' ? True   <- lexicographic, TRUE
-  ^ This is why every csv numeric field needs float() first.
+  '9000' > '150000' ? True   <- TRUE!
 ====================================================================
-DEMO 5 — comprehensions are also faster (preview of 0.6)
+DEMO 18 — Vectorization (Preview of 0.6)
 ====================================================================
   rows scanned      : 2,000,000
-  loop + append     :    64.3 ms
-  list comprehension:    57.3 ms
-  same result?      : True
-  speedup           : 1.12x
-  Modest — because BOTH still loop in Python.
-  0.6 NumPy removes the Python-level loop entirely. Compare:
-  numpy boolean mask:     4.1 ms
-  speedup vs loop   : 15.5x   <- this is why 0.6 matters
-  same result?      : True
+  list comprehension:    95.0 ms
+  numpy mask        :     6.5 ms
+  speedup vs comp   : 14.7x
 ====================================================================
-Ranked vendor totals (the closed-book rebuild target):
-  Gamma          150,000.00
-  Acme           123,000.00
-  UNKNOWN         88,000.00
-  Beta            72,000.00
+DEMO 19 — Generators (Lazy iteration, can only iterate once)
 ====================================================================
+  first iteration : [0, 2, 4]
+  second iteration: []  <- exhausted, yields nothing!
+====================================================================
+DEMO 20 — Decorators (Wrap function behavior)
+====================================================================
+  [LOG] Calling process_invoice...
+  Processing...
+====================================================================
+DEMO 21 — Type hints (Documentation, not enforcement)
+====================================================================
+  add_numbers('hello', ' world') -> 'hello world'
+====================================================================
+DEMO 22 — if __name__ == '__main__': (Makes scripts importable)
+====================================================================
+  Current __name__ is: '__main__'
 ```
 
----
+**Read Demo 17 carefully.** `'9000'` sorts *above* `'150000'` because `'9'` > `'1'` at the first character. Nothing raises. A report built on that ranking is simply wrong, and nobody notices until someone questions the numbers.
 
 ## 27. Practice Exercises
 
@@ -1215,4 +765,24 @@ Ranked vendor totals (the closed-book rebuild target):
 
 ---
 
-**Review in 7 days.** If the closed-book rebuild takes under 15 minutes with no lookups, mark 0.1 done.
+## 7. Retrieval Checkpoint — Unanswered
+
+> Gate **after** studying. Close this file. No notes. Answers deliberately not given here.
+
+1. Rewrite as a single comprehension: `out = []` / `for r in rows:` / `if r["status"] == "OPEN":` / `out.append(r["id"])`
+2. A CSV row is missing the `vendor` column. Does `row.get("vendor", "UNKNOWN")` return `"UNKNOWN"`? Explain your answer and give the idiom that does work.
+3. Why does `if __name__ == "__main__":` exist, and what specifically breaks in **0.5** without it?
+
+---
+
+## 8. Closed-Book Rebuild
+
+With this file **and** the script closed, write from scratch: read a CSV of invoices, filter above a threshold using a comprehension, group totals by vendor using `defaultdict`, handle the missing-vendor case with the CSV-correct idiom, sort descending, and catch the missing-file case with a specific exception.
+
+---
+
+---
+
+## Review again in
+
+**7 days** — low conceptual density, high mechanical familiarity. If the Closed-Book Rebuild takes under 15 minutes with no lookups, mark 0.1 done and do not revisit. The one item genuinely worth retaining is the CSV `.get()` trap from §2.16.
