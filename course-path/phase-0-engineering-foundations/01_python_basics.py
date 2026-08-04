@@ -148,6 +148,7 @@ def demo_12_exceptions() -> None:
     print("DEMO 12 — Exception Handling (try / except / finally)")
     print(SEP)
     try:
+        # pyrefly: ignore [division-by-zero]
         1 / 0
     except ZeroDivisionError as e:
         print(f"  Caught specific error: {type(e).__name__}")
