@@ -52,6 +52,9 @@ server {
 
 **Why It Matters**: Prevents exposing fragile Python application servers directly to public internet port attacks, DDoS floods, and TLS negotiation overhead.
 
+#### 🤖 Real-Time AI/ML Use Case
+Deploying FastAPI/vLLM inference microservices behind NGINX. NGINX acts as the public reverse proxy handling SSL termination, rate-limiting, and static frontend assets while routing `/v1/chat/completions` API requests to backend `uvicorn` upstream instances.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -90,6 +93,9 @@ location /api/v1/ {
 ```
 
 **Why It Matters**: The #1 silent configuration trap in NGINX reverse proxies, resulting in unexpected `404 Not Found` routing errors.
+
+#### 🤖 Real-Time AI/ML Use Case
+Routing `/api/v1/predict` from NGINX to a backend model server. Misconfiguring `proxy_pass http://vllm:8000;` vs `proxy_pass http://vllm:8000/;` causes the backend to see `/api/v1/predict` instead of `/predict`, returning a confusing 404 on API calls.
 
 #### 🎨 Visual Concept
 
@@ -137,6 +143,9 @@ location / {
 
 **Why It Matters**: Omitting `X-Forwarded-Proto` causes FastAPI/Django redirect generators to generate broken `http://` links instead of `https://`.
 
+#### 🤖 Real-Time AI/ML Use Case
+Client IP rate-limiting in AI API services. Passing `X-Forwarded-For` and `X-Real-IP` to FastAPI allows backend rate-limiting middleware (e.g. slowapi) to enforce per-user token quotas on the client's actual remote IP address instead of NGINX's internal IP address.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -171,6 +180,9 @@ real_ip_recursive on;
 ```
 
 **Why It Matters**: Without `set_real_ip_from`, malicious users can inject fake `X-Forwarded-For: 127.0.0.1` headers to bypass rate limits and IP ban lists.
+
+#### 🤖 Real-Time AI/ML Use Case
+Securing paid LLM API services sitting behind Cloudflare/AWS ALB. `set_real_ip_from` ensures bad actors cannot bypass API rate limits or IP blocklists by manually injecting fake `X-Forwarded-For` headers in HTTP requests.
 
 #### 🎨 Visual Concept
 
@@ -213,6 +225,9 @@ return StreamingResponse(
 ```
 
 **Why It Matters**: Allows backend applications to disable NGINX buffering per-route without requiring global edits to NGINX configuration files.
+
+#### 🤖 Real-Time AI/ML Use Case
+Per-route SSE token streaming. A FastAPI endpoint serving LLM text generation emits `X-Accel-Buffering: no` in its response header to disable NGINX buffering for LLM streams while allowing NGINX to buffer standard static files and non-streaming API routes.
 
 #### 🎨 Visual Concept
 

@@ -52,6 +52,9 @@ Posterior P(Sick | +): 0.0454
 
 **Why It Matters**: Explains why high accuracy classifiers fail in real-life imbalanced datasets (e.g. fraud detection, rare spam detection).
 
+#### 🤖 Real-Time AI/ML Use Case
+Bayesian inference and classification under severe class imbalance (e.g. credit card fraud detection where 0.01% of transactions are fraud). Evaluating $P(\text{Fraud} | \text{Flagged})$ requires Bayes' theorem to account for the low prior $P(\text{Fraud})$ to avoid massive false alarm rates.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -100,6 +103,9 @@ CDF Cumulative Prob at x=0: 0.5
 
 **Why It Matters**: Evaluating continuous PDFs as raw probabilities in loss functions produces invalid probabilities $> 1.0$.
 
+#### 🤖 Real-Time AI/ML Use Case
+Continuous density estimation in Generative AI (Diffusion Models, VAEs, Normalizing Flows). Computing negative log-likelihood (NLL) loss over continuous image/audio data integrates Probability Density Functions (PDFs) to optimize model likelihoods.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -135,6 +141,9 @@ Joint Likelihood P(X1, X2 | Y): 0.48
 ```
 
 **Why It Matters**: Simplifies multi-feature probability calculations from an intractable $O(2^d)$ joint table down to $O(d)$ parameter multiplications.
+
+#### 🤖 Real-Time AI/ML Use Case
+Naive Bayes text classification (Spam detection, Sentiment analysis). Assuming feature word counts are conditionally independent given document class (Spam vs. Ham) allows computing document likelihoods in real-time as a simple product of word probabilities.
 
 #### 🎨 Visual Concept
 
@@ -180,6 +189,9 @@ Expected SE (2.0 / sqrt(100)): 0.2
 ```
 
 **Why It Matters**: Explains why Gaussian/Normal assumptions hold in real-world ML noise models, confidence intervals, and hypothesis testing.
+
+#### 🤖 Real-Time AI/ML Use Case
+A/B testing, LLM benchmark evaluations, and Mini-Batch Gradient Descent noise analysis. CLT guarantees that the sample mean of mini-batch gradient updates approaches a normal distribution, justifying Gaussian noise assumptions in Stochastic Gradient Descent (SGD).
 
 #### 🎨 Visual Concept
 

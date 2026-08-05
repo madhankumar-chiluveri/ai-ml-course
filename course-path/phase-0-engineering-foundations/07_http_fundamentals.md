@@ -55,6 +55,9 @@ Content-Type: application/json
 
 **Why It Matters**: Putting secrets in URL query strings (`GET /api?key=sk-123`) leaks them to reverse proxy access logs. Credentials belong exclusively in HTTP Headers or Request Bodies!
 
+#### 🤖 Real-Time AI/ML Use Case
+Every OpenAI/Anthropic LLM API call is an HTTP POST with `Authorization: Bearer sk-...` in the header and `{"model": "gpt-4o", "messages": [...]}` in the JSON body. Understanding request anatomy is essential for debugging token-by-token streaming, rate limits, and API integration failures.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -93,6 +96,9 @@ Calculated Content-Length: 17 bytes
 ```
 
 **Why It Matters**: Hand-crafting HTTP sockets with an incorrect `Content-Length` header causes web servers to hang waiting for missing bytes or truncate incoming payloads.
+
+#### 🤖 Real-Time AI/ML Use Case
+LLM streaming responses omit `Content-Length` because the total output length is unknown at generation start. Understanding this explains why chunked transfer encoding (`Transfer-Encoding: chunked`) is used instead for token-by-token SSE streaming.
 
 #### 🎨 Visual Concept
 
@@ -133,6 +139,9 @@ Generated Idempotency Header: {'Idempotency-Key': '123e4567-e89b-12d3-a456-42661
 ```
 
 **Why It Matters**: Prevents duplicate credit card charges, double email dispatches, or duplicate database inserts during automated network retries.
+
+#### 🤖 Real-Time AI/ML Use Case
+LLM API cost control. A `POST /v1/chat/completions` is non-idempotent — retrying a timed-out request without an idempotency key may generate (and charge for) the same completion twice. Production AI agents attach `Idempotency-Key` headers to prevent double-billing during network retries.
 
 #### 🎨 Visual Concept
 
@@ -179,6 +188,9 @@ print("422 Error:", error_422["detail"][0]["msg"])
 
 **Why It Matters**: Differentiates header content-type errors from Pydantic schema validation failures when debugging API client integration failures.
 
+#### 🤖 Real-Time AI/ML Use Case
+Debugging FastAPI model serving endpoints. A 415 means the client sent a raw string instead of JSON to `/predict`. A 422 means the JSON was valid but Pydantic rejected the payload (e.g., `{"text": ""}` with a non-empty validator) — the exact error structure used in LLM self-correction retry loops.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -217,6 +229,9 @@ Rate limited (429). Sleeping for 15.0 seconds before retry...
 ```
 
 **Why It Matters**: Ignoring `Retry-After` during rate limits triggers provider IP bans and account suspensions.
+
+#### 🤖 Real-Time AI/ML Use Case
+OpenAI and Anthropic APIs return `429 + Retry-After` when token-per-minute (TPM) or request-per-minute (RPM) limits are exceeded. Production AI agents must parse this header and throttle requests to avoid permanent API key suspension during high-throughput batch inference.
 
 #### 🎨 Visual Concept
 
@@ -259,6 +274,9 @@ data: {"token": " France"}
 ```
 
 **Why It Matters**: Reduces perceived user latency in AI chat interfaces from seconds down to milliseconds.
+
+#### 🤖 Real-Time AI/ML Use Case
+The protocol behind ChatGPT-style streaming responses. Every AI chat UI renders tokens as they arrive via SSE (`data: {"choices": [{"delta": {"content": "Hello"}}]}`). TTFT (Time To First Token) is the primary UX latency metric tracked in production LLM deployments.
 
 #### 🎨 Visual Concept
 
@@ -304,6 +322,9 @@ proxy_buffering off;
 ```
 
 **Why It Matters**: Leaving `proxy_buffering on` in NGINX silently breaks LLM response streaming, turning real-time token streams into slow, buffered single blobs.
+
+#### 🤖 Real-Time AI/ML Use Case
+Deploying LLM inference servers (vLLM, Ollama, FastAPI) behind NGINX reverse proxies. Without `proxy_buffering off`, the user sees zero tokens for 30+ seconds, then the entire response appears at once — destroying the real-time chat UX that production AI applications require.
 
 #### 🎨 Visual Concept
 

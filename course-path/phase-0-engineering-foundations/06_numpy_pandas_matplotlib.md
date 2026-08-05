@@ -45,6 +45,9 @@ Vectorized Multiply: [2 4 6 8]
 
 **Why It Matters**: AI/ML libraries (PyTorch, scikit-learn, TensorFlow) depend on contiguous `ndarray` memory layouts to feed data into GPU matrix multiplication cores.
 
+#### 🤖 Real-Time AI/ML Use Case
+The memory substrate of all neural network computation. PyTorch tensors and TensorFlow tensors are extended ndarrays. Every embedding vector, attention weight matrix, and gradient update in transformer models operates on contiguous ndarray-style memory blocks.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -88,6 +91,9 @@ Filtered Prices: [ 99. 150.]
 ```
 
 **Why It Matters**: Enables instantaneous vector filtering across multi-gigabyte datasets without writing complex `for` loops or `if` statements.
+
+#### 🤖 Real-Time AI/ML Use Case
+Filtering training dataset samples by confidence score (`predictions[predictions > 0.85]`), masking padding tokens in transformer attention matrices (`attention_mask = tokens != PAD_ID`), and selecting top-k vector search results above a similarity threshold.
 
 #### 🎨 Visual Concept
 
@@ -136,6 +142,9 @@ Row Sums (axis=1): [30 70]
 
 **Why It Matters**: Mixing up `axis=0` and `axis=1` is the #1 bug when calculating feature means or batch statistics in machine learning pipelines.
 
+#### 🤖 Real-Time AI/ML Use Case
+Batch normalization in neural networks. Computing per-feature mean/std across the batch dimension (`axis=0`) for layer normalization, and computing per-sample softmax across the class dimension (`axis=1`) for classification output layers.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -181,6 +190,9 @@ Broadcast Subtraction:
 
 **Why It Matters**: Allows performing matrix-vector operations (like subtracting feature means for model normalization) with zero memory overhead.
 
+#### 🤖 Real-Time AI/ML Use Case
+Feature standardization (`(X - mean) / std`) where `mean` is a (1, n_features) vector broadcast across all (m_samples, n_features) rows. Also powers the scaled dot-product attention formula `(Q @ K.T) / sqrt(d_k)` where `sqrt(d_k)` is a scalar broadcast across the entire attention matrix.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -225,6 +237,9 @@ item_2   20.0        B
 ```
 
 **Why It Matters**: Pandas aligns operations by **Index**, not by raw position. If two DataFrames have different indices, adding them together produces unexpected `NaN` values!
+
+#### 🤖 Real-Time AI/ML Use Case
+Loading, cleaning, and feature-engineering tabular ML training datasets. Every scikit-learn and XGBoost workflow starts with a Pandas DataFrame holding features and labels. Proper index management prevents train/test data leakage caused by misaligned row joins.
 
 #### 🎨 Visual Concept
 
@@ -273,6 +288,9 @@ iloc[0]: 10
 
 **Why It Matters**: After filtering a DataFrame, index labels become non-sequential. Using raw brackets `df[0]` or mixing `.loc` and `.iloc` produces silent lookup bugs.
 
+#### 🤖 Real-Time AI/ML Use Case
+Accessing specific training samples by dataset ID (`.loc["sample_42"]`) vs. by batch position (`.iloc[0:32]` for the first mini-batch). Critical when building custom PyTorch `Dataset` classes that need positional indexing into a filtered DataFrame.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -319,6 +337,9 @@ B         600  300.0
 
 **Why It Matters**: The fundamental pattern for computing per-category summary statistics, user cohort metrics, and feature aggregations in data analytics.
 
+#### 🤖 Real-Time AI/ML Use Case
+Feature engineering for ML models. Computing per-customer aggregate features (`df.groupby("customer_id")["purchase_amount"].agg(["mean", "count", "max"])`) to create predictive signals for churn prediction, recommendation engines, and fraud detection models.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -360,6 +381,9 @@ Transformed: [0.   4.62 6.22 9.21]
 
 **Why It Matters**: Linear regression and neural networks perform poorly on skewed data. `log1p` normalizes feature distributions and prevents numerical overflow during training.
 
+#### 🤖 Real-Time AI/ML Use Case
+Normalizing right-skewed features (income, page views, token counts) before feeding them into gradient-based models. Without `log1p`, a few extreme outliers dominate the loss function gradient, causing the model to underfit the majority of normal samples.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -398,6 +422,9 @@ Saved figure headlessly to test_output.png
 ```
 
 **Why It Matters**: Prevents Matplotlib scripts from crashing when executed inside headless cloud VMs (like AWS/OCI), Docker containers, or automated CI/CD pipelines.
+
+#### 🤖 Real-Time AI/ML Use Case
+Automated ML experiment reporting. Training scripts running on headless GPU cloud servers (AWS SageMaker, OCI, Google Colab) use the Agg backend to render loss curves, confusion matrices, and ROC plots directly to PNG files for logging to MLflow/Weights & Biases dashboards.
 
 #### 🎨 Visual Concept
 

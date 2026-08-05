@@ -47,6 +47,9 @@ docker run -d --name app1 -p 8000:8000 my-app:v1
 
 **Why It Matters**: Multiple containers created from the same image share the exact same underlying read-only layers in memory, making container startup instant and memory footprint minimal.
 
+#### 🤖 Real-Time AI/ML Use Case
+Deploying multiple worker replicas of an AI inference container (e.g. 5 FastAPI instances serving a PyTorch model). Each replica shares the same 5GB read-only image layers (PyTorch, CUDA libraries, base OS) in memory, using only megabytes of additional RAM per container instance for host RAM efficiency.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -100,6 +103,9 @@ volumes:
 
 **Why It Matters**: Running databases inside Docker without named volumes results in total data loss whenever containers are recreated during deployments.
 
+#### 🤖 Real-Time AI/ML Use Case
+Persisting ChromaDB/Qdrant/Milvus vector index files, PostgreSQL (pgvector) embeddings, or MLflow experiment artifacts across container deployments. Without named volumes (`-v pgvector_data:/var/lib/postgresql/data`), rebuilding or restarting the database container erases your entire vector database index.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -142,6 +148,9 @@ node_modules
 ```
 
 **Why It Matters**: Omitting `.dockerignore` causes `docker build` to freeze for minutes transferring gigabytes of virtual environments and `.git` histories to the daemon on every build.
+
+#### 🤖 Real-Time AI/ML Use Case
+Building AI app containers with local `.venv` environments, HuggingFace model cache dirs (`~/.cache/huggingface`), raw training datasets (`data/*.csv`), or `.git` histories. Excluding them in `.dockerignore` prevents transferring 10+ GB of local junk to the Docker daemon during every build.
 
 #### 🎨 Visual Concept
 
@@ -186,6 +195,9 @@ COPY . .
 ```
 
 **Why It Matters**: Copying application source code before `RUN pip install` forces Docker to re-download heavy ML dependencies (PyTorch, Pandas) on every minor code edit.
+
+#### 🤖 Real-Time AI/ML Use Case
+Containerizing PyTorch/TensorFlow apps. Placing `COPY requirements.txt` and `RUN pip install torch transformers` *before* `COPY . .` ensures Docker reuses the cached multi-gigabyte PyTorch/CUDA installation layer on every code edit, cutting rebuild times from 10 minutes to 3 seconds.
 
 #### 🎨 Visual Concept
 
@@ -237,6 +249,9 @@ COPY . .
 
 **Why It Matters**: Shrinks container image sizes from multi-gigabyte blobs down to tens of megabytes, reducing security attack surfaces and deployment transfer times.
 
+#### 🤖 Real-Time AI/ML Use Case
+Shipping lightweight production AI microservices. Stage 1 uses a heavy build image (`python:3.11` with `gcc`, `g++`, `nvcc` compilers) to build C-extensions and wheels, while Stage 2 copies only the compiled wheels into a minimal `python:3.11-slim` runtime image — shrinking final image size from 3GB to 250MB.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -278,6 +293,9 @@ CMD ["python", "main.py"]
 ```
 
 **Why It Matters**: Shell form prevents Python from receiving `SIGTERM` signals during deployments, causing containers to hang for 10 seconds before being brutally killed by `SIGKILL`.
+
+#### 🤖 Real-Time AI/ML Use Case
+Graceful shutdown of AI inference servers and background task workers (Celery/RQ). Using Exec form `CMD ["uvicorn", "main:app"]` allows the Python process to receive `SIGTERM` directly from Kubernetes/Docker, letting active LLM generation requests finish and DB pools close cleanly before exiting.
 
 #### 🎨 Visual Concept
 

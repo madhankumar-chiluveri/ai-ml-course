@@ -42,6 +42,9 @@ docker buildx build --platform linux/amd64,linux/arm64 -t username/my-app:latest
 
 **Why It Matters**: Pulling raw `x86_64` Docker images onto ARM instances causes `exec format error` crashes at container startup.
 
+#### 🤖 Real-Time AI/ML Use Case
+Deploying zero-cost production AI agent backends. OCI's Always Free Ampere A1 (4 ARM OCPUs, 24GB RAM) provides a completely free production VM capable of running FastAPI, PostgreSQL/pgvector, Redis, and NGINX — perfect for hosting agentic workflows without cloud bills.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -79,6 +82,9 @@ oci network security-list update --security-list-id <id> \
 ```
 
 **Why It Matters**: Traffic must be allowed in **BOTH** the Security List AND the OS `iptables` rules. Opening port 8000 in OCI web console still fails if host `iptables` blocks it!
+
+#### 🤖 Real-Time AI/ML Use Case
+Exposing AI inference APIs to the internet. You must open Port 443/8000 in the OCI VCN Security List *and* insert an `iptables` rule on the VM to allow external web applications to send inference requests to your FastAPI server.
 
 #### 🎨 Visual Concept
 
@@ -118,6 +124,9 @@ Destination CIDR: 0.0.0.0/0 ---> Target: Internet Gateway (igw-1)
 
 **Why It Matters**: Absence of an Internet Gateway route causes incoming connection timeouts despite valid public IP addresses.
 
+#### 🤖 Real-Time AI/ML Use Case
+Connecting cloud-hosted AI agents to external LLM APIs (OpenAI, Anthropic, HuggingFace). Without an Internet Gateway and `0.0.0.0/0` route table rule, your cloud VM cannot initiate outbound HTTP requests to fetch embeddings or LLM completions.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -155,6 +164,9 @@ sudo netfilter-persistent save
 ```
 
 **Why It Matters**: The #1 reason developers get locked out of OCI instances or find ports closed despite running `iptables` commands.
+
+#### 🤖 Real-Time AI/ML Use Case
+Opening ports for custom AI endpoints on Oracle Linux/Ubuntu VMs. Using `iptables -A INPUT` appends your ACCEPT rule *below* Oracle's default REJECT rule, keeping port 8000 silently blocked. Using `iptables -I INPUT 1` inserts your rule at the top so inference traffic gets through.
 
 #### 🎨 Visual Concept
 
@@ -194,6 +206,9 @@ sudo iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 ```
 
 **Why It Matters**: Explains why a host with closed inbound ports can still make outbound `pip install` or API requests and receive responses cleanly.
+
+#### 🤖 Real-Time AI/ML Use Case
+Allowing AI servers to stream response tokens from external LLM APIs. The `ESTABLISHED,RELATED` rule ensures that when your FastAPI server initiates an outbound API call to OpenAI, incoming SSE response token streams are allowed back through the host firewall.
 
 #### 🎨 Visual Concept
 

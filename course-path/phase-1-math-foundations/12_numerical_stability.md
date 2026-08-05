@@ -51,6 +51,9 @@ log(0.0): -inf
 
 **Why It Matters**: Unchecked float overflow/underflow turns loss values into `NaN`, instantly corrupting neural network model weights during training runs.
 
+#### 🤖 Real-Time AI/ML Use Case
+Preventing `NaN` loss values during neural network training. Exponential functions in loss calculations (e.g. cross-entropy) can overflow to `inf` or underflow to `0.0`, resulting in `log(0) = -inf` and corrupting weight gradients across the entire model.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -95,6 +98,9 @@ Stable LogSumExp: 800.3133
 ```
 
 **Why It Matters**: Standard implementation behind `torch.nn.CrossEntropyLoss` and `scipy.special.logsumexp`.
+
+#### 🤖 Real-Time AI/ML Use Case
+Computing Softmax and Cross-Entropy Loss in Deep Learning (`torch.nn.functional.softmax` / `torch.nn.CrossEntropyLoss`). Shift-invariance ($x - \max(x)$) prevents logit overflow when computing probabilities across thousands of vocabulary tokens in LLMs.
 
 #### 🎨 Visual Concept
 
@@ -145,6 +151,9 @@ bfloat16 value: 70144.0
 
 **Why It Matters**: Modern LLMs (Llama 3, Mistral) are trained natively in `bfloat16` because it eliminates the need for complex Loss Scaling algorithms required by `float16`.
 
+#### 🤖 Real-Time AI/ML Use Case
+Mixed Precision Training (AMP - Automatic Mixed Precision) in PyTorch. Modern LLMs (Llama 3, GPT-4) train in `bfloat16` on NVIDIA A100/H100 GPUs because `bfloat16` retains `float32`'s dynamic range ($\max \approx 3.4 \times 10^{38}$), avoiding gradient overflow while halving VRAM requirements.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -193,6 +202,9 @@ Welford Variance: 4.0
 ```
 
 **Why It Matters**: Online metrics monitoring, streaming statistics, and batch normalization layers require Welford's algorithm to prevent numerical instability.
+
+#### 🤖 Real-Time AI/ML Use Case
+Online streaming metrics, Layer Normalization, and running batch statistics tracking in PyTorch (`torch.nn.BatchNorm2d`). Welford's algorithm computes running feature means and variances incrementally across streaming mini-batches without catastrophic floating-point cancellation.
 
 #### 🎨 Visual Concept
 

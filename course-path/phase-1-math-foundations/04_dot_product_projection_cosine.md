@@ -54,6 +54,9 @@ Cosine Similarity: 0.7071
 
 **Why It Matters**: The fundamental retrieval metric for RAG systems. If document vectors are long, raw dot products return long documents regardless of relevance. Cosine similarity fixes length bias.
 
+#### 🤖 Real-Time AI/ML Use Case
+RAG semantic search engines (LangChain, LlamaIndex, Pinecone). Query embeddings and document chunk embeddings are scored using Cosine Similarity to find the most relevant context documents for an LLM prompt.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -99,6 +102,9 @@ Dot with b: 0.0
 ```
 
 **Why It Matters**: Gram-Schmidt orthogonalization, linear regression error residuals, and concept removal in LLMs all rely on subtracting vector projections.
+
+#### 🤖 Real-Time AI/ML Use Case
+Mechanistic Interpretability and Concept Erasure in LLMs. Subtracting the projection of an embedding onto a "gender bias" or "safety concept" vector direction erases that concept from the internal representation space while preserving all orthogonal information.
 
 #### 🎨 Visual Concept
 
@@ -149,6 +155,9 @@ Cosine Similarity: 0.7071
 
 **Why It Matters**: Pre-normalizing embedding vectors allows vector databases (pgvector, FAISS) to use blazing-fast dot product operations instead of expensive square-root calculations.
 
+#### 🤖 Real-Time AI/ML Use Case
+High-performance vector databases (FAISS, Milvus, Qdrant). Pre-normalizing embedding vectors at index time ($v / \|v\|_2$) allows GPU-accelerated SIMD kernels to compute dot products directly, getting Cosine Similarity and $L_2$ distance ranking for free at 10x speed.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -193,6 +202,9 @@ Scaled Dot Product: 1.46
 ```
 
 **Why It Matters**: Removing `/ sqrt(d)` from Transformer attention causes immediate gradient collapse during LLM training.
+
+#### 🤖 Real-Time AI/ML Use Case
+Scaled Dot-Product Attention in Transformer architectures (GPT-4, Claude, LLaMA). Dividing Query-Key dot products by $\sqrt{d_k}$ prevents attention scores from exploding in high dimensions, preventing Softmax saturation and vanishing gradients during LLM training.
 
 #### 🎨 Visual Concept
 

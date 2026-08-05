@@ -56,6 +56,9 @@ Matches? True
 
 **Why It Matters**: Eigenvalues identify the principal axes of variance in datasets (PCA) and govern stability in dynamical systems and neural networks.
 
+#### 🤖 Real-Time AI/ML Use Case
+Principal Component Analysis (PCA) for dimensionality reduction and spectral clustering. Eigenvectors of the dataset covariance matrix point along the directions of maximum data variance, while eigenvalues quantify the variance explained along each principal direction.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -100,6 +103,9 @@ Reconstructed Equals A? True
 ```
 
 **Why It Matters**: SVD works on non-square matrices where eigendecomposition fails. It is the mathematical engine behind PCA, latent semantic analysis, and recommendation systems.
+
+#### 🤖 Real-Time AI/ML Use Case
+Topic modeling (Latent Semantic Analysis) and Collaborative Filtering recommendation engines (SVD matrix factorization in MovieLens recommendations). Decomposing term-document or user-item interaction matrices into low-rank representations.
 
 #### 🎨 Visual Concept
 
@@ -147,6 +153,9 @@ LoRA Params: 65,536 (0.39%)
 ```
 
 **Why It Matters**: Enables fine-tuning 70-billion parameter LLMs on single consumer GPUs (LoRA) by replacing full weight updates with low-rank factorized matrices.
+
+#### 🤖 Real-Time AI/ML Use Case
+LoRA (Low-Rank Adaptation) parameter-efficient fine-tuning of LLMs (e.g., fine-tuning LLaMA 3 or Mistral). Instead of updating the full $4096 \times 4096$ weight matrix (16M parameters), LoRA updates two low-rank matrices $B_{4096 \times 8} \cdot A_{8 \times 4096}$ (65k parameters), reducing VRAM needs by 99%.
 
 #### 🎨 Visual Concept
 
@@ -198,6 +207,9 @@ Condition Number: 524.06
 ```
 
 **Why It Matters**: High condition numbers cause linear regression models (`np.linalg.solve`) to output completely corrupted, wild coefficient estimates due to floating-point instability.
+
+#### 🤖 Real-Time AI/ML Use Case
+Exploding and vanishing gradients in deep recurrent neural networks (RNNs) and deep Transformers. If the Jacobian matrix has a high condition number ($\sigma_{\max}/\sigma_{\min} \gg 1$), repeated matrix multiplications during backpropagation cause gradients to explode along dominant singular directions and vanish along weak ones.
 
 #### 🎨 Visual Concept
 

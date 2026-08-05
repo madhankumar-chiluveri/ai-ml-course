@@ -46,6 +46,9 @@ Injected Fixture Data: {'token': 'test-secret-key'}
 
 **Why It Matters**: Eliminates duplicate setup code across test files and ensures test isolation by supplying fresh fixtures per test function.
 
+#### 🤖 Real-Time AI/ML Use Case
+Injecting pre-loaded embedding models, mock LLM clients, and test vector database collections into ML test functions. A `@pytest.fixture(scope="session")` loading a HuggingFace model once avoids re-downloading 500MB per test while keeping tests isolated.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -84,6 +87,9 @@ test_example.py .                                                        [100%]
 ```
 
 **Why It Matters**: Keeps test suites clean and modular. Prevents circular imports and ugly `from conftest import ...` statements across test suites.
+
+#### 🤖 Real-Time AI/ML Use Case
+Sharing expensive AI resources (loaded tokenizers, embedding models, database connections) across an entire ML test suite. A `conftest.py` fixture loading a SentenceTransformer model once at session scope prevents 30-second model reloads between every test file.
 
 #### 🎨 Visual Concept
 
@@ -131,6 +137,9 @@ PASSED
 
 **Why It Matters**: Without proper teardown, test suites leave dangling database rows, unclosed sockets, and leaked files behind, causing subsequent tests to fail intermittently.
 
+#### 🤖 Real-Time AI/ML Use Case
+Managing test vector database collections. A fixture with `yield` creates a temporary ChromaDB/Pinecone collection for RAG testing, then tears it down after the test — preventing stale test embeddings from polluting production vector indices.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -172,6 +181,9 @@ test_calc.py::test_square[4-16] PASSED                                 [100%]
 ```
 
 **Why It Matters**: Prevents code duplication (writing multiple `test_foo1()`, `test_foo2()` functions) and ensures that if one input fails, all other test cases still execute and report results.
+
+#### 🤖 Real-Time AI/ML Use Case
+LLM evaluation golden test sets. A single parametrized test function runs 50+ prompt-response pairs from a CSV against your RAG pipeline, reporting which specific queries failed — the exact pattern used in Phase 7 eval suites and CI regression gates.
 
 #### 🎨 Visual Concept
 
@@ -217,6 +229,9 @@ test_math.py .                                                           [100%]
 
 **Why It Matters**: Raw float equality checks cause flaky, broken unit tests across different CPU architectures. `pytest.raises` ensures error paths are tested.
 
+#### 🤖 Real-Time AI/ML Use Case
+Testing model prediction outputs. ML model predictions are floating-point numbers (`0.8723...`), so `pytest.approx(expected, abs=1e-4)` is required for stable assertions. `pytest.raises(ValidationError)` tests that Pydantic schemas correctly reject malformed LLM outputs.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -256,6 +271,9 @@ PASSED
 
 **Why It Matters**: Prevents test suites from polluting actual developer environment variables, making external live API calls, or mutating production databases.
 
+#### 🤖 Real-Time AI/ML Use Case
+Mocking OpenAI API calls in CI pipelines. `monkeypatch.setattr("openai.ChatCompletion.create", mock_response)` replaces real $0.01-per-call LLM requests with deterministic canned responses, enabling free unlimited test runs in GitHub Actions without burning API credits.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -294,6 +312,9 @@ test_demo.py:4: AssertionError
 ```
 
 **Why It Matters**: Eliminates the need to write custom assertion libraries like `self.assertEqual(a, b)` — plain Python `assert` statements produce full diagnostic failure tracebacks automatically.
+
+#### 🤖 Real-Time AI/ML Use Case
+Debugging ML pipeline failures. When an eval test asserts `assert model_accuracy == pytest.approx(0.85)` and the model returns `0.72`, Pytest's rewritten assertion prints both values and the exact delta — immediately revealing regression magnitude without manual debugging.
 
 #### 🎨 Visual Concept
 

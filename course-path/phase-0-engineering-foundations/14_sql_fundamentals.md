@@ -47,6 +47,9 @@ GROUP BY c.id, c.name;
 
 **Why It Matters**: `INNER JOIN` silently drops inactive users or empty categories from financial reports. Uncontrolled 1-to-many joins inflate financial metrics by 2x-5x.
 
+#### 🤖 Real-Time AI/ML Use Case
+Constructing ML feature store datasets from SQL databases. Using `INNER JOIN` drops users without previous purchase history from the training dataset, creating severe selection bias. Using un-aggregated 1-to-many `LEFT JOIN` duplicates training rows, skewing model feature distributions.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -93,6 +96,9 @@ HAVING COUNT(*) > 5;
 
 **Why It Matters**: Writing aggregate filters inside `WHERE` causes immediate SQL engine parser errors.
 
+#### 🤖 Real-Time AI/ML Use Case
+Preparing training data cohorts. `WHERE` filters raw telemetry data (e.g. `WHERE event_timestamp >= '2026-01-01'`) before grouping, while `HAVING` filters aggregated user profiles (e.g. `HAVING COUNT(session_id) >= 5`) to retain only highly active users for cohort analysis.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -137,6 +143,9 @@ GROUP BY u.id, u.name;
 
 **Why It Matters**: Using `COUNT(*)` on a `LEFT JOIN` erroneously reports inactive users as having 1 activity event.
 
+#### 🤖 Real-Time AI/ML Use Case
+Engineering user activity features for churn models. `COUNT(o.id)` correctly returns `0` for users with zero orders after a `LEFT JOIN`, while `COUNT(*)` returns `1` (counting the outer NULL row), introducing false activity signals into your ML model's training data.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -176,6 +185,9 @@ WHERE NOT EXISTS (
 
 **Why It Matters**: `NOT IN` with subqueries containing `NULL` is a top cause of production SQL query silence (queries returning 0 rows unexpectedly).
 
+#### 🤖 Real-Time AI/ML Use Case
+Negative sampling in recommendation systems. Querying users who have *not* interacted with a specific product category. Using `NOT IN` on a subquery containing `NULL` returns 0 rows, silently failing to generate negative training samples for model training.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -209,6 +221,9 @@ CREATE INDEX idx_orders_customer_id ON orders(customer_id);
 ```
 
 **Why It Matters**: Indexes accelerate `SELECT` read queries, but **slow down `INSERT`, `UPDATE`, and `DELETE` operations** because the database engine must rewrite the B-Tree index structure on every write.
+
+#### 🤖 Real-Time AI/ML Use Case
+Database indexing strategies for AI backend services. Indexing `user_id` and `created_at` speeds up low-latency LLM chat history retrieval, but adding too many indexes on high-throughput log tables slows down real-time event ingestion.
 
 #### 🎨 Visual Concept
 

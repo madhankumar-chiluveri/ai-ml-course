@@ -56,6 +56,9 @@ Variance: 4.0
 
 **Why It Matters**: Expectation and variance are the foundational building blocks of machine learning loss functions (MSE), risk metrics, and batch normalization layers.
 
+#### 🤖 Real-Time AI/ML Use Case
+Mean Squared Error (MSE) loss functions and Batch Normalization layers in PyTorch. Batch Normalization normalizes intermediate layer feature maps by subtracting their batch expectation $E[X]$ and dividing by batch standard deviation $\sqrt{\text{Var}(X) + \epsilon}$.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -103,6 +106,9 @@ Correlation: 1.0
 
 **Why It Matters**: Zero covariance does NOT imply statistical independence unless variables are jointly Gaussian! Non-linear dependencies (e.g. $Y = X^2$ centered at 0) yield $\text{Cov}(X, Y) = 0.0$.
 
+#### 🤖 Real-Time AI/ML Use Case
+Feature selection and collinearity detection in ML tabular data preprocessing. Computing Pearson Correlation matrices helps drop redundant collinear features ($r > 0.95$) before feeding them into linear models or tree-based classifiers.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -147,6 +153,9 @@ Eigenvalues: [0.827 1.059]
 
 **Why It Matters**: Principal Component Analysis (PCA), Whitening transforms, and Mahalanobis distance all operate by diagonalizing the dataset covariance matrix.
 
+#### 🤖 Real-Time AI/ML Use Case
+PCA feature reduction and data whitening in computer vision and signal processing. Diagonalizing the feature covariance matrix transforms correlated raw pixel inputs into uncorrelated principal components ordered by total variance explained.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -187,6 +196,9 @@ Unbiased (ddof=1): 10.0
 ```
 
 **Why It Matters**: Mixing up `ddof=0` and `ddof=1` between `np.var` and `np.cov` causes subtle numerical discrepancies in scientific pipelines and unit tests.
+
+#### 🤖 Real-Time AI/ML Use Case
+Estimating population variance from small validation batches. Setting `ddof=1` in `np.var(batch_scores, ddof=1)` provides an unbiased variance estimate when evaluating small LLM test benchmark sample sizes ($N < 30$).
 
 #### 🎨 Visual Concept
 
