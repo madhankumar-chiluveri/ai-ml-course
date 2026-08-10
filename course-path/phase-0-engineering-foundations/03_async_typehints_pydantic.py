@@ -130,6 +130,8 @@ async def sequential() -> tuple[list[str], float]:
 
 async def concurrent() -> tuple[list[str], float]:
     t0 = time.perf_counter()
+    # 1. FAN-OUT: Dispatch 3 call_tool coroutines concurrently to the event loop
+    # 2. FAN-IN: asyncio.gather awaits all 3 and funnels their outputs into a single list
     out = await asyncio.gather(
         call_tool("sql", 0.5),
         call_tool("search", 0.5),
