@@ -170,10 +170,13 @@ Result.show()
 
 
 
-import os
-from google import genai
+# import os
+# from dotenv import load_dotenv
+# from google import genai
 
-client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+# load_dotenv()  # Loads GEMINI_API_KEY from .env file
+
+# client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 # interaction = client.interactions.create(
 #     agent="antigravity-preview-05-2026",
@@ -187,16 +190,117 @@ client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 # print(f"Output: {interaction.output_text}")
 
 
-def movie(title):
-    prompt=f'''Tell me about the movie like main cast of {title} and the result is in bullet points'''
-    try:
-        response=client.models.generate_content(
-            model="gemini-3.5-flash",
-            contents=prompt,
-        )
-        return response.text
-    except Exception as e:
-        return e
+# def movie(title):
+#     prompt=f'''Tell me about the movie like main cast of {title} and the result is in bullet points'''
+#     try:
+#         response=client.models.generate_content(
+#             model="gemini-3.5-flash",
+#             contents=prompt,
+#         )
+#         return response.text
+#     except Exception as e:
+#         return e
 
-response=movie("Predestination")
-print(f"Output: {response}")
+# response=movie("Predestination")
+# print(f"Output: {response}")
+
+
+class Employee:
+    company="Google"
+
+    def __init__(self,name:str,salary:int):
+        self.name=name
+        self.salary=salary
+
+e1=Employee("A",10000)
+e2=Employee("B",20000)
+print(e1.salary)
+e1.salary=30000
+
+print(e1.company)
+print(e2.company)
+print(e1.salary)
+print(e2.salary)
+
+
+
+
+class A:
+    def show(self):
+        print("Class A")
+
+class B(A):
+    def show(self):
+        # print("Class B")
+        super().show()
+
+class C(A):
+    def show(self):
+        print("Class C")
+
+class D(B, C):
+     print("Class D")
+
+d = D()
+d.show()  # Which show() gets called?
+
+
+class Dog:
+    def speak(self) -> str:
+        return "Woof!"
+
+class Cat:
+    def speak(self) -> str:
+        return "Meow!"
+
+class Duck:
+    def speak(self) -> str:
+        return "Quack!"
+
+
+# Single function demonstrating Polymorphism
+def make_animal_speak(animal):
+    # It doesn't matter if 'animal' is a Dog, Cat, or Duck.
+    # As long as it has a .speak() method, it works!
+    print(animal.speak())
+
+
+# Calling the exact same function with different object types
+make_animal_speak(Dog())   # Output: Woof!
+make_animal_speak(Cat())   # Output: Meow!
+make_animal_speak(Duck())  # Output: Quack!
+
+
+
+class users:
+    def __init__(self,username):
+        self.username=username
+    
+    def __repr__(self):
+        return f"User({self.username!r})"
+
+U=users("Rohith")
+print(users("Rohith"))
+
+
+class A:
+    def __init__(self):
+        print("Class A")
+
+class B(A):
+    def __init__(self):
+        print("Class B")
+        super().__init__()
+
+class C(A):
+    def __init__(self):
+        print("Class C")
+        super().__init__()
+
+class D(B, C):
+    def __init__(self):
+        print("Class D")
+        super().__init__()
+
+d = D()
+print(d)
