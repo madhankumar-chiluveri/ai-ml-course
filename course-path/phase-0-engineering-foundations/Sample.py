@@ -304,3 +304,73 @@ class D(B, C):
 
 d = D()
 print(d)
+
+
+import asyncio
+import time
+
+async def fetch_user(user_id: int):
+    print(f"Fetching user {user_id}...")
+    await asyncio.sleep(2)  # Simulates network request delay
+    print(f"Received user {user_id}")
+    return f"User_{user_id}"
+
+async def main():
+    start_time = time.time()
+    
+    # Run all 3 coroutines concurrently in the event loop
+    #Non Blocking
+    results = await asyncio.gather(
+        fetch_user(1),
+        fetch_user(2),
+        fetch_user(3)
+    )
+    
+    elapsed = time.time() - start_time
+    print(f"\nAll results: {results}")
+    print(f"Total time taken: {elapsed:.2f} seconds")
+
+# Run the event loop
+asyncio.run(main())
+
+
+import asyncio
+
+async def fetch_data():
+    print("Start")
+    await asyncio.sleep(2)
+    print("Got it")
+    return "Here is Result"
+
+async def main():
+    try:
+        result=await asyncio.wait_for(asyncio.shield(fetch_data()),timeout=2.9)
+        print(result)
+    except asyncio.TimeoutError:
+        print("Timeout Error")
+
+asyncio.run(main())
+
+
+from pydantic import BaseModel, ValidationError, field_validator
+
+class UserRegistration(BaseModel):
+    username: str
+    age: int
+
+    # 1. Custom Field Validator
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, value: str) -> str:
+        if len(value) < 3:
+            raise ValueError("Username must be at least 3 characters long")
+        if not value.isalnum():
+            raise ValueError("Username must contain only letters and numbers")
+        return value.lower()  # Transforms and normalizes data
+
+    @field_validator("age")
+    @classmethod
+    def validate_age(cls, value: int) -> int:
+        if value < 18:
+            raise ValueError("User must be at least 18 years old")
+        return value
