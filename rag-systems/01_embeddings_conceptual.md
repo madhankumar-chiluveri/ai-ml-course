@@ -230,7 +230,7 @@ In PostgreSQL with the `pgvector` extension enabled, specific operators map to d
 
 ## Hands-On Script & Verification Results
 
-The Python implementation file [01_embeddings_conceptual.py](file:///d:/Madhan_Utils/learnings/ai-ml/agentic-ai-engineer/rag-systems/01_embeddings_conceptual.py) embeds 6 phrases and computes full pairwise similarity rankings.
+The Python implementation file [01_embeddings_conceptual.py](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/rag-systems/01_embeddings_conceptual.py) embeds 6 phrases and computes full pairwise similarity rankings.
 
 ### Pairwise Similarity Ranking Output
 
@@ -589,6 +589,6 @@ graph TD
 
 ## File Map
 
-- Documentation: [01_embeddings_conceptual.md](file:///d:/Madhan_Utils/learnings/ai-ml/agentic-ai-engineer/rag-systems/01_embeddings_conceptual.md)
-- Executable Code: [01_embeddings_conceptual.py](file:///d:/Madhan_Utils/learnings/ai-ml/agentic-ai-engineer/rag-systems/01_embeddings_conceptual.py)
+- Documentation: [01_embeddings_conceptual.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/rag-systems/01_embeddings_conceptual.md)
+- Executable Code: [01_embeddings_conceptual.py](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/rag-systems/01_embeddings_conceptual.py)
 

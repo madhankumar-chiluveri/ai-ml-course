@@ -598,7 +598,7 @@ Run: `python 04_dot_product_projection_cosine.py`. The output below is **actual,
 
 ```text
 numpy 2.4.4 | seed 1729 | offline, no network
-script dir: D:\Madhan_Utils\learnings\ai-ml\agentic-ai-engineer\course-path\phase-1-math-foundations
+script dir: D:\Madhan_Utils\learnings\ai-ml\ai-ml-course\course-path\phase-1-math-foundations
 ======================================================================
 DEMO 1 - one dot product, four independent routes to one number
 ======================================================================

@@ -29,7 +29,7 @@ Before finalizing, the CORE list in Phase 2 was checked line-by-line against **f
 4. **Reference doc 2 (GenAI Engineering Handbook)** — Part 1 DL foundations, Part 2 transformers, Part 8 fine-tuning, Part 10 evaluation, Part 11 MLOps.
 5. **2026 job-market signal** — ML fundamentals appear in ~24% of AI/ML engineering listings; LLMs, deep learning and problem-solving at ~16% each; prompt engineering ~14%; model evaluation and NLP ~12% each.
 
-**Items those syllabi contain that are consciously *demoted*, not forgotten:** reinforcement learning as a standalone track (folded into Phase 4.14 as the conceptual basis for RLHF/DPO, which is where an Applied AI Engineer actually meets it); anomaly detection and recommender systems (kept, but as a single DEPTH topic at 2.15 — rarely interview-blocking for agentic roles); CNN/vision depth (single DEPTH topic at 3.13).
+**Items those syllabi contain that are consciously *demoted*, not forgotten:** reinforcement learning as a standalone track (folded into Phase 4.14 as the conceptual basis for RLHF/DPO, which is where an Applied AI/ML Engineer actually meets it); anomaly detection and recommender systems (kept, but as a single DEPTH topic at 2.15 — rarely interview-blocking for agentic roles); CNN/vision depth (single DEPTH topic at 3.13).
 
 **Items added that none of the five reference syllabi contain, but the 2026 market demands:** numerical stability (1.12), information theory / KL / perplexity (1.13), calibration (2.7), agent trajectory evals (6.4), OpenTelemetry-based tracing (6.6), and A/B testing for LLM features (6.15).
 

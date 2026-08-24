@@ -1,8 +1,8 @@
 # 0.10 — Linux CLI
 
-**Phase 0 · CORE · CODE · 6 focused hours · Review in 7 days**
+**Phase 0 · CORE · WORKBENCH · 6 focused hours · Review in 7 days**
 
-**Companion script:** [`10_linux_cli.py`](10_linux_cli.py) — standard library only, no installs. It builds a throwaway 20,000-line log and a fake project tree under the system temp folder, analyses them, and deletes everything afterwards. Where real POSIX tools exist (Linux, macOS, WSL, or Git Bash on Windows) it **runs the actual shell pipelines** and shows their output; where they do not, the Python equivalent still runs, so every lesson lands.
+**Workbench Track:** Real-world terminal execution in **Linux / WSL / Git Bash**. Master log filtering pipelines, port diagnostics, process management, SSH permissions, and session detachability directly in your shell.
 
 ---
 
@@ -542,126 +542,148 @@ tmux attach -t train  # reattach later, from anywhere
 
 ---
 
-## 5. Hands-On Script & Verified Output
+## 5. Hands-On Real-World Terminal Drills (Linux / WSL / Git Bash)
 
-Run: `python 10_linux_cli.py`. Output below is **actual, captured** on Windows with Git Bash providing the POSIX tools. On Linux, macOS or WSL the same pipelines run natively.
+Do not run Python scripts to learn the shell. Open your **WSL / Linux / Git Bash terminal** and execute these 6 practical drills:
 
-```text
-platform: win32 | POSIX tools available: True
-scratch dir: ...\Temp\cli-demo-k9p1ofg9  (safe - deleted at the end)
-======================================================================
-DEMO 1 - a pipeline is a chain of filters, built one stage at a time
-======================================================================
-  app.log has 20,000 lines. Reading it by hand is not an option.
+---
 
-  $ wc -l < app.log                       (how big is the problem)
-    20000
+### Drill 1 — Fast Log Aggregation & Stream Filtering Pipeline
 
-  $ grep ERROR app.log | wc -l            (how many are errors)
-    2080
+Generate a sample production-style log and extract the top failure causes:
 
-  $ grep ERROR app.log | awk '{print $2, $3}' | head -3
-    ERROR gateway
-    ERROR retriever
-    ERROR gateway
+```bash
+# 1. Create a dummy log file with mixed status events
+cat << 'EOF' > server.log
+2026-08-20T12:00:01 INFO  api-gateway    Request /v1/chat/completions 200 OK
+2026-08-20T12:00:02 ERROR llm-gateway    rate limited by provider (429)
+2026-08-20T12:00:03 INFO  rag-retriever  Retrieved 5 chunks from vector DB
+2026-08-20T12:00:04 ERROR llm-gateway    timeout calling provider (504)
+2026-08-20T12:00:05 ERROR llm-gateway    rate limited by provider (429)
+2026-08-20T12:00:06 ERROR vector-store   connection refused (502)
+2026-08-20T12:00:07 ERROR llm-gateway    rate limited by provider (429)
+EOF
 
-  $ grep ERROR app.log | cut -d' ' -f4- | sort | uniq -c | sort -rn | head -6
-    (ranked with cut - LOOKS fine, is WRONG)
-        221   timeout calling provider
-        211   connection refused
-        210   rate limited by provider
-        188   out of memory
-        115  connection refused
-        111    timeout calling provider
+# 2. Build the ranking pipeline stage by stage:
+# Filter only ERROR lines -> extract the message -> sort -> count unique -> sort descending
+grep "ERROR" server.log | awk '{print substr($0, index($0,$4))}' | sort | uniq -c | sort -rn
 
-  $ grep ERROR app.log | awk '{print substr($0, index($0,$4))}' | sort | uniq -c | sort -rn
-    (ranked with awk - correct)
-        536 timeout calling provider
-        534 rate limited by provider
-        517 connection refused
-        493 out of memory
-======================================================================
-DEMO 2 - 'address already in use', triggered on purpose
-======================================================================
-  a socket is now holding 127.0.0.1:58436
-  binding it again -> OSError [10048] Only one usage of each socket address
-                      (protocol/network address/port) is normally permitted
-
-  Finding WHO holds it:
-    Windows : netstat -ano | findstr ":58436"
-    Linux   : ss -ltnp | grep :58436
-    macOS   : lsof -i :58436
-======================================================================
-DEMO 3 - permission bits, and why SSH refuses a readable key
-======================================================================
-  Each octal digit is three bits: read=4, write=2, execute=1
-  octal   owner  group  other  typical use
-  ------- ------ ------ ------ ----------------------------------
-  600     rw-    ---    ---    SSH PRIVATE KEY, .env
-  644     rw-    r--    r--    public keys, config files
-  700     rwx    ---    ---    the ~/.ssh directory itself
-  755     rwx    r-x    r-x    directories, executables
-  777     rwx    rwx    rwx    never - world-writable
-======================================================================
-DEMO 4 - 'disk full' - find the culprit in one command
-======================================================================
-  $ du -sh */ | sort -rh          <- the version everyone writes
-    3.0M    checkpoints/
-    1.5M    data/
-    900K    mlruns/
-    120K    notebooks/
-    40K     src/
-
-  $ du -sh -- * .[!.]* | sort -rh   <- includes DOTFILES
-    3.0M    checkpoints
-    2.4M    .venv
-    1.5M    data
-    968K    app.log
-    900K    mlruns
-    120K    notebooks
-    40K     src
-    1.0K    id_ed25519
-
-  ^ .venv/ appears only in the second listing.
-======================================================================
-DEMO 5 - tail -f sees lines that did not exist when you started
-======================================================================
-  cat live.log (before)  -> 1 line(s): ['startup complete']
-
-  tail -f live.log       -> (following, lines appear as written)
-    [16:28:14] request 0 handled
-    [16:28:14] request 1 handled
-    [16:28:14] request 2 handled
-    [16:28:14] request 3 handled
-    [16:28:14] request 4 handled
-
-  cat saw 1 line(s); the follower saw 5 MORE that were written afterwards.
-======================================================================
-DEMO 6 - a pipeline reports SUCCESS when a middle command fails
-======================================================================
-  the happy path                         -> 2080  exit=0
-  grep FAILS - file does not exist       -> 0  exit=0
-  same command, with pipefail            -> 0  exit=2
-======================================================================
-cleaned up ...\Temp\cli-demo-k9p1ofg9
+# Expected Output:
+#   3 rate limited by provider (429)
+#   1 timeout calling provider (504)
+#   1 connection refused (502)
 ```
 
-**Demo 1 contains a deliberate wrong answer, and it is the most useful thing on the page.** The `cut` version and the `awk` version rank the same 2,080 errors. `cut` reports `221 timeout calling provider` and, four rows later, `111   timeout calling provider` again — the same message split across multiple rows because the log pads its columns and `cut -d' '` treats every single space as a separator. `awk` splits on *runs* of whitespace and gets `536`. Nothing errored. Nothing warned. The wrong pipeline produced numbers you would have put in a report.
+---
 
-**Demo 2 produces the real operating-system error**, not a description of it: `OSError [10048]` on Windows, `EADDRINUSE` on Linux. This is the exact message left behind by a FastAPI process from **0.9** that did not shut down cleanly, or a crashed container from **0.11**.
+### Drill 2 — Diagnosing & Resolving "Port Already in Use" (EADDRINUSE)
 
-**Demo 4 shows a habit that hides the answer.** `du -sh */` lists five directories and misses `.venv` at 2.4 MB — the second-largest thing in the tree — because shell globs skip dotted names. The second command finds it. On a real machine the hidden offenders are `.venv`, `.cache`, `.git` and model caches, and they are exactly what fills a small cloud disk in **0.13**.
+```bash
+# 1. Start a background process listening on port 8000
+python -m http.server 8000 &
+SERVER_PID=$!
 
-**Demo 5 makes the point of `tail -f` concrete.** `cat` saw **1** line. The follower saw **5 more** that did not exist when it started reading. That is why you start the tail *before* reproducing the bug, and it is the same mechanism behind `docker logs -f` (**0.11**) and `journalctl -u svc -f` (**7.11**).
+# 2. Find which process is holding port 8000:
+# Linux/WSL:
+ss -ltnp | grep :8000
+# (On macOS use: lsof -i :8000)
+# (On Windows cmd/powershell: netstat -ano | findstr :8000)
 
-**Demo 6 is the one that silently ruins CI.** `grep` on a nonexistent file exits `2` — a genuine failure — and the pipeline still reports `exit=0`, because a shell keeps only the **last** command's status. With `set -o pipefail` the same command reports `exit=2`. A CI step (**7.5**) written without it passes forever while testing nothing.
+# 3. Terminate the process cleanly (Graceful SIGTERM):
+kill -TERM $SERVER_PID
 
-**Modify and re-run:**
-- In Demo 1, remove the `sort` before `uniq -c` and compare the counts. `uniq` only collapses *adjacent* duplicates, so the result becomes nonsense — quietly.
-- In Demo 4, add a `.cache` directory larger than `checkpoints/` and re-run both `du` forms. Confirm the first still hides it.
-- In Demo 5, remove the `f.flush()` in the writer and re-run. The follower will see nothing until the buffer fills — the same reason a container's logs sometimes appear to stop.
-- In Demo 6, add `set -e` to the failing pipeline and observe that it alone is **not** enough; `pipefail` is the part that matters here.
-- Change the log format in `build_tree` to comma-separated and rewrite Demo 1's pipeline with `cut -d','`. On unpadded delimited data, `cut` is the right tool — find out why.
+# 4. Verify the port is released:
+ss -ltnp | grep :8000
+```
+
+---
+
+### Drill 3 — Permission Bits & SSH Key Hardening
+
+```bash
+# 1. Create a simulated SSH key and config
+mkdir -p ~/.test_ssh && touch ~/.test_ssh/id_ed25519 ~/.test_ssh/config
+
+# 2. Observe loose permissions (causes SSH client refusal)
+ls -la ~/.test_ssh/
+
+# 3. Apply the mandatory security permissions:
+# - Directory needs 700 (rwx------ : only owner can access directory)
+# - Private key needs 600 (rw------- : only owner can read/write)
+# - Config & Public key need 644 (rw-r--r-- : readable by user/group)
+chmod 700 ~/.test_ssh
+chmod 600 ~/.test_ssh/id_ed25519
+chmod 644 ~/.test_ssh/config
+
+# 4. Verify permission strings:
+ls -la ~/.test_ssh/
+# Expected:
+# drwx------ ~/.test_ssh
+# -rw------- id_ed25519
+# -rw-r--r-- config
+```
+
+---
+
+### Drill 4 — Finding Disk Space Hogs (Including Hidden Virtualenvs)
+
+```bash
+# 1. Create a dummy folder with visible and hidden subdirectories
+mkdir -p disk_test/.venv disk_test/data disk_test/models
+head -c 10M </dev/urandom > disk_test/.venv/lib.so
+head -c 5M </dev/urandom > disk_test/models/checkpoint.pt
+head -c 2M </dev/urandom > disk_test/data/raw.csv
+
+# 2. WRONG HABIT: 'du -sh */' skips dot-directories entirely!
+du -sh disk_test/*/ | sort -rh
+# -> Only shows data and models. Misses .venv (10M)!
+
+# 3. CORRECT PRODUCTION HABIT: includes hidden files/folders
+du -sh disk_test/* disk_test/.[!.]* | sort -rh
+# -> Accurately reveals .venv as the largest consumer!
+
+# Cleanup:
+rm -rf disk_test
+```
+
+---
+
+### Drill 5 — Real-Time Log Streaming with `tail -f`
+
+```bash
+# Terminal 1: Start tailing a live log
+touch live_stream.log
+tail -f live_stream.log
+
+# Terminal 2: Append messages to the file
+echo "[12:01:00] Ingesting document chunk 1..." >> live_stream.log
+echo "[12:01:02] Embedding vector generated." >> live_stream.log
+echo "[12:01:05] Indexed in pgvector successfully." >> live_stream.log
+# (Observe instant arrival in Terminal 1)
+```
+
+---
+
+### Drill 6 — Background Training Sessions with `tmux`
+
+```bash
+# 1. Create a named detached session for a long AI script
+tmux new -s llm-train
+
+# 2. Inside tmux, start your long command (e.g. python train.py)
+# 3. Detach from the session without killing the job:
+#    Press: Ctrl + b, then release and press: d
+
+# 4. List running detached sessions:
+tmux ls
+
+# 5. Reattach to the running session anytime:
+tmux attach -t llm-train
+
+# 6. Kill/exit session when done:
+#    Type 'exit' inside tmux or 'tmux kill-session -t llm-train'
+```
+
 
 ---
 

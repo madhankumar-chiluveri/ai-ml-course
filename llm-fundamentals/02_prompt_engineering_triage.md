@@ -244,7 +244,7 @@ To prove that hard constraints perform active work rather than decorative prompt
 
 ## Python Code Implementation
 
-The python script [02_prompt_engineering_triage.py](file:///d:/Madhan_Utils/learnings/ai-ml/agentic-ai-engineer/llm-fundamentals/02_prompt_engineering_triage.py) implements the prompt comparison engine and tests V1, V2, V3, and Broken V3 across standard and ambiguous tickets:
+The python script [02_prompt_engineering_triage.py](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/llm-fundamentals/02_prompt_engineering_triage.py) implements the prompt comparison engine and tests V1, V2, V3, and Broken V3 across standard and ambiguous tickets:
 
 ```bash
 python llm-fundamentals/02_prompt_engineering_triage.py

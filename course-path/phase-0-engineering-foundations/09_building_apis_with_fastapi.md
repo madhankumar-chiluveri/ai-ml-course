@@ -23,12 +23,15 @@ Depends on **0.3** and **0.7**; unlocks **6.13** MCP servers, **7.11** deploymen
 An asynchronous context manager passed to the FastAPI application constructor that executes setup code **once** during application startup and teardown code **once** during shutdown.
 
 #### 💡 The Beginner Analogy: Opening and Closing a Restaurant
+
 `lifespan` is like the kitchen prep routine before a restaurant opens:
+
 - **Startup (`yield` before)**: Turning on ovens, firing up refrigerators, loading AI models into GPU memory.
 - **Serving (during `yield`)**: Customers arrive and endpoints process requests.
 - **Shutdown (`yield` after)**: Turning off gas valves, closing database connection pools, unloading memory.
 
 #### 💻 Code Example & ⚠️ Why It Matters
+
 ```python
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -48,6 +51,7 @@ print("FastAPI app configured with lifespan.")
 ```
 
 ##### Verified Output
+
 ```text
 FastAPI app configured with lifespan.
 ```
@@ -55,6 +59,7 @@ FastAPI app configured with lifespan.
 **Why It Matters**: Replaces deprecated `@app.on_event("startup")` hooks. Ensures expensive ML models load once into memory at boot rather than reloading per request.
 
 #### 🤖 Real-Time AI/ML Use Case
+
 Pre-loading PyTorch/ONNX inference models and embedding models into GPU VRAM at server startup. Without `lifespan`, each `/predict` request would reload a 7GB LLM checkpoint from disk, taking 30+ seconds per request instead of milliseconds.
 
 #### 🎨 Visual Concept
@@ -77,10 +82,12 @@ flowchart TD
 - **`response_model`**: Pydantic model specified on the route decorator that filters and validates outgoing JSON responses against an **allow-list**.
 
 #### 💡 The Beginner Analogy: Security Desk Bouncer & Exit Scanner
+
 - **Request Model**: A bouncer at the front door verifying guests have valid tickets.
 - **`response_model`**: A security scanner at the exit ensuring employees don't accidentally leave the building with confidential company files (`password_hash`, `internal_id`).
 
 #### 💻 Code Example & ⚠️ Why It Matters
+
 ```python
 from pydantic import BaseModel, EmailStr
 
@@ -95,6 +102,7 @@ print("Filtered Output:", filtered_output)
 ```
 
 ##### Verified Output
+
 ```text
 Filtered Output: {'id': 1, 'email': 'user@example.com'}
 ```
@@ -102,6 +110,7 @@ Filtered Output: {'id': 1, 'email': 'user@example.com'}
 **Why It Matters**: Prevents accidental data leaks by stripping sensitive internal fields (hashed passwords, internal database IDs) from API responses.
 
 #### 🤖 Real-Time AI/ML Use Case
+
 ML inference API design. The request model validates incoming text/image payloads, while `response_model` strips internal fields like `raw_embedding_vector`, `internal_model_version`, and `debug_token_logprobs` from the `/predict` endpoint response, preventing intellectual property leakage.
 
 #### 🎨 Visual Concept
@@ -123,9 +132,11 @@ flowchart TD
 - **`app.dependency_overrides`**: A dictionary mapping real dependencies to mock dependencies during unit testing.
 
 #### 💡 The Beginner Analogy: Plug-and-Play Power Socket
+
 `Depends` is like equipping your app with a standard **3-prong power wall outlet**. During normal operation (production), you plug in the **city grid power** (real Postgres DB). During maintenance testing, you unplug the grid and plug in a **portable generator** (Mock DB in `app.dependency_overrides`).
 
 #### 💻 Code Example & ⚠️ Why It Matters
+
 ```python
 from fastapi import FastAPI, Depends
 
@@ -142,6 +153,7 @@ print("Dependency Overridden:", app.dependency_overrides[get_db]())
 ```
 
 ##### Verified Output
+
 ```text
 Dependency Overridden: Mock SQLite Session
 ```
@@ -149,6 +161,7 @@ Dependency Overridden: Mock SQLite Session
 **Why It Matters**: Makes API endpoints 100% testable offline without modifying production route handler code.
 
 #### 🤖 Real-Time AI/ML Use Case
+
 Testing ML inference endpoints without calling real LLM APIs. `dependency_overrides` swaps `Depends(get_llm_client)` with a mock returning canned predictions, enabling free CI/CD testing of the entire RAG pipeline without spending API credits.
 
 #### 🎨 Visual Concept
@@ -176,10 +189,12 @@ flowchart TD
 - **Plain `def` endpoints**: Run inside FastAPI's background **Threadpool** worker threads, safely isolating blocking synchronous operations from the main Event Loop.
 
 #### 💡 The Beginner Analogy: Single Chef vs. Kitchen Staff
+
 - `async def`: A high-speed chef standing at an electric stove. If they freeze for 10 seconds staring at a pot (`time.sleep(10)`), **the whole kitchen stops serving food**.
 - Plain `def`: Handing a task off to one of 40 sous-chefs (threadpool) in the back room so the main chef keeps working.
 
 #### 💻 Code Example & ⚠️ Why It Matters
+
 ```python
 import time
 
@@ -192,6 +207,7 @@ print("Plain Def Status:", plain_def_sync_handler())
 ```
 
 ##### Verified Output
+
 ```text
 Plain Def Status: Handled by Threadpool
 ```
@@ -199,6 +215,7 @@ Plain Def Status: Handled by Threadpool
 **Why It Matters**: A single synchronous blocking call inside an `async def` function drops FastAPI server concurrency from thousands of requests per second down to 1 request at a time!
 
 #### 🤖 Real-Time AI/ML Use Case
+
 Serving ML model inference. If `model.predict()` is a synchronous blocking call (most scikit-learn/ONNX models), wrapping it in `async def` freezes the entire server. Use plain `def` to let FastAPI's threadpool handle it, or wrap with `asyncio.to_thread` for async endpoints.
 
 #### 🎨 Visual Concept
@@ -226,9 +243,11 @@ flowchart TD
 A standard library async utility that offloads a synchronous, blocking function call to a separate background OS thread, returning an awaitable coroutine that can be safely `await`ed inside an `async def` endpoint.
 
 #### 💡 The Beginner Analogy: Delegating a Task
+
 When you are busy hosting a live webinar (`async def` event loop) and need to convert a large PDF file (blocking operation), you don't pause the webinar. You ask your assistant (`asyncio.to_thread`) to take the PDF into the next room, convert it, and bring you back the result when finished.
 
 #### 💻 Code Example & ⚠️ Why It Matters
+
 ```python
 import asyncio, time
 
@@ -244,6 +263,7 @@ asyncio.run(main())
 ```
 
 ##### Verified Output
+
 ```text
 Thread Result: 42
 ```
@@ -251,6 +271,7 @@ Thread Result: 42
 **Why It Matters**: Allows using legacy synchronous database or SDK libraries inside async FastAPI endpoints without stalling the main event loop.
 
 #### 🤖 Real-Time AI/ML Use Case
+
 Running synchronous scikit-learn `model.predict()` or ONNX Runtime inference inside async FastAPI endpoints. `asyncio.to_thread(model.predict, input_data)` offloads CPU-bound inference to a background thread while the event loop continues serving concurrent requests.
 
 #### 🎨 Visual Concept
@@ -274,9 +295,11 @@ flowchart TD
 - **`X-Accel-Buffering: no`**: An HTTP response header sent to downstream reverse proxies (like NGINX) instructing them not to buffer the stream.
 
 #### 💡 The Beginner Analogy: Live Ticker vs. Batch Envelope
+
 `StreamingResponse` is like a **live ticker tape printer** that prints individual letters as they arrive. `X-Accel-Buffering: no` is a warning sign attached to the machine reading: *"Do NOT collect these papers in a box — pass each tape line directly to the user immediately!"*
 
 #### 💻 Code Example & ⚠️ Why It Matters
+
 ```python
 from fastapi.responses import StreamingResponse
 
@@ -288,6 +311,7 @@ print("Header Value:", response.headers.get("x-accel-buffering"))
 ```
 
 ##### Verified Output
+
 ```text
 Header Value: no
 ```
@@ -295,6 +319,7 @@ Header Value: no
 **Why It Matters**: Essential for real-time LLM token streaming in production environments behind NGINX proxies.
 
 #### 🤖 Real-Time AI/ML Use Case
+
 Building ChatGPT-style streaming inference endpoints. `StreamingResponse` with an async generator yields LLM tokens as they're generated, while `X-Accel-Buffering: no` ensures NGINX passes tokens through to the frontend in real-time instead of buffering the entire response.
 
 #### 🎨 Visual Concept
@@ -433,16 +458,16 @@ flowchart LR
 
 ## 4. Core Technical Deep Dive
 
-| Feature | What it prevents | Where it returns |
-|---|---|---|
-| `lifespan` startup | Reloading the model on every request | **7.7** p99 latency, **C1** |
-| Pydantic request model | Hand-written validation and ad-hoc `400`s | **0.3**, **4.8** |
-| `response_model` | Malformed output escaping; internal fields leaking | **C1** correctness, **7.13** |
-| `Depends` | Untestable endpoints | **0.5**, **7.5** |
-| `def` vs `async def` | One blocking call stalling every request | **7.7** — Demo 5 |
-| `StreamingResponse` + `X-Accel-Buffering` | A stream arriving as one blob | **0.12**, **4.9**, **6.9** |
-| Separate `healthz` / `readyz` | Restart loops; traffic to a warming pod | **7.11** |
-| Auto OpenAPI schema | Hand-maintained, drifting API docs | **6.13** — same idea as MCP tool schemas |
+| Feature                                       | What it prevents                                   | Where it returns                                |
+| --------------------------------------------- | -------------------------------------------------- | ----------------------------------------------- |
+| `lifespan` startup                          | Reloading the model on every request               | **7.7** p99 latency, **C1**         |
+| Pydantic request model                        | Hand-written validation and ad-hoc`400`s         | **0.3**, **4.8**                    |
+| `response_model`                            | Malformed output escaping; internal fields leaking | **C1** correctness, **7.13**        |
+| `Depends`                                   | Untestable endpoints                               | **0.5**, **7.5**                    |
+| `def` vs `async def`                      | One blocking call stalling every request           | **7.7** — Demo 5                         |
+| `StreamingResponse` + `X-Accel-Buffering` | A stream arriving as one blob                      | **0.12**, **4.9**, **6.9**    |
+| Separate`healthz` / `readyz`              | Restart loops; traffic to a warming pod            | **7.11**                                  |
+| Auto OpenAPI schema                           | Hand-maintained, drifting API docs                 | **6.13** — same idea as MCP tool schemas |
 
 **The validation gate is genuinely free.** Demo 1 sends five malformed payloads and counts how many times the endpoint body executed: **zero**. Each rejection names the exact field and reason — `amount: Input should be greater than 0`, `vendor: Field required`. No `if not payload.get(...)` anywhere. This is **0.7**'s `422` and **0.3**'s Pydantic wired together, and it is why FastAPI endpoints look so thin.
 
@@ -564,6 +589,7 @@ server stopped
 **Demo 7 shows why two probes exist.** With the model unloaded, `/healthz` stays `200` and `/readyz` returns `503`. If liveness had checked the model, that blip would have restarted the process — and every replica simultaneously, since they share the same dependency. Readiness sheds traffic; liveness restarts. Different questions, very different blast radius.
 
 **Modify and re-run:**
+
 - Delete `response_model=ScoreResponse` from `/score-leaky` and re-run Demo 2. Watch the API key appear in the response body.
 - In Demo 5, change `/async-blocking` to `await asyncio.to_thread(time.sleep, BLOCK)`. Predict the new timing before running.
 - Raise `CLIENTS` to 40 and re-run Demo 5. The `def` row will stop scaling — find out why, and what `anyio` setting controls it.

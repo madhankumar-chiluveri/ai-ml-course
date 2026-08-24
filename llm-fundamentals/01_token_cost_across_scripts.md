@@ -96,7 +96,7 @@ Tokenizers can be executed **100% locally** in Python using free open-source lib
 
 ### Benchmark Setup & Code
 
-The script [01_token_cost_across_scripts.py](file:///d:/Madhan_Utils/learnings/ai-ml/agentic-ai-engineer/llm-fundamentals/01_token_cost_across_scripts.py) compares character counts, token counts, and tokenization efficiency across English, Telugu, and PL/SQL strings:
+The script [01_token_cost_across_scripts.py](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/llm-fundamentals/01_token_cost_across_scripts.py) compares character counts, token counts, and tokenization efficiency across English, Telugu, and PL/SQL strings:
 
 ```python
 import sys

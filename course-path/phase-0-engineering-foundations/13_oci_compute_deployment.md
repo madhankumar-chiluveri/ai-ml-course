@@ -1,8 +1,8 @@
 # 0.13 — OCI Compute: Free Tier and Deployment
 
-**Phase 0 · CORE · CODE · 4 focused hours · Review in 7 days**
+**Phase 0 · CORE · WORKBENCH · 4 focused hours · Review in 7 days**
 
-**Companion script:** [`13_oci_compute_deployment.py`](13_oci_compute_deployment.py) — standard library only; `numpy` is optional and used solely to measure this machine's arithmetic and memory throughput, and the script says so and skips those two numbers rather than inventing them if `numpy` is absent. It makes **no cloud call, no network call, and never touches the OCI CLI**. The only filesystem writes go to a `tempfile.mkdtemp()` directory deleted in a `finally` block, and the SSH key material is a hand-typed stub, not a key.
+**Workbench Track:** Real-world cloud VM deployment in **Oracle Cloud / Linux**. Provision ARM Ampere A1 VMs, configure dual firewalls (Security Lists + `iptables`), manage systemd daemons, and handle `aarch64` cross-platform builds.
 
 ---
 
@@ -512,226 +512,135 @@ sudo certbot --nginx -d api.example.com      # issues and wires into the 0.12 co
 sudo certbot renew --dry-run                 # the renewal timer is installed for you
 ```
 
-`certbot --nginx` needs port **80** reachable for the HTTP-01 challenge, which means opening 80 in **both** firewall layers as well — Demo 1's probe list includes `:80` precisely because that is the second port a first deploy forgets.
+`certbot --nginx`## 5. Hands-On Real-World Terminal Drills (Cloud VM Deployment & systemd)
+
+Do not run Python scripts to simulate cloud infrastructure. Sign up for the Oracle Cloud Always Free tier (or AWS/GCP free tier) and execute these 6 real-world drills:
 
 ---
 
-## 5. Hands-On Script & Verified Output
+### Drill 1 — Generating SSH Key Pair & Connecting to Your Cloud VM
 
-Run: `python 13_oci_compute_deployment.py`. Output below is **actual, captured** on Windows 11 with Python 3.14.4 and `numpy` importable. **Nothing here talks to a cloud.** The firewall verdicts come from a rule evaluator that models OCI's two engines; the CIDR counts, architecture comparison, permission rule and memory arithmetic are exact; the GFLOP/s and GB/s figures are genuinely measured, on this laptop, and are labelled as such rather than attributed to an A1. Trimmed to the most instructive sections.
+```bash
+# 1. Generate an Ed25519 key pair locally on your machine
+ssh-keygen -t ed25519 -f ~/.ssh/oci_ed25519 -C "ai-engineer-deploy"
 
-```text
-0.13 - OCI Compute, evaluated offline.
-NO cloud call, NO network call, NO OCI CLI. Provisioning itself
-cannot run on a laptop; the decisions around it can be checked.
-======================================================================
-DEMO 1 - TWO firewalls. A packet must pass BOTH. Evaluated.
-======================================================================
+# 2. Set strict local permissions (Mandatory for SSH clients)
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/oci_ed25519
+chmod 644 ~/.ssh/oci_ed25519.pub
 
-  A  console untouched, host untouched
-    ssh, random host   :22    reaches app iptables 5: ACCEPT tcp NEW dpt:22
-    https, a browser   :443   BLOCKED     security list: implicit DENY
-    http, certbot ACME :80    BLOCKED     security list: implicit DENY
-    raw uvicorn port   :8000  BLOCKED     security list: implicit DENY
-    postgres, in-VCN   :5432  BLOCKED     security list: implicit DENY
-    chain: 443-ACCEPT rule=ABSENT  REJECT rule=6  (6 rules)
-    -> 1/5 probes reach the application
+# 3. Paste the PUBLIC key (oci_ed25519.pub) into the OCI Console when creating the Ampere VM
+# NEVER paste the private key (oci_ed25519)!
 
-  B  console 443 opened, host untouched
-    ssh, random host   :22    reaches app iptables 5: ACCEPT tcp NEW dpt:22
-    https, a browser   :443   BLOCKED     iptables 6: REJECT all (catch-all)
-    http, certbot ACME :80    BLOCKED     security list: implicit DENY
-    raw uvicorn port   :8000  BLOCKED     security list: implicit DENY
-    postgres, in-VCN   :5432  BLOCKED     security list: implicit DENY
-    chain: 443-ACCEPT rule=ABSENT  REJECT rule=6  (6 rules)
-    -> 1/5 probes reach the application
-
-  C  console 443 + iptables -A (append)
-    ssh, random host   :22    reaches app iptables 5: ACCEPT tcp NEW dpt:22
-    https, a browser   :443   BLOCKED     iptables 6: REJECT all (catch-all)
-    http, certbot ACME :80    BLOCKED     security list: implicit DENY
-    raw uvicorn port   :8000  BLOCKED     security list: implicit DENY
-    postgres, in-VCN   :5432  BLOCKED     security list: implicit DENY
-    chain: 443-ACCEPT rule=7  REJECT rule=6  (7 rules)
-    -> 1/5 probes reach the application
-
-  D  console 443 + iptables -I INPUT 6
-    ssh, random host   :22    reaches app iptables 5: ACCEPT tcp NEW dpt:22
-    https, a browser   :443   reaches app iptables 6: ACCEPT tcp NEW dpt:443
-    http, certbot ACME :80    BLOCKED     security list: implicit DENY
-    raw uvicorn port   :8000  BLOCKED     security list: implicit DENY
-    postgres, in-VCN   :5432  BLOCKED     security list: implicit DENY
-    chain: 443-ACCEPT rule=6  REJECT rule=7  (7 rules)
-    -> 2/5 probes reach the application
-
-  B and C give byte-identical probe results. That is the point.
-  In C the rule EXISTS, reads correctly, and shows up in
-  `iptables -L`. It is at position 7; the REJECT that matches
-  everything is at position 6. The rule is never evaluated.
-======================================================================
-DEMO 2 - how wide is 0.0.0.0/0? Counted, not asserted.
-======================================================================
-  CIDR              addresses admitted   relative to /32
-  ----------------  ------------------   ---------------
-  0.0.0.0/0              4,294,967,296     4,294,967,296x
-  203.0.113.0/24                   256               256x
-  203.0.113.9/32                     1                 1x
-  10.0.0.0/16                   65,536            65,536x
-
-  source IP        0.0.0.0/0  203.0.113.0/24  203.0.113.9/32
-  ---------------  ---------  --------------  --------------
-  203.0.113.9      True       True            True            (your office)
-  45.128.232.11    True       False           False           (a port scanner)
-
-  SSH open to 0.0.0.0/0 admits 4,294,967,296 sources.
-  SSH open to a /32 admits 1.
-  Narrowing the SSH rule alone removes 4,294,967,295 of them
-  (4,294,967,296x reduction) and costs one console edit.
-
-  443 genuinely needs 0.0.0.0/0 - that is what public means.
-  22 and 5432 almost never do. The default security list opens 22
-  to the entire internet; that default is a starting point, not a
-  recommendation. Same argument as least-privilege secrets in 7.13.
-======================================================================
-DEMO 3 - aarch64 vs amd64. Decided by a string, not by luck.
-======================================================================
-  this machine reports platform.machine() = 'AMD64' -> amd64
-  running Windows 11, Python 3.14.4
-  a plain `docker build .` here produces an image for: linux/amd64
-  Always Free VM.Standard.A1.Flex is Ampere Altra  : linux/arm64
-
-  image platform   host platform    result
-  ---------------  ---------------  ------------------------------
-  linux/amd64      linux/arm64      exec format error / cannot start
-  linux/arm64      linux/arm64      starts
-  linux/arm64      linux/amd64      exec format error / cannot start
-  linux/amd64      linux/amd64      starts
-
-  2 of 4 combinations fail, and the failure is
-  'exec /usr/local/bin/uvicorn: exec format error' - which reads
-  like a corrupt binary and is actually a CPU architecture.
-======================================================================
-DEMO 4 - SSH key permissions and the paste-the-wrong-file mistake.
-======================================================================
-  wrote a stub key, called os.chmod(0o600), and os.stat now says: 0o666
-  ^ that is NOT 600, and it is not a bug in this script.
-    Windows has no POSIX mode bits; os.chmod only toggles the
-    read-only attribute. WSL, Git Bash and the VM are where the
-    real check happens. So the rule is evaluated as data below.
-
-  mode   symbolic     group/other bits   OpenSSH loads it?
-  -----  -----------  -----------------  ------------------
-  0600   rw-------    0o000              yes
-  0400   r--------    0o000              yes
-  0640   rw-r-----    0o040              NO - refuses
-  0644   rw-r--r--    0o044              NO - refuses
-  0664   rw-rw-r--    0o064              NO - refuses
-  0777   rwxrwxrwx    0o077              NO - refuses
-  0700   rwx------    0o000              yes
-
-  'Paste your public key' at instance-create time. Which file?
-    oci_ed25519.pub  -> PASTE        PUBLIC key - what the console wants
-    oci_ed25519      -> DO NOT PASTE PRIVATE key - pasting it compromises it
-======================================================================
-DEMO 5 - 4 OCPU / 24 GB: serves comfortably, cannot train.
-======================================================================
-  Always Free A1 pool: 4 OCPU and 24 GB TOTAL,
-  splittable across instances. Validating three splits:
-    4 OCPU/24 GB                 4 OCPU/24 GB  fits
-    2 OCPU/12 GB + 2 OCPU/12 GB  4 OCPU/24 GB  fits
-    4 OCPU/24 GB + 1 OCPU/6 GB   5 OCPU/30 GB  EXCEEDS -> billed
-
-  SERVING a capstone stack, per-component resident memory:
-    Ubuntu base + sshd + systemd                  0.60 GB
-    nginx reverse proxy (0.12)                    0.10 GB
-    4x uvicorn workers, FastAPI agent (0.9)       1.40 GB
-    Postgres 16 + pgvector (0.14, 0.15)           2.00 GB
-    Redis cache (7.7)                             0.30 GB
-    sentence-transformers embedder, CPU (5.3)     1.20 GB
-    -------------------------------------------- --------
-    total resident                                5.60 GB
-    headroom on 24 GB                            18.40 GB (77% free)
-
-  TRAINING, full fine-tune, mixed precision. Memory per parameter:
-    fp16 weights 2B + fp16 grads 2B + fp32 master 4B
-    + Adam m 4B + Adam v 4B  =  16 bytes/param, before activations
-
-    params    weights   optimizer+grads   TOTAL     fits in 24 GB?
-    --------  --------  ----------------  --------  ---------------
-    1.5B         3.0 GB           21.0 GB    24.0 GB  exactly 24.0
-    7B          14.0 GB           98.0 GB   112.0 GB  NO
-    70B        140.0 GB          980.0 GB  1120.0 GB  NO
-    The 1.5B row lands on 24.0 GB - the whole machine, with zero
-    left for activations, the OS, or the dataset loader. It does
-    not fit either; it just fails one step later.
-    ...and none of it matters, because there is no GPU at all.
-
-  Measured on THIS machine (AMD64), not on an A1:
-    fp32 matmul   :     90.7 GFLOP/s
-    memory copy   :     21.6 GB/s (read+write)
-
-    Fine-tuning 7B on 100M tokens needs ~6*N*D = 4.20e+18 FLOPs.
-    At the rate measured above that is 536 days (1.5 years).
-    That is 2,144x a tolerable 6-hour run - about 3 orders of magnitude.
-    Even if the A1 were twice as fast as this machine - four
-    Ampere cores against this one, it is not - 268 days
-    changes no decision. The conclusion is robust to the
-    measurement being wrong by a factor of ten.
-
-    Serving a 4-bit 7B locally (4.12) must read 3.5 GB
-    per generated token, so the ceiling is ~6 tok/s at the
-    bandwidth above - slow, but alive. Training misses by orders
-    of magnitude; local CPU inference misses by a small factor.
-======================================================================
-DEMO 6 - six configurations, and what the client actually sees.
-======================================================================
-  configuration                 first failing layer       client sees
-  ----------------------------  ------------------------  -----------
-  everything correct            -- reaches the app --     200 OK
-  container crashed on boot     app not running           refused
-  app bound to 127.0.0.1        bind address (0.11)       refused
-  launched in a private subnet  route table / no gateway  TIMEOUT
-  console rule never added      security list (cloud)     TIMEOUT
-  iptables 443 never added      iptables (host)           TIMEOUT*
-
-  3 distinct root causes collapse into ONE symptom:
-  a hang and then a timeout. 2 more give 'connection
-  refused', which is the kind failure - an RST comes back
-  instantly and tells you the packet REACHED the host.
-
-  So the symptom cannot identify the layer, and the ladder is
-  worth memorising in this order - cheapest evidence first:
-    1. curl -v localhost:443 ON the VM   -> app alive at all?
-    2. ss -ltnp | grep :443              -> 0.0.0.0 or 127.0.0.1?
-    3. sudo iptables -L INPUT --line-numbers
-       -> check the line NUMBER, not just that the rule exists
-    4. console: VCN > Subnet > Security List / NSG
-    5. console: VCN > Route Table -> 0.0.0.0/0 via internet gateway
-======================================================================
-temp dir removed: True
+# 4. Connect to your instance over SSH:
+ssh -i ~/.ssh/oci_ed25519 ubuntu@<YOUR_INSTANCE_PUBLIC_IP>
 ```
 
-**Demo 1's centrepiece is that configurations B and C are indistinguishable from outside the box.** Both let exactly **1/5** probes through — only SSH, via `iptables 5`. In B there is no 443 rule at all. In C there *is* one: `chain: 443-ACCEPT rule=7  REJECT rule=6  (7 rules)`. `iptables -L` prints it, it reads correctly, the ports and protocol are right, and it is never evaluated, because the catch-all REJECT at position 6 matches first. Configuration D writes the identical rule at position 6, REJECT slides to 7, and the count goes to **2/5**. A single integer — 6 versus 7 — is the whole difference, and it is not visible unless you ask `iptables -L INPUT --line-numbers` for the numbers.
+---
 
-**The two layers use opposite semantics, which is why the mistake is so easy.** The cloud security list is an unordered allow-list with an implicit deny: any matching rule admits the packet and rule order is meaningless. `iptables` is ordered and first-match-wins. Carrying the console's mental model down to the host is exactly how `-A` gets typed. Note also what stays working in a broken configuration: the chain's rule 1 accepts `ESTABLISHED,RELATED`, so outbound traffic from the VM is untouched. `apt-get update` succeeds, `curl google.com` succeeds, the box feels perfectly healthy — and inbound NEW connections on 443 are dead.
+### Drill 2 — Resolving the Dual Firewall Trap (Security List + `iptables`)
 
-**Demo 2 turns "least privilege" from a slogan into a printed ratio.** `0.0.0.0/0` admits **4,294,967,296** source addresses; a `/32` admits **1**. Narrowing the SSH rule removes **4,294,967,295** of them for the cost of one console edit. The membership table makes the consequence concrete: the office IP `203.0.113.9` passes all three policies, while the port scanner at `45.128.232.11` passes only `0.0.0.0/0`. The honest caveat the script prints itself: 443 genuinely needs `0.0.0.0/0` — that is what public means. It is 22 and 5432 that almost never do, and OCI's *default* security list opens 22 to the entire internet.
+```bash
+# 1. In OCI Web Console:
+#    Go to: VCN > Virtual Cloud Networks > Security Lists > Default Security List
+#    Add Ingress Rules:
+#      - Source CIDR: 0.0.0.0/0, IP Protocol: TCP, Destination Port: 80
+#      - Source CIDR: 0.0.0.0/0, IP Protocol: TCP, Destination Port: 443
 
-**Demo 3 is a string comparison, and that is the point.** `platform.machine()` returns `'AMD64'` here, normalised to `amd64`; A1 is `linux/arm64`; **2 of 4** combinations fail. The failure text — `exec /usr/local/bin/uvicorn: exec format error` — points at the binary and is really about the CPU, which is why it burns an afternoon. Nothing about this is probabilistic; the answer is known before the image is ever pushed.
+# 2. SSH into your Ubuntu VM. Check existing iptables rules:
+sudo iptables -L INPUT --line-numbers
 
-**Demo 4 contains an honest measurement that does not flatter the demo.** The script calls `os.chmod(0o600)` and `os.stat` reports back `0o666`. That is not a bug — Windows has no POSIX mode bits, and `os.chmod` there only toggles the read-only attribute. Rather than paper over it, the script evaluates OpenSSH's actual rule (`mode & 0o077 == 0`) against seven modes: `0600`, `0400` and `0700` load; `0640`, `0644`, `0664` and `0777` are refused. The second half is the expensive mistake: the console asks you to paste "your public key", and the first line of the file settles which one it is. `oci_ed25519.pub` starts `ssh-ed25519 ...` and is safe; `oci_ed25519` starts `-----BEGIN OPENSSH PRIVATE KEY-----` and pasting it means regenerating the key and rebuilding the instance, because a leaked private key cannot be un-leaked.
+# 3. CRITICAL: Insert (not Append -A) the ACCEPT rules BEFORE the final REJECT rule (typically line 6)
+sudo iptables -I INPUT 6 -p tcp --dport 80 -m state --state NEW -j ACCEPT
+sudo iptables -I INPUT 6 -p tcp --dport 443 -m state --state NEW -j ACCEPT
 
-**Demo 5 gives the same box two opposite verdicts, and the gap between them is the lesson.** Serving the full capstone stack costs **5.60 GB**, leaving **18.40 GB — 77% free**. Training a 7B needs **112.0 GB**, and at the **90.7 GFLOP/s** measured here the 7B fine-tune on 100M tokens is **536 days**, or **2,144x** an overnight run. Your run will print a different figure — a second run on this same machine measured **251 days** — because the benchmark reflects the current machine and its current load. Treat every number in this demo as an order of magnitude, not a measurement; that is the only claim it can support, and it is the only claim it needs. Then the same page shows CPU *inference* landing at roughly **6 tok/s** for a 4-bit 7B at **21.6 GB/s** — slow but usable. Training misses by three orders of magnitude; local inference misses by a small factor. Be honest about what the throughput number is: it is this laptop, not an Ampere core, and the script says so on the line above it. It survives as an argument only because the margin is so enormous.
+# 4. Make iptables rules persistent across reboots:
+sudo apt-get install -y iptables-persistent
+sudo netfilter-persistent save
+```
 
-**Demo 6 explains why the symptom is useless as a diagnostic.** Six configurations, **3** of them collapsing into a single indistinguishable TIMEOUT — private subnet, missing security-list rule, missing `iptables` rule — and **2** giving `connection refused`. Refused is the *kind* failure: an RST comes back instantly and proves the packet reached the host, which eliminates both firewalls and the routing in one observation. A timeout eliminates nothing. That asymmetry is why the ladder starts with `curl -v localhost:443` on the box: it is the cheapest observation that splits the search space.
+---
 
-**Modify and re-run:**
-- In Demo 1, add an `Ingress("0.0.0.0/0", "tcp", 80, 80)` to `SL_443` and re-run configuration D. Watch the certbot probe change verdict, then delete the corresponding `iptables` rule and watch it fail again at the other layer — that is exactly how the HTTP-01 challenge fails.
-- Change the `-A` in configuration C to insert at position 5 instead of 6 and confirm the probe count still goes to 2/5. Then insert at position 1 and reason about what you just did to the ESTABLISHED rule.
-- In Demo 2, add `192.168.0.0/16` and `172.16.0.0/12` to `candidates` and check whether an OCI VCN's default `10.0.0.0/16` really admits your laptop's LAN address. Private ranges are not automatically safe ranges.
-- In Demo 5, change the embedder line to a 7B model held locally (about 14 GB at fp16) and re-run the sum. Find the component that pushes the stack past 24 GB, and decide whether you would rather pay a provider or lose the Postgres instance.
-- In Demo 5, drop `per_param` from 16 to 6 bytes — roughly LoRA, where only the adapters carry optimizer state — and see which model sizes come into range. Then remember the GFLOP/s line and check whether memory was ever the binding constraint.
-- In Demo 6, add a `Box` where the security list allows 443 but the **egress** rules were made stateless without a matching return rule. The script does not model egress; adding it is the fastest way to internalise `isStateless`.
+### Drill 3 — Handling `aarch64` Cross-Architecture Docker Builds
+
+Oracle Always Free Ampere A1 uses ARM64 (`aarch64`). If building Docker images on an x86 laptop:
+
+```bash
+# 1. Option A (Recommended): Build directly on the ARM VM
+# Clone your repo on the VM and run:
+docker build -t ai-service:v1 .
+
+# 2. Option B: Multi-platform buildx on your laptop
+docker buildx create --use
+docker buildx build --platform linux/arm64 -t yourdockerhub/ai-service:arm64 --push .
+```
+
+---
+
+### Drill 4 — Creating a Resilient `systemd` Production Service
+
+Manage your AI FastAPI service as a background Linux daemon with automatic restarts:
+
+```bash
+# 1. Create a systemd unit file
+sudo nano /etc/systemd/system/fastapi-app.service
+```
+
+Paste the following configuration:
+
+```ini
+[Unit]
+Description=FastAPI LLM Inference Service
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/ai-app
+ExecStart=/home/ubuntu/ai-app/.venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --workers 4
+Restart=always
+RestartSec=3s
+EnvironmentFile=/home/ubuntu/ai-app/.env
+
+# Security Sandbox Hardening
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+# 2. Reload systemd daemon & start the service:
+sudo systemctl daemon-reload
+sudo systemctl enable --now fastapi-app.service
+
+# 3. Check service health & inspect logs:
+sudo systemctl status fastapi-app.service
+sudo journalctl -u fastapi-app.service -f
+```
+
+---
+
+### Drill 5 — The 5-Step Connectivity Diagnostic Ladder
+
+If your public endpoint times out, run these 5 checks in order to isolate the exact failing layer:
+
+```bash
+# STEP 1: Is the app listening on localhost? (Tests application logic)
+curl -v http://localhost:8000/health
+
+# STEP 2: Is it bound to 127.0.0.1 or 0.0.0.0?
+ss -ltnp | grep :8000
+
+# STEP 3: Is NGINX listening on port 80/443?
+curl -v http://localhost/health
+
+# STEP 4: Inspect host firewall rule line numbers (Tests host iptables)
+sudo iptables -L INPUT --line-numbers
+
+# STEP 5: From your laptop, test TCP handshake to the VM's public IP:
+nc -zv <YOUR_PUBLIC_IP> 443
+```
 
 ---
 

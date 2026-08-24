@@ -134,6 +134,8 @@ def demo_loc_vs_iloc(df: pd.DataFrame) -> None:
     print(f"  original index : {list(df.index)}")
     print(f"  filtered index : {list(big.index)}   <- NOT 0,1,2,3!")
 
+    print(big)
+
     # THE POINT: same integer 3, two DIFFERENT rows, no error either way.
     by_pos = big.iloc[3]
     by_lab = big.loc[3]
@@ -152,6 +154,7 @@ def demo_loc_vs_iloc(df: pd.DataFrame) -> None:
         print("  ^ this one at least fails loudly")
 
     reset = big.reset_index(drop=True)
+    print(reset)
     print(f"\n  after reset_index(drop=True), index = {list(reset.index)}")
     print(f"  now .loc[3] and .iloc[3] agree: "
           f"{reset.loc[3]['vendor']!r} == {reset.iloc[3]['vendor']!r}")

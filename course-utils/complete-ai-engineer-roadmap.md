@@ -1,4 +1,4 @@
-# THE COMPLETE AI ENGINEER ROADMAP
+# THE COMPLETE AI/ML ENGINEER ROADMAP
 ## Absolute Zero → Hireable AI/ML Engineer
 
 **One document. Nine phases. 119 topics. No prerequisites assumed.**
@@ -80,7 +80,7 @@ Every topic carries five fields:
 
 - These are **focused** hours — deliberate practice with the hands-on exercise completed. Not hours with a video playing in another tab. Real calendars lose 4–6 weeks a year to work crunches, travel and illness; add roughly 10–15% for a realistic finish date.
 - **There is no configuration where 5 hrs/week reaches a mid-to-senior applied role inside 12 months.** The honest options are: raise weekly hours, extend the horizon, or narrow the target role. Choose deliberately rather than discovering it at month 10.
-- The previous roadmap's ~215-hour estimate for zero → enterprise AI engineer was optimistic by roughly 4x. Most of the difference is the math, classical ML and deep learning that were missing entirely, plus honest capstone hours.
+- The previous roadmap's ~215-hour estimate for zero → enterprise AI/ML engineer was optimistic by roughly 4x. Most of the difference is the math, classical ML and deep learning that were missing entirely, plus honest capstone hours.
 - **Phases 1 and 2 are 181 of the 782 CORE hours — 23% of the work, and the least immediately gratifying.** This is the section most likely to be abandoned, and abandoning it recreates exactly the gap that prompted this document.
 - **Sequencing is not fully rigid.** Phase 0 → 1 → 2 → 3 is strictly ordered. But Phases 4–7 can be interleaved with Phase 2 once Phase 1 is done — building a RAG prototype while learning gradient boosting keeps motivation alive and is how most people actually survive the foundations.
 

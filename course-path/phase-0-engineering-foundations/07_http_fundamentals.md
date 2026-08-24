@@ -21,16 +21,19 @@ Unlocks **0.8** consuming APIs, **0.9** FastAPI, and **6.12** MCP Streamable HTT
 ### 2.1 — HTTP Request Anatomy (Request Line, Headers, Body)
 
 The 3-part textual structure of an HTTP request:
+
 1. **Request Line**: Method (`POST`), URL path (`/v1/chat`), and HTTP version (`HTTP/1.1`).
 2. **Headers**: Key-value pairs (`Authorization: Bearer ...`, `Content-Type: application/json`) preceding a blank line.
 3. **Body**: The main payload containing data or JSON prompts following the blank line.
 
 #### 💡 The Beginner Analogy: Postal Letter Package
+
 - **Request Line**: The printed shipping label on the outside of the envelope visible to mail handlers (logged by web servers).
 - **Headers**: Metadata stickers on the envelope (`"Urgent"`, `"Contains Breakables"`, `"Sender Auth Signature"`).
 - **Body**: The actual private letter sealed inside the envelope (your prompt / API data).
 
 #### 💻 Code Example & ⚠️ Why It Matters
+
 ```python
 import json
 
@@ -44,6 +47,7 @@ print("Formatted HTTP Request:\n" + request_raw[:120] + "...")
 ```
 
 ##### Verified Output
+
 ```text
 Formatted HTTP Request:
 POST /v1/chat/completions HTTP/1.1
@@ -56,6 +60,7 @@ Content-Type: application/json
 **Why It Matters**: Putting secrets in URL query strings (`GET /api?key=sk-123`) leaks them to reverse proxy access logs. Credentials belong exclusively in HTTP Headers or Request Bodies!
 
 #### 🤖 Real-Time AI/ML Use Case
+
 Every OpenAI/Anthropic LLM API call is an HTTP POST with `Authorization: Bearer sk-...` in the header and `{"model": "gpt-4o", "messages": [...]}` in the JSON body. Understanding request anatomy is essential for debugging token-by-token streaming, rate limits, and API integration failures.
 
 #### 🎨 Visual Concept
@@ -78,9 +83,11 @@ flowchart TD
 An HTTP header specifying the exact size of the payload body measured in **bytes** (not character count).
 
 #### 💡 The Beginner Analogy: Box Weight Declaration
+
 Declaring `Content-Length` is like placing a sticker on a shipping package declaring **"Weight: 5.2 kg"**. If the delivery driver picks up the box and it feels like 2 kg, they suspect items fell out and reject the package.
 
 #### 💻 Code Example & ⚠️ Why It Matters
+
 ```python
 payload_str = '{"name": "Alice"}'
 content_length = len(payload_str.encode("utf-8"))
@@ -90,6 +97,7 @@ print(f"Calculated Content-Length: {content_length} bytes")
 ```
 
 ##### Verified Output
+
 ```text
 Payload: {"name": "Alice"}
 Calculated Content-Length: 17 bytes
@@ -98,6 +106,7 @@ Calculated Content-Length: 17 bytes
 **Why It Matters**: Hand-crafting HTTP sockets with an incorrect `Content-Length` header causes web servers to hang waiting for missing bytes or truncate incoming payloads.
 
 #### 🤖 Real-Time AI/ML Use Case
+
 LLM streaming responses omit `Content-Length` because the total output length is unknown at generation start. Understanding this explains why chunked transfer encoding (`Transfer-Encoding: chunked`) is used instead for token-by-token SSE streaming.
 
 #### 🎨 Visual Concept
@@ -118,10 +127,12 @@ flowchart TD
 - **Non-Idempotent**: Repeated requests cause cumulative side-effects (e.g. `POST`).
 
 #### 💡 The Beginner Analogy: Light Switch vs. Vending Machine Coin Slot
+
 - **Idempotent (`GET` / `PUT`)**: Flipping a light switch to "ON". Flipping it 10 more times leaves the light in the "ON" state.
 - **Non-Idempotent (`POST`)**: Dropping a dollar into a vending machine. Dropping 10 dollars charges you $10 and dispenses 10 sodas.
 
 #### 💻 Code Example & ⚠️ Why It Matters
+
 ```python
 import uuid
 
@@ -134,6 +145,7 @@ print("Generated Idempotency Header:", headers)
 ```
 
 ##### Verified Output
+
 ```text
 Generated Idempotency Header: {'Idempotency-Key': '123e4567-e89b-12d3-a456-426614174000'}
 ```
@@ -141,6 +153,7 @@ Generated Idempotency Header: {'Idempotency-Key': '123e4567-e89b-12d3-a456-42661
 **Why It Matters**: Prevents duplicate credit card charges, double email dispatches, or duplicate database inserts during automated network retries.
 
 #### 🤖 Real-Time AI/ML Use Case
+
 LLM API cost control. A `POST /v1/chat/completions` is non-idempotent — retrying a timed-out request without an idempotency key may generate (and charge for) the same completion twice. Production AI agents attach `Idempotency-Key` headers to prevent double-billing during network retries.
 
 #### 🎨 Visual Concept
@@ -167,10 +180,12 @@ flowchart TD
 - **`422 Unprocessable Content`**: The format is valid JSON, but the internal schema/data is semantically invalid (e.g. missing required field `user_id`).
 
 #### 💡 The Beginner Analogy: Wrong Language vs. Invalid Math
+
 - **415 Error**: Submitting a tax form written in French to a US agency that only accepts English (Format rejected).
 - **422 Error**: Submitting an English tax form where the line `"Age"` contains the word `"Blue"` (Format valid, content semantically invalid).
 
 #### 💻 Code Example & ⚠️ Why It Matters
+
 ```python
 # Simulating FastAPI validation error structure:
 error_415 = {"detail": "Unsupported Media Type: Expected application/json"}
@@ -181,6 +196,7 @@ print("422 Error:", error_422["detail"][0]["msg"])
 ```
 
 ##### Verified Output
+
 ```text
 415 Error: Unsupported Media Type: Expected application/json
 422 Error: field required
@@ -189,6 +205,7 @@ print("422 Error:", error_422["detail"][0]["msg"])
 **Why It Matters**: Differentiates header content-type errors from Pydantic schema validation failures when debugging API client integration failures.
 
 #### 🤖 Real-Time AI/ML Use Case
+
 Debugging FastAPI model serving endpoints. A 415 means the client sent a raw string instead of JSON to `/predict`. A 422 means the JSON was valid but Pydantic rejected the payload (e.g., `{"text": ""}` with a non-empty validator) — the exact error structure used in LLM self-correction retry loops.
 
 #### 🎨 Visual Concept
@@ -213,9 +230,11 @@ flowchart TD
 An HTTP response header sent alongside `429 Too Many Requests` or `530 Service Unavailable` specifying the exact number of seconds an API client must pause before retrying.
 
 #### 💡 The Beginner Analogy: Amusement Park Return Ticket
+
 When a ride reaches max capacity, the attendant hands you a slip of paper reading: *"Please come back in 30 minutes"* (`Retry-After: 30`). Ignoring the ticket and running back to the front of the line immediately gets you ejected from the park.
 
 #### 💻 Code Example & ⚠️ Why It Matters
+
 ```python
 mock_headers = {"Retry-After": "15"}
 wait_time = float(mock_headers.get("Retry-After", 5.0))
@@ -224,6 +243,7 @@ print(f"Rate limited (429). Sleeping for {wait_time} seconds before retry...")
 ```
 
 ##### Verified Output
+
 ```text
 Rate limited (429). Sleeping for 15.0 seconds before retry...
 ```
@@ -231,6 +251,7 @@ Rate limited (429). Sleeping for 15.0 seconds before retry...
 **Why It Matters**: Ignoring `Retry-After` during rate limits triggers provider IP bans and account suspensions.
 
 #### 🤖 Real-Time AI/ML Use Case
+
 OpenAI and Anthropic APIs return `429 + Retry-After` when token-per-minute (TPM) or request-per-minute (RPM) limits are exceeded. Production AI agents must parse this header and throttle requests to avoid permanent API key suspension during high-throughput batch inference.
 
 #### 🎨 Visual Concept
@@ -253,9 +274,11 @@ flowchart TD
 - **Time To First Token (TTFT)**: The latency duration between sending a request and receiving the very first token chunk.
 
 #### 💡 The Beginner Analogy: Typing Indicator vs. Letter Delivery
+
 Waiting for a non-streamed response is like waiting for a full 5-page letter to arrive in the physical mail (3 days). **SSE Streaming** is watching a person type words onto a messaging screen **token by token in real-time**.
 
 #### 💻 Code Example & ⚠️ Why It Matters
+
 ```python
 # Formatting SSE event data line:
 tokens = ["The", " capital", " of", " France"]
@@ -266,6 +289,7 @@ for chunk in sse_stream:
 ```
 
 ##### Verified Output
+
 ```text
 data: {"token": "The"}
 data: {"token": " capital"}
@@ -276,6 +300,7 @@ data: {"token": " France"}
 **Why It Matters**: Reduces perceived user latency in AI chat interfaces from seconds down to milliseconds.
 
 #### 🤖 Real-Time AI/ML Use Case
+
 The protocol behind ChatGPT-style streaming responses. Every AI chat UI renders tokens as they arrive via SSE (`data: {"choices": [{"delta": {"content": "Hello"}}]}`). TTFT (Time To First Token) is the primary UX latency metric tracked in production LLM deployments.
 
 #### 🎨 Visual Concept
@@ -303,10 +328,12 @@ flowchart TD
 An NGINX reverse proxy configuration setting that controls whether NGINX holds incoming HTTP response chunks in a buffer until the full response completes before forwarding it to the client.
 
 #### 💡 The Beginner Analogy: Holding Tank vs. Open Pipe
+
 - `proxy_buffering on` (Default): A holding tank that catches streaming water until filled, releasing it in one big splash.
 - `proxy_buffering off`: An open pipe that passes water droplets through instantly as they arrive.
 
 #### 💻 Code Example & ⚠️ Why It Matters
+
 ```nginx
 # nginx.conf location block for streaming LLM APIs:
 location /v1/stream {
@@ -316,6 +343,7 @@ location /v1/stream {
 ```
 
 ##### Verified Output
+
 ```text
 # NGINX flushes response chunks to client without buffering
 proxy_buffering off;
@@ -324,6 +352,7 @@ proxy_buffering off;
 **Why It Matters**: Leaving `proxy_buffering on` in NGINX silently breaks LLM response streaming, turning real-time token streams into slow, buffered single blobs.
 
 #### 🤖 Real-Time AI/ML Use Case
+
 Deploying LLM inference servers (vLLM, Ollama, FastAPI) behind NGINX reverse proxies. Without `proxy_buffering off`, the user sees zero tokens for 30+ seconds, then the entire response appears at once — destroying the real-time chat UX that production AI applications require.
 
 #### 🎨 Visual Concept
@@ -464,28 +493,28 @@ flowchart TD
 
 **The parts of a request, and what each one decides.**
 
-| Part | What it does | Why it matters on this path |
-|---|---|---|
-| `POST` vs `GET` | `GET` is idempotent, `POST` is not | Decides whether a retry in **6.14** is safe — Demo 6 |
-| `Content-Type: application/json` | Declares the body format | Omit it and many servers return `415` — Demo 3 |
-| `x-api-key` header | Credential in a **header**, never the URL | URLs land in logs and history — Demo 5, **7.13** |
-| `anthropic-version` style header | Pins API behaviour | Stops a provider change silently altering output |
-| `Content-Length` | Exact byte count of the body | Wrong value and the server hangs or misreads |
-| Body, not query params | Large structured payload | Query strings are length-limited; prompts are long |
-| `"stream": true` | Response arrives incrementally | **4.9**, and NGINX must not buffer it — **0.12** |
+| Part                               | What it does                                   | Why it matters on this path                                   |
+| ---------------------------------- | ---------------------------------------------- | ------------------------------------------------------------- |
+| `POST` vs `GET`                | `GET` is idempotent, `POST` is not         | Decides whether a retry in**6.14** is safe — Demo 6    |
+| `Content-Type: application/json` | Declares the body format                       | Omit it and many servers return`415` — Demo 3              |
+| `x-api-key` header               | Credential in a**header**, never the URL | URLs land in logs and history — Demo 5,**7.13**        |
+| `anthropic-version` style header | Pins API behaviour                             | Stops a provider change silently altering output              |
+| `Content-Length`                 | Exact byte count of the body                   | Wrong value and the server hangs or misreads                  |
+| Body, not query params             | Large structured payload                       | Query strings are length-limited; prompts are long            |
+| `"stream": true`                 | Response arrives incrementally                 | **4.9**, and NGINX must not buffer it — **0.12** |
 
 **Status codes, by the action they demand:**
 
-| Code | Meaning | Correct client response |
-|---|---|---|
-| `200` / `201` | OK / Created | Proceed |
-| `400` | Malformed request | **Do not retry** — fix the code |
-| `401` | Not authenticated | **Do not retry** — key missing or wrong |
-| `403` | Authenticated, not permitted | **Do not retry** — scope or permission issue (**7.13**) |
-| `404` | No such resource | Do not retry the same URL |
-| `422` | Well-formed, semantically invalid | **Do not retry unchanged** — Pydantic rejecting a payload (**0.3**, **4.8**) |
-| `429` | Rate limited | **Retry with backoff**, honour `Retry-After` |
-| `500` / `502` / `503` / `504` | Server-side fault | Retry with backoff |
+| Code                                  | Meaning                           | Correct client response                                                                         |
+| ------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `200` / `201`                     | OK / Created                      | Proceed                                                                                         |
+| `400`                               | Malformed request                 | **Do not retry** — fix the code                                                          |
+| `401`                               | Not authenticated                 | **Do not retry** — key missing or wrong                                                  |
+| `403`                               | Authenticated, not permitted      | **Do not retry** — scope or permission issue (**7.13**)                            |
+| `404`                               | No such resource                  | Do not retry the same URL                                                                       |
+| `422`                               | Well-formed, semantically invalid | **Do not retry unchanged** — Pydantic rejecting a payload (**0.3**, **4.8**) |
+| `429`                               | Rate limited                      | **Retry with backoff**, honour `Retry-After`                                            |
+| `500` / `502` / `503` / `504` | Server-side fault                 | Retry with backoff                                                                              |
 
 **Streaming is a different body format, not a flag.** A normal response is one JSON document. A streaming response is a sequence of **Server-Sent Events** — `event:` and `data:` lines separated by blank lines, arriving over hundreds of milliseconds. Demo 4 shows `json.loads()` failing on it outright. You either iterate the lines yourself or let a provider SDK do it; there is no third option where `.json()` works.
 
@@ -585,6 +614,7 @@ server stopped
 **Demo 6 explains why a timed-out `POST` is genuinely hard.** Three `GET`s changed nothing; three `POST`s created three orders. When a `POST` times out you do not know whether the server processed it before the timeout fired — so a blind retry may double-charge. That is why **0.8** treats write retries differently from read retries.
 
 **Modify and re-run:**
+
 - In Demo 1, change `Content-Length: 32` to `40` and re-run. Predict what happens before you do — the server will wait for eight bytes that never arrive.
 - Add a `418` route to the server and see what `decide()` returns for it. Then decide what an agent *should* do with an unclassified code.
 - Raise `STREAM_GAP` to `1.0` and re-run Demo 4. Watch the perceived-latency gap widen to five seconds — this is what streaming buys on a long generation.

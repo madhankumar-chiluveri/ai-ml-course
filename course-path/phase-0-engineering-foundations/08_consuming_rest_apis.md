@@ -24,9 +24,11 @@ Depends on **0.7**; feeds **5.6** reranker calls, **6.13** MCP tool implementati
 - **`HTTPAdapter(pool_maxsize=N)`**: Configures connection pool limits, capping how many concurrent TCP connections Pytest/requests reuses per host.
 
 #### 💡 The Beginner Analogy: Dedicated Express Toll Lane
+
 `requests.get()` without a `Session` is like dialing a phone number, speaking 1 sentence, and hanging up — then dialing the number again from scratch for the next sentence (re-doing DNS, TCP, and TLS handshakes every time!). A **`Session`** is keeping an **open telephone line** active so you can instantly send messages back and forth.
 
 #### 💻 Code Example & ⚠️ Why It Matters
+
 ```python
 import requests
 from requests.adapters import HTTPAdapter
@@ -39,6 +41,7 @@ print("Session connection pool configured cleanly.")
 ```
 
 ##### Verified Output
+
 ```text
 Session connection pool configured cleanly.
 ```
@@ -46,6 +49,7 @@ Session connection pool configured cleanly.
 **Why It Matters**: Creating a new connection per API call consumes socket file descriptors, leading to `OSError: [Errno 99] Cannot assign requested address` in high-throughput microservices.
 
 #### 🤖 Real-Time AI/ML Use Case
+
 Batch embedding generation pipelines calling OpenAI's embedding API thousands of times. A `Session` with connection pooling reuses the TCP+TLS connection across all calls, reducing per-request overhead from ~300ms to ~20ms and avoiding socket exhaustion during large-scale document ingestion.
 
 #### 🎨 Visual Concept
@@ -73,16 +77,19 @@ flowchart TD
 - **Read Timeout**: Maximum budget allowed between receiving chunks of data from the server once the connection is established (set higher for long LLM generation, e.g. 30.0s).
 
 #### 💡 The Beginner Analogy: Phone Pick-up vs. Speech Delivery
+
 - **Connect Timeout**: How long you let the phone ring before hanging up if no one answers (3 seconds).
 - **Read Timeout**: How long you wait for the speaker to say their next sentence once they've already answered the phone (30 seconds).
 
 #### 💻 Code Example & ⚠️ Why It Matters
+
 ```python
 timeout_config = (3.0, 30.0) # (connect_timeout, read_timeout)
 print(f"Connect Timeout: {timeout_config[0]}s, Read Timeout: {timeout_config[1]}s")
 ```
 
 ##### Verified Output
+
 ```text
 Connect Timeout: 3.0s, Read Timeout: 30.0s
 ```
@@ -90,6 +97,7 @@ Connect Timeout: 3.0s, Read Timeout: 30.0s
 **Why It Matters**: Passing a single integer `timeout=30` allows a dead server to hang DNS/TCP negotiation for 30 full seconds before failing.
 
 #### 🤖 Real-Time AI/ML Use Case
+
 LLM API timeout tuning. Connect timeout should be low (3s) to detect dead inference servers fast, while read timeout must be high (60–120s) because GPT-4 generation legitimately takes 30–60 seconds for long outputs. A single scalar forces a bad compromise that either kills valid generations or hangs on dead servers.
 
 #### 🎨 Visual Concept
@@ -115,9 +123,11 @@ flowchart TD
 - **Full Jitter**: Adding a random delay distribution (`random.uniform(0, backoff_window)`) to spread out retry timestamps.
 
 #### 💡 The Beginner Analogy: Knocking on a Locked Door
+
 If a room is locked, knocking every 1 second just annoys the occupant. **Exponential Backoff** means knocking after 2 seconds, then 4 seconds, then 8 seconds. **Full Jitter** means throwing in random variations so 100 people don't all knock on the door at the exact same millisecond.
 
 #### 💻 Code Example & ⚠️ Why It Matters
+
 ```python
 import random
 
@@ -131,6 +141,7 @@ print(f"Attempt 2 Jittered Delay: {delay:.2f}s")
 ```
 
 ##### Verified Output
+
 ```text
 Attempt 2 Jittered Delay: 2.56s
 ```
@@ -138,6 +149,7 @@ Attempt 2 Jittered Delay: 2.56s
 **Why It Matters**: Essential for enterprise API consumption. Prevents rate-limit recovery loops from crashing remote services.
 
 #### 🤖 Real-Time AI/ML Use Case
+
 Production LLM agent retry logic. When an OpenAI API call returns 429 (rate limited), exponential backoff with full jitter prevents all concurrent agent sessions from retrying simultaneously, which would rebuild the exact traffic spike that caused the rate limit in the first place.
 
 #### 🎨 Visual Concept
@@ -163,9 +175,11 @@ flowchart TD
 A failure mode where hundreds of concurrent API clients experience a brief network drop or rate limit, and all retry at the exact same millisecond, creating a giant traffic spike that instantly knocks the API server back down.
 
 #### 💡 The Beginner Analogy: Door Slam in a Crowd
+
 Imagine a stadium door jamming for 10 seconds. A crowd of 5,000 people builds up outside. The instant the guard unlocks the door, all 5,000 people **stampede the doorway at once**, crushing the entrance and forcing the guard to lock the door again.
 
 #### 💻 Code Example & ⚠️ Why It Matters
+
 ```python
 # Randomizing sleep times prevents synchronized client retry stampedes
 jitter_enabled = True
@@ -173,6 +187,7 @@ print(f"Thundering Herd Mitigated: {jitter_enabled}")
 ```
 
 ##### Verified Output
+
 ```text
 Thundering Herd Mitigated: True
 ```
@@ -180,6 +195,7 @@ Thundering Herd Mitigated: True
 **Why It Matters**: Explains why simple `time.sleep(2)` retry loops ruin production server recoveries during outages.
 
 #### 🤖 Real-Time AI/ML Use Case
+
 Multi-agent fan-out systems calling shared LLM APIs. When 100 LangGraph agent nodes hit an OpenAI rate limit simultaneously and all retry with `time.sleep(2)`, they create a synchronized stampede every 2 seconds — the thundering herd pattern that extends outages indefinitely.
 
 #### 🎨 Visual Concept
@@ -330,18 +346,21 @@ sequenceDiagram
 
 ## 4. Core Technical Deep Dive
 
+> [!IMPORTANT]
+> **Production AI Client vs. Test Mock Server**: In real AI and Agentic development, you never build custom HTTP server test harnesses. Your job is writing the **resilient Python client** (connection pooling, retry loops, backoff with jitter, and SSE line streaming) that talks to LLM gateways (OpenAI, Anthropic, Ollama), vector databases, and external REST APIs. The companion script `08_consuming_rest_apis.py` uses a lightweight in-memory server *only* to simulate 429 rate limits and server errors offline without incurring API billing. Focus 100% on mastering the client patterns below.
+
 **The eight practices, and the specific failure each one prevents.**
 
-| Practice | The failure it prevents | Where that failure surfaces |
-|---|---|---|
-| `Session` + connection pool | A new TCP + TLS handshake per call | **7.7** latency — Demo 1: 40 connections → 1 |
-| Explicit `timeout=(connect, read)` | Unbounded hang | **6.14** agent failure mode #1 — Demo 4 |
-| Retry only `429`/`5xx` | Paid retries of a permanently broken request | **6.14** cost blowup — Demo 3 |
-| Honour `Retry-After` | Getting rate-limited harder by guessing | **7.7** — Demo 2 |
-| Jittered backoff | Thundering herd on recovery | **6.10** parallel fan-out — Demo 5 |
-| Raise on non-retryable | A silent `None` poisoning agent state | **6.14** typed error returns |
-| Key from `os.environ`, in a header | Credential in source or logs | **7.13**, and **0.7** Demo 5 |
-| `stream=True` **and** a small `chunk_size` | Streaming silently degrading to buffered | **4.9**, **6.9** — Demo 6 |
+| Practice                                             | The failure it prevents                      | Where that failure surfaces                          |
+| ---------------------------------------------------- | -------------------------------------------- | ---------------------------------------------------- |
+| `Session` + connection pool                        | A new TCP + TLS handshake per call           | **7.7** latency — Demo 1: 40 connections → 1 |
+| Explicit`timeout=(connect, read)`                  | Unbounded hang                               | **6.14** agent failure mode #1 — Demo 4       |
+| Retry only`429`/`5xx`                            | Paid retries of a permanently broken request | **6.14** cost blowup — Demo 3                 |
+| Honour`Retry-After`                                | Getting rate-limited harder by guessing      | **7.7** — Demo 2                              |
+| Jittered backoff                                     | Thundering herd on recovery                  | **6.10** parallel fan-out — Demo 5            |
+| Raise on non-retryable                               | A silent`None` poisoning agent state       | **6.14** typed error returns                   |
+| Key from`os.environ`, in a header                  | Credential in source or logs                 | **7.13**, and **0.7** Demo 5             |
+| `stream=True` **and** a small `chunk_size` | Streaming silently degrading to buffered     | **4.9**, **6.9** — Demo 6               |
 
 **Why a `Session`, concretely.** Bare `requests.get()` constructs a new `Session` internally on every call, which means a new TCP connection every call. Demo 1 counts this **server-side** — 40 connections versus 1 — so it is not an inference from timings. Over localhost HTTP that already showed an 8.1x speed difference; against a real provider each of those connections additionally costs a TLS negotiation over the public internet.
 
@@ -457,6 +476,7 @@ server stopped
 **Demo 6 caught a bug that would otherwise ship.** The first measurement shows `stream=True` producing **first token at 727 ms and complete at 727 ms** — the same number, meaning nothing streamed. `iter_lines()` defaults to `chunk_size=512` and blocks until it has that many bytes. Setting `chunk_size=1` moves first-token to **3 ms**. Identical flag, identical server, identical bytes, and no error either way. This is why time-to-first-token is the thing to measure, not the presence of a flag.
 
 **Modify and re-run:**
+
 - In Demo 2, delete the `Retry-After` branch and watch attempt 1 use the formula instead. Compare total elapsed — the provider's number is usually better than yours.
 - Add `429` to a `NON_RETRYABLE` set and re-run Demo 2. The call now fails on a condition that would have cleared itself in one second.
 - In Demo 4, remove `timeout` entirely and raise the `/slow` sleep to 120 s. Do not walk away — that hang is the failure mode, and it is worth feeling once.

@@ -9,7 +9,7 @@ This runs once per topic, using the entry produced by the roadmap-architect pass
 <inputs>
 Topic name: {topic_name}
 Why it matters + connections (from roadmap): {why_and_connections}
-Topic type: {topic_type}  (CODE or CONCEPT)
+Topic type: {topic_type}  (CODE, WORKBENCH, or CONCEPT)
 Prior notes on this topic, if any: {prior_notes}
 </inputs>
 
@@ -19,7 +19,8 @@ Write one Markdown file teaching {topic_name} end-to-end, sized for a single foc
 
 <instructions>
 1. Open with a 3-5 sentence plain-English explanation, explicitly referencing {why_and_connections} so it's linked to the rest of the roadmap, not taught in isolation.
-2. If CODE: one minimal, runnable, heavily-commented example — comments explain *why* each line exists, not just what it does. Pair code and explanation side by side (table or adjacent fenced blocks), matching the learner's existing Gemini-in-Antigravity workflow.
+2. If CODE: one minimal, runnable, heavily-commented Python example — comments explain *why* each line exists, focusing on core client/algorithm logic without distracting mock test harnesses. Paired with a `.py` companion script.
+   If WORKBENCH: command-line, DevOps, or cloud infrastructure tooling. Do NOT create a `.py` script. Provide real-world terminal execution drills (step-by-step CLI commands, production config files, live verification, and failure triage).
    If CONCEPT: skip code; give one worked numerical or diagrammatic example by hand instead.
 3. "Visual" section: include clear Mermaid concept diagrams (`flowchart TD`, `flowchart LR`, or `sequenceDiagram`) visualizing execution flow, data states, and failure points with styled nodes (green for success, red for errors).
 4. Search for one specific, currently-live, free YouTube video that teaches this exact concept well. Name title and channel. If you can't verify it currently exists, write [VERIFY] instead of guessing.

@@ -1,8 +1,8 @@
 # 0.11 — Docker and Docker Compose
 
-**Phase 0 · CORE · CODE · 10 focused hours · Review in 7 days**
+**Phase 0 · CORE · WORKBENCH · 10 focused hours · Review in 7 days**
 
-**Companion script:** [`11_docker_and_compose.py`](11_docker_and_compose.py) — needs `PyYAML` for Demo 7 (`pip install pyyaml`); Docker itself is optional. It builds **real throwaway images** from a base image that is **already on the machine**, tags everything `coursedemo-*-<run nonce>`, runs every build and container with `--network=none`, publishes no port, and removes every image, container and volume it created in a `finally` block. It never pulls, never touches a resource it did not create, and refuses any image whose name contains `supabase`.
+**Workbench Track:** Real-world terminal execution with **Docker CLI** and **Docker Compose**. Build optimized production multi-stage images, master layer caching, orchestrate multi-container AI stacks (FastAPI + pgvector + Redis), and manage persistent volumes.
 
 ---
 
@@ -588,147 +588,194 @@ docker system prune -af          # reclaim disk when du -sh flags Docker (0.10)
 
 ---
 
-## 5. Hands-On Script & Verified Output
+## 5. Hands-On Real-World Terminal Drills (Docker CLI & Docker Compose)
 
-Run: `python 11_docker_and_compose.py`. Output below is **actual, captured** against Docker server **29.6.1** with PyYAML present, using `fnproject/python:3.11` as the base — simply the first usable image already present on that machine. Timings vary; the shapes, the counts and the ratios do not. On a machine with no local base image, Demos 1 and 3–6 print `SKIPPED` instead, and nothing is pulled to fix that. Trimmed below to the measurements; the script's own commentary between demos is interpreted in prose instead.
+Do not run Python scripts to simulate Docker. Install Docker Desktop / Docker Engine and execute these 6 real-world drills:
 
-```text
-docker server 29.6.1 | pyyaml yes
-base image (already local, NOT pulled): fnproject/python:3.11
-scratch dir ...\Temp\course011-77r0jzjk
-run nonce   8a25dbff
-======================================================================
-DEMO 1 - ONE image, THREE containers. Counted, not asserted.
-======================================================================
-  image coursedemo-app-8a25dbff
-    id sha256:744b0a25712c   <- ONE set of read-only bytes
+---
 
-  container    id            lines in /data/seed.txt   its own line
-  -----------  ------------  -----------------------   ------------
-  alpha        93479c6785d0                      2   alpha
-  bravo        0193d84041d7                      2   bravo
-  charlie      89e9530503e2                      2   charlie
+### Drill 1 — Layer Caching & Multi-Stage Production `Dockerfile`
 
-  distinct container ids: 3   distinct image ids: 1
-======================================================================
-DEMO 2 - why the ordering rule works: the key is a HASH CHAIN
-======================================================================
-  the edit: one line of app.py, 'v1' -> 'v2'.
-  requirements.txt is byte-identical in both runs.
+Create a production-grade FastAPI container with cached dependency layers and non-root execution:
 
-  SOURCE FIRST  (COPY . . then pip install)
-    HIT   7f45b28f -> 7f45b28f  WORKDIR /app
-    MISS  469ef601 -> acd06bfd  COPY requirements.txt app.py
-    MISS  50dc2323 -> 2eb260d8  RUN pip install -r requirements.txt     <-- reinstalls EVERYTHING
-    MISS  59069f26 -> 24911617  CMD uvicorn main:app
-    3 of 4 layers invalidated
+```bash
+# 1. Create a practice folder
+mkdir -p docker-ai-service && cd docker-ai-service
 
-  REQS FIRST    (COPY requirements.txt, pip, then COPY app.py)
-    HIT   7f45b28f -> 7f45b28f  WORKDIR /app
-    HIT   2b081b5d -> 2b081b5d  COPY requirements.txt
-    HIT   bc0049b1 -> bc0049b1  RUN pip install -r requirements.txt
-    MISS  dad560ea -> ce427543  COPY app.py
-    MISS  c133e74e -> de45c8b1  CMD uvicorn main:app
-    2 of 5 layers invalidated
-======================================================================
-DEMO 3 - the same rule with a stopwatch on real `docker build`
-======================================================================
-  the install layer is `RUN sleep 3` - a stand-in
-  for `pip install -r requirements.txt`, because this sandbox has
-  no network. What is measured is whether it RE-RUNS.
+# 2. Write a minimal requirements.txt
+cat << 'EOF' > requirements.txt
+fastapi==0.115.0
+uvicorn==0.31.0
+pydantic==2.9.2
+EOF
 
-  Dockerfile ordering    cold    no-op    after 1-line src edit
-  --------------------  ------  -------  -----------------------
-  source-first           5.42s    1.22s     5.30s  (1 layer(s) CACHED)
-  reqs-first             4.92s    1.25s     1.47s  (3 layer(s) CACHED)
+# 3. Write a minimal FastAPI app
+cat << 'EOF' > main.py
+from fastapi import FastAPI
+app = FastAPI(title="AI Inference Service")
 
-  rebuild ratio: 3.6x slower for the wrong ordering; 3.83s of avoidable
-  work on a 3s install step.
-======================================================================
-DEMO 4 - .dockerignore decides how many bytes leave your machine
-======================================================================
-  a project shaped like a real one:
-    everything on disk         8 files     13.90 MB
-    after .dockerignore        2 files      0.00 MB
-    excluded                   6 files     13.90 MB  (100.0% of the weight)
+@app.get("/health")
+def health():
+    return {"status": "healthy", "service": "llm-gateway"}
+EOF
 
-  BuildKit's own number, from `docker build --progress=plain`:
-    no .dockerignore     transferring context: 13.91MB    (2.62s total)
-    with .dockerignore   transferring context: 176B       (1.19s total)
-======================================================================
-DEMO 5 - CMD form decides whether `docker stop` is graceful
-======================================================================
-  each container is stopped with `docker stop -t 5`.
-  SIGTERM first; SIGKILL when the grace period runs out.
+# 4. Write the Layer-Optimized Production Dockerfile
+cat << 'EOF' > Dockerfile
+# Stage 1: Build & install dependencies in isolated builder
+FROM python:3.11-slim AS builder
 
-  CMD written as              app pid   trap ran   stop took
-  --------------------------  -------   --------   ---------
-  exec form                         1        yes       0.27s
-  shell, simple                     1        yes       0.28s
-  shell, compound                   7         no       5.25s
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential && rm -rf /var/lib/apt/lists/*
 
-    exec form        CMD ["/bin/sh", "/app/run.sh"]
-    shell, simple    CMD /bin/sh /app/run.sh
-    shell, compound  CMD /bin/sh /app/run.sh && echo "bye"
-======================================================================
-DEMO 6 - a named volume outlives the container; the layer does not
-======================================================================
-  container 1 (2125a3815077) wrote /vol/pgdata.txt and /scratch/notes.txt
-  container 1 removed  (this is what a redeploy does)
-  container 2 (59c36cdfd9e4) reads the same paths:
-    volume  : row 1 - the vector index
-    layer   : GONE
-======================================================================
-DEMO 7 - depends_on waits for STARTED, not for READY
-======================================================================
-  parsed 4 services, 3 depends_on edges, 1 named volume(s)
+# Copy ONLY requirements first -> caches pip download layer
+COPY requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
 
-  service   depends on   as spelled                  db healthy?
-  --------  -----------  --------------------------  -----------
-  api       db           service_healthy             WAITS
-  api       cache        service_started             RACE
-  worker    db           service_started (implied)   RACE
+# Stage 2: Minimal runtime image
+FROM python:3.11-slim AS runner
 
-  start wave 0: cache, db
-  start wave 1: api, worker
+WORKDIR /app
 
-  now timed. The db container STARTS at t=0 and only begins
-  accepting connections at t=1.5s.
+# Create non-root system user for container security
+RUN useradd -u 8888 appuser && chown -R appuser:appuser /app
+USER appuser
 
-    worker (depends_on: [db])          connects at  0.00s -> CONNECTION REFUSED, container exits 1
-    api (condition: service_healthy)   connects at  1.51s -> OK after 15 health polls
+# Copy installed wheels from builder stage
+COPY --from=builder /root/.local /home/appuser/.local
+ENV PATH=/home/appuser/.local/bin:$PATH
 
-  a compose file where api needs db and db needs api:
-    services with no unmet dependency: 0
-    -> nothing can start. Compose reports a circular dependency
-======================================================================
-CLEANUP - removing only what this run created
-======================================================================
-  containers removed:  7 of 7
-  images removed    :  9 of 9
-  volumes removed   :  1 of 1
-  every name carried the nonce 8a25dbff; nothing else was touched.
-scratch dir removed: True
+# Copy application source code LAST (prevents cache busts on src edits)
+COPY --chown=appuser:appuser . .
+
+# MUST use EXEC-FORM to receive SIGTERM from Docker daemon
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+EOF
 ```
 
-**Demo 1 makes "image versus container" a counting exercise.** Three containers, three distinct ids, one image id — and the decisive column is the middle one. Each container appended a line to a file that already existed in the image and then counted `2` lines. If the image were mutable, charlie would have seen `4`. It saw `2`, because alpha's and bravo's writes went into their own writable layers and never touched the shared read-only bytes.
+---
 
-**Demo 2 and Demo 3 are the same claim at two levels, and they agree.** The pure-Python model says the install layer's key is `bc0049b1` before and after the edit under requirements-first — a HIT — while source-first moves it from `50dc2323` to `2eb260d8`. The stopwatch then says the requirements-first rebuild took **1.47s** against a no-op floor of **1.22s**, and the source-first rebuild took **5.30s**. Two independent methods, one conclusion. Note honestly that the **cold** column, 5.42s versus 4.92s, is noise — both cold builds execute the same 3-second sleep, and a 0.50s spread there carries no lesson. The signal lives entirely in the warm column, and the no-op column is what makes it readable: without knowing that 1.22s is unavoidable overhead, 1.47s would look like a small win rather than a total one.
+### Drill 2 — Measuring `.dockerignore` Impact on BuildKit Context Transfer
 
-**Demo 3's honest caveat is that the install is `RUN sleep 3`.** The 3.83s of avoidable work is small in absolute terms *because the modelled install is small*. What is being measured is not duration but whether the layer re-executes at all, and that verdict — 1 layer CACHED versus 3 — is unaffected by how long the layer takes. Substitute a real `pip install torch` at two to five minutes and the same 3.6x ratio applies to minutes, paid on every commit, by every developer, and by every CI run that builds the image for **7.11**.
+```bash
+# 1. Create dummy large directories that must NEVER leave your laptop
+mkdir -p .venv data/raw checkpoints
+head -c 50M </dev/urandom > data/raw/large_corpus.bin
+head -c 20M </dev/urandom > checkpoints/model.pt
 
-**Demo 4's headline is 13.91MB versus 176B, and its "100.0%" is a rounding artifact.** The Python walk prints `after .dockerignore 2 files 0.00 MB` because two tiny source files round to zero at two decimals, so "100.0% of the weight" is a display artifact rather than a literal claim that nothing was sent. BuildKit's own report is the number to trust: **176B** across the wire, including tar overhead, against **13.91MB** without the ignore file — and total build time **1.19s** versus **2.62s**. That whole 13.9MB is `.venv`, `.git`, `node_modules` and `data`, tarred and shipped before the first instruction executes, on every single build.
+# 2. Create the production .dockerignore
+cat << 'EOF' > .dockerignore
+.git
+.venv
+__pycache__
+data/raw/
+checkpoints/
+*.md
+.env*
+EOF
 
-**Demo 5 contradicts the folk explanation, and the pid column is why.** "Shell form swallows SIGTERM" predicts that both shell rows fail. They did not: `shell, simple` stopped in **0.28s**, indistinguishable from exec form's **0.27s**, because `sh` `exec`s a lone simple command and replaces itself, leaving the app as pid **1**. Only `shell, compound` failed — pid **7**, trap `no`, and **5.25s**, which is the full 5-second grace period plus SIGKILL. The rule survives, with a better reason attached: exec form is correct because it is the form that cannot accidentally acquire shell semantics when somebody appends `&& echo done` next quarter.
+# 3. Build the image and inspect BuildKit context transfer
+docker build --progress=plain -t ai-service:v1 .
 
-**Demo 7 shows the race and the fix in the same 1.5 seconds.** The `worker`, using the list spelling of `depends_on`, connected at **0.00s** and got `CONNECTION REFUSED` — the container was started, and started is all the list form waits for. The `api`, with `condition: service_healthy`, polled **15** times at the healthcheck interval and connected at **1.51s**, first attempt, no error. Both services are in start wave 1 behind the same wave-0 `db`; the only difference is the condition. The topological sort is not incidental either — feed Compose a file where `api` needs `db` and `db` needs `api` and **0** services have no unmet dependency, which is how Compose reports a circular dependency instead of hanging.
+# Notice in the output:
+# -> "[internal] load build context" transfers only a few KBs instead of 70MB+!
+```
 
-**Modify and re-run:**
-- Raise `INSTALL_SECONDS` from `3` to `30` and re-run Demo 3. The no-op floor should stay near **1.22s** while the source-first warm rebuild grows to roughly 32s and the reqs-first one does not move. The floor is fixed; only the ratio scales.
-- In Demo 3, edit `requirements.txt` instead of `app.py` and re-run. Requirements-first loses its entire advantage — the rule protects *code* edits, and dependency edits legitimately cost a reinstall in both orderings.
-- In Demo 5, delete the `trap` line from `RUN_SH` and re-run the exec form. The pid stays `1` but `stop took` returns to the full grace period, proving exec form is necessary and not sufficient: the process still has to handle the signal.
-- In Demo 4, drop a 200 MB file into `data/` and re-run. Watch BuildKit's `transferring context` and the total build time move for the un-ignored build while the ignored build stays at **176B** and ~1.2s.
-- In Demo 7, change `api`'s condition to `service_started` and re-run — both services now race. Then add `cache` to `worker`'s `depends_on` and check whether the start waves change or only the edge count does.
+---
+
+### Drill 3 — Graceful Shutdown vs Zombie SIGKILL (`docker stop`)
+
+```bash
+# 1. Run the container detached
+docker run -d --name ai-app -p 8000:8000 ai-service:v1
+
+# 2. Verify health endpoint
+curl http://localhost:8000/health
+
+# 3. Time the stop command:
+time docker stop ai-app
+# -> Returns in ~0.3s because exec-form CMD passed SIGTERM cleanly to uvicorn!
+
+# 4. Cleanup container:
+docker rm ai-app
+```
+
+---
+
+### Drill 4 — Multi-Container Orchestration (`docker compose`)
+
+Orchestrate FastAPI, Postgres with `pgvector`, and Redis in a single bridge network:
+
+```bash
+cat << 'EOF' > docker-compose.yml
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://app:secret@db:5432/appdb
+      - REDIS_URL=redis://cache:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_started
+
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: appdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d appdb"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  cache:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  pgdata:
+EOF
+
+# 1. Boot entire stack detached with healthcheck synchronization:
+docker compose up -d --build
+
+# 2. Verify status and healthy flags:
+docker compose ps
+
+# 3. Inspect database logs:
+docker compose logs -f db
+```
+
+---
+
+### Drill 5 — Named Volume Persistence Testing (`down` vs `down -v`)
+
+```bash
+# 1. Insert dummy data into postgres
+docker compose exec db psql -U app -d appdb -c "CREATE TABLE test (id serial, val text); INSERT INTO test (val) VALUES ('vector-index-1');"
+
+# 2. Stop containers with plain down:
+docker compose down
+
+# 3. Re-start containers:
+docker compose up -d
+docker compose exec db psql -U app -d appdb -c "SELECT * FROM test;"
+# -> Data is STILL THERE because named volume 'pgdata' persisted!
+
+# 4. Destroy volumes permanently (Clean reset):
+docker compose down -v
+```
+
 
 ---
 

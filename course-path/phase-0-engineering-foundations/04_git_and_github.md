@@ -1,8 +1,8 @@
 # 0.4 — Git and GitHub
 
-**Phase 0 · CORE · CODE · 5 focused hours · Review in 7 days**
+**Phase 0 · CORE · WORKBENCH · 5 focused hours · Review in 7 days**
 
-**Companion script:** [`04_git_and_github.py`](04_git_and_github.py) — needs `git` on PATH. Builds throwaway repos under the system temp folder and deletes them afterwards; it never touches your real repositories.
+**Workbench Track:** Real-world terminal execution in **Git Bash** & **GitHub**. No synthetic Python wrapper script — version control, branching, PRs, and secret hygiene are mastered through live terminal muscle memory.
 
 ---
 
@@ -442,72 +442,174 @@ data/raw/        # never commit datasets
 
 ---
 
-## 5. Hands-On Script & Verified Output
+## 5. Hands-On Real-World Terminal Drills (Git Bash & GitHub)
 
-Run: `python 04_git_and_github.py`. Output below is **actual, captured** on git 2.53.0. Hashes will differ on your machine; the shapes will not.
+Do not run Python scripts to practice Git. Open **Git Bash** or your native terminal in a temporary practice folder and execute these 5 real-world drills:
 
-```text
-git version: git version 2.53.0.windows.2
-scratch dir: ...\Temp\git-demo-aglzogtv  (safe — nothing here is yours)
-======================================================================
-DEMO 1 — merge vs rebase: the SAME work, two different histories
-======================================================================
+---
 
-  --- MERGE (4 commits on main) ---
-    *   4cb603d merge: feature
-    |\
-    | * f5cae84 feat: add feature
-    * | 0ec29bf docs: add readme
-    |/
-    * dd96bf7 feat: initial app
+### Drill 1 — Repo Initialization & AI Project `.gitignore` Setup
 
-  --- REBASE (3 commits on main) ---
-    * a906350 feat: add feature
-    * b25cdf5 docs: add readme
-    * 448a7be feat: initial app
+```bash
+# 1. Create a dedicated practice project
+mkdir ai-project-practice && cd ai-project-practice
+git init -b main
 
-  merge  : preserves the true shape, adds a merge commit (diamond)
-  rebase : replays commits onto main -> linear, readable, but the
-           commit HASHES change. Never rebase a branch others pulled.
-======================================================================
-DEMO 2 — deleting a secret does NOT remove it from history
-======================================================================
-  working tree now clean? secret in config.py: False
-  commits still containing the secret (git log -S):
-    98f3ae9 fix: read key from env
-    cd8e16b feat: add config
+# 2. Configure identity (repo-level or global)
+git config user.name "Your Name"
+git config user.email "your.email@example.com"
 
-  git show cd8e16b0:config.py
-    -> API_KEY = "sk-live-DEMO0000NOTAREALKEY0000"
-  SECRET STILL FETCHABLE: True
+# 3. Create a production-ready AI/ML .gitignore FIRST before touching any code
+cat << 'EOF' > .gitignore
+# Environment & Secrets
+.env
+.env.*
+!.env.example
 
-  ^ The file looks clean. The key is one command away for anyone
-    who clones the repo. Step 1 is ROTATE THE KEY; rewriting
-    history afterwards is cleanup, not remediation.
-======================================================================
-DEMO 3 — rewriting history changes every downstream hash
-======================================================================
-  BEFORE                        AFTER
-    6104341 feat: one            0b189f3 feat: one (reworded)  <- changed
-    06b799b feat: two            f64db64 feat: two  <- changed
-    176a707 feat: three          41c4342 feat: three  <- changed
+# Python & Environments
+__pycache__/
+*.py[cod]
+.venv/
+env/
 
-  ^ Editing the OLDEST commit changed the hash of EVERY commit
-    after it. That is why force-push is required, and why
-    --force-with-lease (not --force) is the safe form.
-======================================================================
+# ML Artifacts & Checkpoints (Heavy Binaries)
+*.pt
+*.pth
+*.onnx
+*.bin
+*.safetensors
+*.pkl
+
+# Vector DB & Experiment Tracking
+data/raw/
+chroma_db/
+qdrant_storage/
+mlruns/
+wandb/
+EOF
+
+# 4. Commit the baseline
+git add .gitignore
+git commit -m "chore: initial commit with AI/ML gitignore"
 ```
 
-**Demo 1's two graphs are the whole argument.** Same work, same files, same order — 4 commits with a diamond versus 3 in a line. Neither is wrong; they encode different priorities.
+---
 
-**Demo 2 is the one to internalise.** `grep` on the working tree finds nothing. `git log -S` finds two commits. `git show <sha>:config.py` prints the key in full. Anyone who has ever cloned the repo — or any fork, or a cached view — has it.
+### Drill 2 — Feature Branch, Pull Request & Branch Protection Workflow
 
-**Demo 3 explains the force-push requirement.** Changing the *oldest* commit changed all three hashes, because a commit's hash includes its parent's. History is a chain, so an edit anywhere rewrites everything after it.
+```bash
+# 1. Create and switch to a feature branch
+git switch -c feat/add-rag-pipeline
 
-**Modify and re-run:**
-- In Demo 1, drop `--no-ff` from the merge and re-run. Predict the graph first — Git will fast-forward and you will get a *third* shape.
-- In Demo 2, add a `.gitignore` with `.env` before the first commit, move the key there, and confirm `git log -S` finds nothing.
-- In Demo 3, amend the **newest** commit instead of the oldest. Predict how many hashes change before running.
+# 2. Add an implementation file
+mkdir src
+cat << 'EOF' > src/rag.py
+def retrieve(query: str):
+    return f"Retrieved context for: {query}"
+EOF
+
+git add src/rag.py
+git commit -m "feat(rag): implement basic context retriever"
+
+# 3. Push feature branch to GitHub
+# (Replace with your actual GitHub repo URL if linked)
+# git remote add origin https://github.com/username/ai-project-practice.git
+# git push -u origin feat/add-rag-pipeline
+
+# 4. Verify branch graph locally
+git log --oneline --graph --all
+```
+
+---
+
+### Drill 3 — Interactive Rebase (`git rebase -i`): Cleaning Messy Commits
+
+Before opening a PR, clean up "fix typo", "temp", "asdf" commits into clear atomic units:
+
+```bash
+# 1. Create 3 rapid dummy commits
+echo "print('v1')" > app.py && git add app.py && git commit -m "feat: start app"
+echo "print('v2')" > app.py && git add app.py && git commit -m "fix: typo in app"
+echo "print('v3')" > app.py && git add app.py && git commit -m "fix: actually working"
+
+# 2. Squash the last 3 commits into 1 clean commit
+git rebase -i HEAD~3
+
+# Git opens your default text editor. Change 'pick' to 'squash' (or 's') for the 2nd and 3rd lines:
+# pick a1b2c3d feat: start app
+# s    e4f5g6h fix: typo in app
+# s    i7j8k9l fix: actually working
+# Save and close the editor. Re-word the final commit to: "feat(app): complete app implementation"
+
+# 3. Verify clean linear history:
+git log --oneline -n 3
+```
+
+---
+
+### Drill 4 — Simulating and Resolving a Merge Conflict
+
+```bash
+# 1. Checkout main and edit line 1
+git switch main
+echo "EMBEDDING_MODEL = 'text-embedding-3-small'" > config.py
+git add config.py && git commit -m "config: use openai embeddings"
+
+# 2. Switch to a feature branch and edit the same line differently
+git switch feat/add-rag-pipeline
+echo "EMBEDDING_MODEL = 'bge-large-en-v1.5'" > config.py
+git add config.py && git commit -m "config: use local bge embeddings"
+
+# 3. Attempt rebase onto main -> CONFLICT!
+git rebase main
+
+# 4. Check conflict status:
+git status
+
+# 5. Open config.py in your editor, pick the correct resolution:
+# <<<<<<< HEAD (main)
+# EMBEDDING_MODEL = 'text-embedding-3-small'
+# =======
+# EMBEDDING_MODEL = 'bge-large-en-v1.5'
+# >>>>>>> feat/add-rag-pipeline
+# Edit file to keep desired model, save file.
+
+# 6. Stage resolved file and continue rebase:
+git add config.py
+git rebase --continue
+```
+
+---
+
+### Drill 5 — Secret Leak Forensics & True History Purge
+
+```bash
+# 1. Simulate an accidental secret commit:
+echo "OPENAI_API_KEY = 'sk-proj-LIVE_SECRET_KEY_12345'" > secrets.py
+git add secrets.py && git commit -m "feat: add api client config"
+
+# 2. Fix it wrongly (just deleting the file/line):
+rm secrets.py
+git add secrets.py && git commit -m "fix: remove leaked secret"
+
+# 3. PROOF: The secret is STILL fetchable by anyone who clones the repo!
+git log -S "sk-proj-LIVE_SECRET_KEY_12345" --oneline
+# Shows the commit hash! Inspect it directly:
+git show HEAD~1:secrets.py
+# -> Output prints the full plaintext API key!
+
+# 4. The Real-World Remediation Protocol:
+# STEP 1: IMMEDIATELY ROTATE/REVOKE the key in OpenAI console. (Remediation)
+# STEP 2: Purge secret from git history using git-filter-repo or git reset. (Cleanup)
+# (If unpushed, reset commit):
+git reset --soft HEAD~2
+git restore --staged secrets.py
+rm -f secrets.py
+git commit -m "feat: add clean client without secrets"
+
+# STEP 3: If already pushed to remote:
+# git push origin main --force-with-lease
+```
 
 ---
 
@@ -529,7 +631,7 @@ DEMO 3 — rewriting history changes every downstream hash
 
 ## 8. Closed-Book Rebuild
 
-With this file **and** the script closed: initialise a repo, make three messy commits including a fake secret in a config file, then produce a clean single-commit history with the secret purged, a working `.gitignore`, and a README that opens with what the project measured. Verify with `git log --all -S` that the secret is genuinely gone.
+With this file closed: open Git Bash, initialise a new repository, make three commits including a secret in a dummy file, then execute an interactive rebase (`git rebase -i`) to squash the history, verify with `git log -S` that secrets are purged, and verify that `.gitignore` correctly ignores `.env` and `.pt` checkpoint files.
 
 ---
 
@@ -588,7 +690,4 @@ Preventing accidental commits of `.env` files containing OpenAI API keys, large 
 
 **7 days** — low density. Rehearse the secret-purge sequence once more, because the first time it happens for real it will be under pressure.
 
-## Review again in
-
-**7 days** — low density. Rehearse the secret-purge sequence once more, because the first time it happens for real it will be under pressure.
 

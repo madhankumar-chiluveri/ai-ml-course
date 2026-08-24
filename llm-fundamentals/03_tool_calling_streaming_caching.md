@@ -324,7 +324,7 @@ Prompt Caching stores system instructions, multi-shot examples, or large context
 ### 5. OpenRouter & Free Model Ecosystem Testing (*see Glossary: OpenRouter & Free Model Ecosystem*)
 If you do not have a paid Claude API subscription, you can test these exact mechanics using **OpenRouter** or free open-weights models (such as `meta-llama/llama-3.3-70b-instruct:free`, `google/gemini-2.0-flash-lite-preview-02-05:free`, or `qwen/qwen-2.5-coder-32b-instruct:free`).
 
-Our workspace includes a Python script ([03_tool_calling_streaming_caching.py](file:///d:/Madhan_Utils/learnings/ai-ml/agentic-ai-engineer/llm-fundamentals/03_tool_calling_streaming_caching.py)) that supports:
+Our workspace includes a Python script ([03_tool_calling_streaming_caching.py](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/llm-fundamentals/03_tool_calling_streaming_caching.py)) that supports:
 1. Live execution via free OpenRouter endpoints if an API key is set.
 2. A complete local Anthropic/OpenRouter protocol emulator if no API key is set, enabling you to test tool calling, exception recovery, Pydantic validation, streaming, and prompt caching token metrics with 0 API cost.
 
@@ -332,7 +332,7 @@ Our workspace includes a Python script ([03_tool_calling_streaming_caching.py](f
 
 ## Hands-On Script & Verification Results
 
-The Python implementation file [03_tool_calling_streaming_caching.py](file:///d:/Madhan_Utils/learnings/ai-ml/agentic-ai-engineer/llm-fundamentals/03_tool_calling_streaming_caching.py) executes all four modules.
+The Python implementation file [03_tool_calling_streaming_caching.py](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/llm-fundamentals/03_tool_calling_streaming_caching.py) executes all four modules.
 
 ### Benchmark Output Summary
 
@@ -471,7 +471,7 @@ The technique of restricting or forcing an LLM to generate outputs that adhere s
 ---
 
 ### Pydantic Schema Validation
-Python library (`pydantic`) used in backend software engineering to enforce strict data types and runtime data validation. In AI engineering, LLM tool outputs are validated against Pydantic models (`InvoiceData.model_validate(input_dict)`) to ensure guaranteed type safety before saving to databases.
+Python library (`pydantic`) used in backend software engineering to enforce strict data types and runtime data validation. In AI/ML engineering, LLM tool outputs are validated against Pydantic models (`InvoiceData.model_validate(input_dict)`) to ensure guaranteed type safety before saving to databases.
 
 ---
 
@@ -523,5 +523,5 @@ An API aggregator (OpenRouter.ai) that provides a unified interface to hundreds 
 
 ## File Map
 
-- Documentation: [03_tool_calling_streaming_caching.md](file:///d:/Madhan_Utils/learnings/ai-ml/agentic-ai-engineer/llm-fundamentals/03_tool_calling_streaming_caching.md)
-- Executable Code: [03_tool_calling_streaming_caching.py](file:///d:/Madhan_Utils/learnings/ai-ml/agentic-ai-engineer/llm-fundamentals/03_tool_calling_streaming_caching.py)
+- Documentation: [03_tool_calling_streaming_caching.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/llm-fundamentals/03_tool_calling_streaming_caching.md)
+- Executable Code: [03_tool_calling_streaming_caching.py](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/llm-fundamentals/03_tool_calling_streaming_caching.py)

@@ -9,10 +9,11 @@ pytest against it, prints the real output, then deletes it.
 
 What this proves practically:
   1. Fixtures are injected BY PARAMETER NAME, with no import.
-  2. function-scope runs per test; session-scope runs ONCE. Both observable.
-  3. parametrize turns 1 function into N independently-named test cases.
-  4. `0.1 + 0.2 == 0.3` FAILS. pytest.approx passes. Real assertion output.
-  5. monkeypatch replaces a network call so the suite runs offline.
+  2. autouse=True runs fixtures automatically without parameter injection (for side-effects).
+  3. function-scope runs per test; session-scope runs ONCE. Both observable.
+  4. parametrize turns 1 function into N independently-named test cases.
+  5. `0.1 + 0.2 == 0.3` FAILS. pytest.approx passes. Real assertion output.
+  6. monkeypatch replaces a network call so the suite runs offline.
 """
 
 import shutil
@@ -56,6 +57,18 @@ CONFTEST = '''
 import pytest
 
 _SESSION_LOADS = []
+_AUTOUSE_RUNS = []
+
+
+@pytest.fixture(autouse=True)
+def reset_environment_state():
+    """autouse=True: runs for EVERY test automatically with NO parameter needed.
+
+    Ideal for side-effects: resetting singletons, clearing test database state,
+    setting test environment variables, or preventing state leakage across tests.
+    """
+    _AUTOUSE_RUNS.append(1)
+    yield
 
 
 @pytest.fixture
@@ -112,7 +125,16 @@ def test_fixture_really_was_fresh(sample_invoices):
     assert len(sample_invoices) == 2
 
 
-# ---- 2. session scope runs ONCE -------------------------------------
+# ---- 2. autouse: runs automatically with no parameter declared ------
+def test_autouse_runs_silently():
+    """Notice: no fixture parameters declared in function signature!
+    Yet reset_environment_state ran automatically before this test.
+    """
+    import conftest
+    assert len(conftest._AUTOUSE_RUNS) >= 1
+
+
+# ---- 3. session scope runs ONCE -------------------------------------
 def test_model_loaded_once_a(embedding_model):
     assert embedding_model["loads"] == 1
 
@@ -122,7 +144,7 @@ def test_model_loaded_once_b(embedding_model):
     assert embedding_model["loads"] == 1
 
 
-# ---- 3. parametrize: 1 function -> N named cases ---------------------
+# ---- 4. parametrize: 1 function -> N named cases ---------------------
 @pytest.mark.parametrize(
     "raw,expected",
     [
@@ -144,7 +166,7 @@ def test_parse_amount_rejects_garbage(bad):
         parse_amount(bad)
 
 
-# ---- 4. floats: the one that surprises people -----------------------
+# ---- 5. floats: the one that surprises people -----------------------
 def test_float_equality_is_a_lie():
     """DELIBERATELY FAILING - this is the output you need to recognise."""
     assert 0.1 + 0.2 == 0.3
@@ -154,7 +176,7 @@ def test_float_with_approx_passes():
     assert 0.1 + 0.2 == pytest.approx(0.3)
 
 
-# ---- 5. monkeypatch: no network in tests ----------------------------
+# ---- 6. monkeypatch: no network in tests ----------------------------
 def test_fx_rate_without_network(monkeypatch):
     """monkeypatch undoes itself after the test — no manual cleanup."""
     import app

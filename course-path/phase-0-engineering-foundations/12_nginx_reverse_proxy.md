@@ -1,8 +1,8 @@
 # 0.12 — NGINX as Reverse Proxy
 
-**Phase 0 · CORE · CODE · 4 focused hours · Review in 7 days**
+**Phase 0 · CORE · WORKBENCH · 4 focused hours · Review in 7 days**
 
-**Companion script:** [`12_nginx_reverse_proxy.py`](12_nginx_reverse_proxy.py) — standard library only, no installs, and **NGINX itself is not installed and not required**. It starts two throwaway HTTP servers on `127.0.0.1`, each on an OS-assigned free port: an SSE-streaming "app" of the shape **0.9** builds, and a ~120-line pure-Python reverse proxy that models the handful of NGINX directives this topic is about. Both are shut down in a `finally` block. Fully offline — no internet, no Docker, no API keys, nothing written to disk, no fixed port claimed.
+**Workbench Track:** Real-world configuration in **NGINX / Linux**. Configure production reverse proxies, prevent broken LLM token streams (`proxy_buffering off`), automate SSL certificates with Certbot, and manage rate limits.
 
 ---
 
@@ -508,123 +508,156 @@ tail -f /var/log/nginx/error.log      # 0.10 — where 502/504/413 causes live
 
 ---
 
-## 5. Hands-On Script & Verified Output
+## 5. Hands-On Real-World Terminal Drills (NGINX & SSL Reverse Proxy)
 
-Run: `python 12_nginx_reverse_proxy.py`. Output below is **actual, captured** on Windows with Python 3.14, trimmed of the script's own commentary paragraphs. **NGINX is not installed on the machine that produced it.** The proxy is the Python model described in §1; the sockets, the SSE framing, the timings and the status codes are real. Absolute millisecond figures move between runs — the gap between the buffered and streaming modes does not, and that gap is the entire lesson.
+Do not run Python scripts to simulate NGINX. Install NGINX (`sudo apt install nginx` on Ubuntu/WSL or run in Docker) and execute these 6 practical drills:
 
-```text
-NGINX is NOT installed and NOT required. The proxy below is a
-stdlib Python model of the directives, so they can be measured.
-  app   (upstream) : http://127.0.0.1:64613
-  proxy (the model): http://127.0.0.1:64614   -> http://127.0.0.1:64613
-======================================================================
-DEMO 1 - what the extra hop costs, and what it rewrites
-======================================================================
-  40 x GET /ping, client -> app          : 10.82 ms each
-  40 x GET /ping, client -> proxy -> app : 22.08 ms each
-  the second hop costs 11.26 ms per request (2.0x)
+---
 
-  headers the APP saw, direct        : Accept-Encoding, Connection, Host, User-Agent
-  headers the APP saw, through proxy : Accept-Encoding, Host, User-Agent, X-Forwarded-For, X-Forwarded-Proto, X-Real-IP
-  ADDED by the proxy   : X-Forwarded-For, X-Forwarded-Proto, X-Real-IP
-  DROPPED by the proxy : Connection   <- hop-by-hop, must not be replayed
-======================================================================
-DEMO 2 - THE TOPIC: the app streams, the client waits anyway
-======================================================================
-  route                              proxy_buffering gzip   1st tok  complete  verdict
-  ---------------------------------- --------------- ----- -------- ---------  --------------
-  client -> app          (no proxy)  n/a             n/a        2 ms    968 ms  streaming
-  client -> proxy -> app             on  (DEFAULT)   off      980 ms    980 ms  NOT streaming
-  client -> proxy -> app             off             off       28 ms    993 ms  streaming
-  client -> proxy -> app             off             on       972 ms    973 ms  NOT streaming
+### Drill 1 — Production NGINX Config with LLM Streaming & Chunked Transfer
 
-  reassembled text, all four rows identical: True
-    'Streaming only helps if every hop forwards immediately.'
-======================================================================
-DEMO 3 - X-Accel-Buffering: no, the override the APP controls
-======================================================================
-  proxy config is UNCHANGED for both rows: proxy_buffering on
+Create a rock-solid reverse proxy configuration in `/etc/nginx/sites-available/llm-app`:
 
-  app response header               1st tok  complete  verdict
-  -------------------------------- -------- ---------  --------------
-  (none)                             1003 ms   1003 ms  NOT streaming
-  X-Accel-Buffering: no                26 ms    991 ms  streaming
+```nginx
+# Upstream definition with keepalive pool
+upstream fastapi_backend {
+    server 127.0.0.1:8000;
+    keepalive 32;
+}
 
-  the app really did send it   : True (value 'no', read straight from the app)
-  the client received it       : False   <- the proxy CONSUMED the header
-======================================================================
-DEMO 4 - X-Forwarded-For / -Proto: who is the client, really?
-======================================================================
-  (A) plain client, nothing in front of the proxy
-    nginx config                               XFF app saw  XFP    TLS?  redirect the app builds
-    ------------------------------------------ ------------ ------ ----- ---------------------------------
-    (no proxy_set_header lines)                -            -      NO    http://api.example.com/dashboard
-    $proxy_add_x_forwarded_for + $scheme       127.0.0.1    https  yes   https://api.example.com/dashboard
+# Rate limiting zone: max 10 requests/sec per IP with burst allowance
+limit_req_zone $binary_remote_addr zone=ai_limit:10m rate=10r/s;
 
-  (B) with a CDN / load balancer in front - 3 users arrive with
-      X-Forwarded-For already set: 203.0.113.7, 203.0.113.8, 198.51.100.22
-    nginx directive                              XFF for user 1             buckets
-    -------------------------------------------- -------------------------- ------------------------------
-    X-Forwarded-For $remote_addr   WRONG         127.0.0.1                  1  <- all 3 users share ONE
-    X-Forwarded-For $proxy_add_x_..  RIGHT       203.0.113.7, 127.0.0.1     3  <- one per user
+server {
+    listen 80;
+    server_name api.yourdomain.com;
 
-  (C) the caveat: X-Forwarded-For is client-supplied text.
-    a client that simply CLAIMS to be 10.9.9.9 -> app keys on '10.9.9.9'
-    full chain the app saw: '10.9.9.9, 127.0.0.1'
-======================================================================
-DEMO 5 - 502 and 504 are different failures with different fixes
-======================================================================
-  app accepts, then dies       -> 502 after   15.3 ms
-    Bad Gateway - upstream closed the connection without a response (RemoteDisconnected)
-    app requests during that  : 1   <- it DID arrive; the app died holding it
+    # Raise body size for large PDF / vector document ingestion (50MB)
+    client_max_body_size 50M;
 
-  nothing listening upstream   -> 502 after 2066.6 ms
-    Bad Gateway - upstream 127.0.0.1:64773 refused the connection
-    app requests during that  : 0   <- the app never heard about it
-    (that is not instant: this machine retransmits the SYN before
-     surfacing the refusal, so even 'nothing is there' costs ~2s)
+    # Standard API routes
+    location / {
+        limit_req zone=ai_limit burst=20 nodelay;
 
-  app thinks for 3s, budget 1s -> 504 after   1.03 s
-    Gateway Timeout - no response from upstream within proxy_read_timeout 1.0s
-    The app is fine and still working. The proxy gave up.
+        proxy_pass http://fastapi_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
 
-  app thinks for 3s, budget 5s -> 200 after   3.02 s   app_was_fine=True
+        # Mandatory Client Identity & Scheme Headers
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
 
-  stream: 5 tokens 0.4s apart, total 2.0s, budget still 1.0s
-    -> completed in 2.01 s, first token at 3 ms, 5 words
-======================================================================
-DEMO 6 - client_max_body_size: rejected before the app exists
-======================================================================
-  payload: 2,097,166 bytes (2.00 MiB) - a long prompt,
-  a pasted transcript, or a scanned PDF for 5.4 ingestion.
+        # Standard timeout budgets
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 60s;
+    }
 
-  straight to the app, no proxy         -> 200 bytes=2,097,166   uploads seen: 1
-  through proxy, client_max_body_size 1m  -> 413 Request Entity Too Large   uploads seen: 0
-  through proxy, client_max_body_size 8m  -> 200 bytes=2,097,166            uploads seen: 1
-======================================================================
-both servers stopped
+    # CRITICAL: Dedicated LLM Streaming Route (/v1/chat/completions or /stream)
+    location /stream/ {
+        proxy_pass http://fastapi_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+
+        # 1. DISABLE BUFFERING (Prevents 1-second token lag)
+        proxy_buffering off;
+        proxy_cache off;
+
+        # 2. DISABLE GZIP (Compression windows re-buffer tokens)
+        gzip off;
+
+        # 3. EXTEND READ TIMEOUT (Between-token silence budget for long ReAct loops)
+        proxy_read_timeout 600s;
+
+        # Standard headers
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
 ```
 
-**Demo 2 is the whole topic, and the wrong row is the one to memorise.** Four routes, one app, one identical reassembled string — `reassembled text, all four rows identical: True`. Directly against the app, first token at **2 ms**. Through the proxy on NGINX's default `proxy_buffering on`, first token at **980 ms** and completion at **980 ms**. When those two numbers are equal, nothing streamed: the first byte of body and the last byte of body arrived together. Setting `proxy_buffering off` restores first-token to **28 ms** while completion stays at **993 ms** — the total is unchanged, and the total was never the problem. The default cost **978 ms** of perceived latency, produced no error, no warning, and no log line.
+---
 
-**The fourth row is the trap that survives the fix.** With `proxy_buffering off` *and* `gzip on`, first token goes back to **972 ms** against a **973 ms** completion. Buffering is off; the stream is still dead. A gzip compressor cannot emit anything until it has enough input to code a block, so the deflate window becomes a second buffer sitting exactly where the first one was. Note how the script's reader measures this honestly: it stamps time-to-first-token only when the first *decoded* event text becomes available, not when bytes arrive. Bytes that arrived but are stuck inside a compression window are not tokens a user can read.
+### Drill 2 — Safe Syntax Validation & Zero-Downtime Reload
 
-**Demo 3 gives the application developer a lever, and shows its limits.** The proxy configuration is untouched between the two rows — `proxy_buffering` stays on for both. The response with no special header takes **1003 ms** to first token. The identical response carrying `X-Accel-Buffering: no` takes **26 ms**. Reading the app directly confirms the app really did send it (`value 'no'`), and reading through the proxy confirms the client never received it (`False`) — the proxy consumed it. That is the correct behaviour and it is also the warning: nothing on the wire tells a client whether the header was honoured or silently ignored, so the only proof remains a time-to-first-token measurement, exactly as in **0.8**.
+Never reload NGINX without testing configuration syntax first:
 
-**Demo 5's two `502`s are the same status code for opposite problems, and the timings separate them.** A worker that accepts the request and then dies returns `502` after **15.3 ms**, and the app's own counter records **1** request — the request arrived and something killed the process holding it, so the app log will contain a truncated entry. Nothing listening at all returns `502` after **2066.6 ms** with **0** requests recorded — and that two-second delay is worth pausing on, because "connection refused" feels like it should be instant. It is not: the operating system retransmits the SYN before surfacing the refusal. Then `504` at **1.03 s** against a 1.0 s budget for an app that needed 3 seconds, and the same endpoint answering `200` at **3.02 s** with `app_was_fine=True` once the budget is 5 seconds. The app was healthy in that `504`. Only the budget was wrong.
+```bash
+# 1. Enable the site configuration
+sudo ln -sf /etc/nginx/sites-available/llm-app /etc/nginx/sites-enabled/
 
-**Demo 5's last row is the counter-intuitive one.** A stream of 5 tokens 0.4 s apart runs for a total of **2.01 s** and completes normally under a `proxy_read_timeout` of **1.0 s** — first token at **3 ms**, all 5 words delivered. The budget is the gap allowed between two successive reads, so a response that keeps emitting can run indefinitely, while a response that thinks silently for longer than the budget dies before it produces anything. This is why the dangerous moment for an LLM endpoint is the silence *before* the first token, not the length of the generation.
+# 2. ALWAYS test syntax before reloading (catches typos before taking site down)
+sudo nginx -t
+# Output MUST be:
+# nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+# nginx: configuration file /etc/nginx/nginx.conf test is successful
 
-**Demo 6 shows why the app log is the wrong place to look.** The same **2,097,166-byte** payload succeeds straight to the app (`uploads seen: 1`), gets `413` through the proxy at `client_max_body_size 1m` with **`uploads seen: 0`**, and succeeds again through the same proxy at `8m`. The zero is the point: the app was never given the chance to fail, so its log contains nothing at all. The evidence lives in NGINX's `error.log` (**0.10**), and knowing that is the difference between a two-minute fix and an afternoon spent adding logging to code that is already correct.
+# 3. Graceful reload (active connections are not terminated)
+sudo nginx -s reload
+# or:
+sudo systemctl reload nginx
+```
 
-**Demo 1's absolute latency numbers are weak, and worth being honest about.** The extra hop measures **10.82 ms → 22.08 ms** per request, `+11.26 ms` and 2.0x. That ratio is inflated: this client opens a fresh TCP connection per request on Windows loopback, so the cost being doubled is mostly connection setup, not proxying. Real NGINX proxying to an upstream with `keepalive 32` adds well under a millisecond. What Demo 1 does prove reliably is structural, not temporal: **three** headers appear that the app never saw directly (`X-Forwarded-For`, `X-Forwarded-Proto`, `X-Real-IP`) and one disappears (`Connection`, a hop-by-hop header that must not be replayed).
+---
 
-**Modify and re-run:**
-- In Demo 2, set `gzip=True` while leaving `proxy_buffering=True` and add a fifth row. Predict the first-token number before running it, then check whether two buffers in series are any worse than one.
-- Change `TOKEN_GAP` to `0.5` and `TOKENS` to twenty entries, making generation ~10 s. Re-run Demo 2 and watch the buffered first-token number track total generation time exactly — that is the relationship a user experiences as "the app is broken".
-- In Demo 5, set `proxy_read_timeout=0.3` and re-run the last row's 0.4 s-gap stream. The stream should now die mid-response — and note that the headers already went out, so it cannot become a `504`; the client just gets a truncated stream with no error.
-- In Demo 4, add a fourth call that sends `X-Forwarded-For: 203.0.113.7, 203.0.113.8` and read the chain the app receives under `append`. Then decide which entry a rate limiter should key on, and how many hops you would have to trust for that to be true.
-- In Demo 6, drop `client_max_body_size` to `1024` and POST a 2 KB body. Confirm `uploads seen: 0` again, then go looking for that request in the app's records — the absence is the lesson.
+### Drill 3 — Automating Free SSL Certificates with Let's Encrypt / Certbot
+
+```bash
+# 1. Install Certbot with NGINX plugin
+sudo apt update && sudo apt install -y certbot python3-certbot-nginx
+
+# 2. Automatically obtain and configure SSL certificate for your domain:
+sudo certbot --nginx -d api.yourdomain.com
+
+# 3. Certbot automatically:
+#    - Issues the Let's Encrypt certificate
+#    - Rewrites NGINX to listen on port 443 with TLS 1.3
+#    - Adds HTTP -> HTTPS 301 redirection
+#    - Sets up automated cron renewal (systemctl status certbot.timer)
+```
+
+---
+
+### Drill 4 — Proving LLM Token Streaming via `curl`
+
+Verify that tokens arrive in real-time without proxy buffering:
+
+```bash
+# Call the streaming endpoint through the reverse proxy:
+curl -N -X POST http://localhost/stream/v1/chat \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Write a poem"}'
+
+# -N (--no-buffer) tells curl not to buffer stdout locally.
+# If NGINX proxy_buffering is OFF, each token prints immediately with zero lag!
+```
+
+---
+
+### Drill 5 — Production Log Triage (502 vs 504 vs 413)
+
+When debugging gateway errors, follow the 3-step log triage:
+
+```bash
+# Watch NGINX error logs in real-time
+sudo tail -f /var/log/nginx/error.log
+
+# 1. Error 502 (Bad Gateway):
+#    Check if backend is down: "connect() failed (111: Connection refused) while connecting to upstream"
+#    Fix: Start or restart your FastAPI service on port 8000.
+
+# 2. Error 504 (Gateway Timeout):
+#    Check upstream duration: "upstream timed out (110: Connection timed out) while reading response header"
+#    Fix: Raise proxy_read_timeout in NGINX.
+
+# 3. Error 413 (Payload Too Large):
+#    Check upload: "client intended to send too large body"
+#    Fix: Raise client_max_body_size in NGINX.
+```
+
 
 ---
 
