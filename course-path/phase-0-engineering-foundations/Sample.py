@@ -352,6 +352,7 @@ async def main():
 asyncio.run(main())
 
 
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel, ValidationError, field_validator
 
 class UserRegistration(BaseModel):
@@ -374,3 +375,45 @@ class UserRegistration(BaseModel):
         if value < 18:
             raise ValueError("User must be at least 18 years old")
         return value
+
+user = UserRegistration(username="Alice99", age=25)
+print(user.username)  # Output: 'alice99' (normalized to lowercase)
+print(user.age)       # Output: 25
+
+
+def add(a:int,b:int):
+    return a+b
+
+def div(a:int,b:int):
+    if b==0:
+        raise ZeroDivisionError("Cannot divide by zero")
+    return a/b
+
+
+class UserManager:
+    def __init__(self):
+        self.users={}
+
+    def add_user(self,username,email):
+        if username in self.users:
+            raise ValueError("User already exists")
+        self.users[username]=email
+        return True
+
+    def get_user(self,username):
+        return self.users.get(username)
+
+    def delete_user(self,username):
+        if username not in self.users:
+            raise ValueError("User not found")
+        del self.users[username]
+        return True
+
+    def update_user(self,username,email):
+        if username not in self.users:
+            raise ValueError("User not found")
+        self.users[username]=email
+        return True
+
+    def list_users(self):
+        return self.users
