@@ -62,6 +62,9 @@ Parameterized query executed safely without injection.
 
 **Why It Matters**: SQL Injection is a top web application vulnerability. Parameterized queries make SQL injection 100% impossible for data parameters.
 
+#### 🤖 Real-Time AI/ML Use Case
+Securing RAG search queries and LLM SQL agents (Text-to-SQL). AI agents executing dynamic database queries based on user prompts must parameterize all variables to prevent malicious prompt injection attacks from altering SQL execution logic (e.g. `' OR '1'='1`).
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -104,6 +107,9 @@ Connection pool initialized with min_size=5, max_size=20.
 ```
 
 **Why It Matters**: Creating a raw PostgreSQL connection takes 30-50ms of TCP/TLS and backend process fork overhead per request. Connection pooling reduces DB latency to 1ms.
+
+#### 🤖 Real-Time AI/ML Use Case
+Scaling high-throughput AI API services. When 100 concurrent user sessions query a vector database, connection pooling with PgBouncer multiplexes connections, reducing per-query connection establishment overhead from 50ms to <1ms.
 
 #### 🎨 Visual Concept
 
@@ -151,6 +157,9 @@ LIMIT 5;
 
 **Why It Matters**: `ORDER BY` must use the **exact same distance operator** specified during `CREATE INDEX` construction, or Postgres silently skips vector index lookups.
 
+#### 🤖 Real-Time AI/ML Use Case
+Vector similarity search in RAG pipelines (LangChain / LlamaIndex). Querying OpenAI embeddings (`text-embedding-3-small`) requires Cosine Distance (`<=>`) matching your HNSW vector index operator class (`vector_cosine_ops`), enabling <10ms semantic document retrieval.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -190,6 +199,9 @@ WITH (m = 16, ef_construction = 64);
 ```
 
 **Why It Matters**: IVFFlat built on an empty database yields **0 recall accuracy** because centroids cannot form without initial vector data. HNSW handles empty table initialization safely.
+
+#### 🤖 Real-Time AI/ML Use Case
+Production vector database indexing for LLM applications. HNSW is chosen for dynamic RAG vector stores because it maintains 99%+ recall accuracy and allows continuous document insertion without requiring offline index rebuilds or initial centroid training data.
 
 #### 🎨 Visual Concept
 

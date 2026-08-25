@@ -54,6 +54,9 @@ FastAPI app configured with lifespan.
 
 **Why It Matters**: Replaces deprecated `@app.on_event("startup")` hooks. Ensures expensive ML models load once into memory at boot rather than reloading per request.
 
+#### 🤖 Real-Time AI/ML Use Case
+Pre-loading PyTorch/ONNX inference models and embedding models into GPU VRAM at server startup. Without `lifespan`, each `/predict` request would reload a 7GB LLM checkpoint from disk, taking 30+ seconds per request instead of milliseconds.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -98,6 +101,9 @@ Filtered Output: {'id': 1, 'email': 'user@example.com'}
 
 **Why It Matters**: Prevents accidental data leaks by stripping sensitive internal fields (hashed passwords, internal database IDs) from API responses.
 
+#### 🤖 Real-Time AI/ML Use Case
+ML inference API design. The request model validates incoming text/image payloads, while `response_model` strips internal fields like `raw_embedding_vector`, `internal_model_version`, and `debug_token_logprobs` from the `/predict` endpoint response, preventing intellectual property leakage.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -141,6 +147,9 @@ Dependency Overridden: Mock SQLite Session
 ```
 
 **Why It Matters**: Makes API endpoints 100% testable offline without modifying production route handler code.
+
+#### 🤖 Real-Time AI/ML Use Case
+Testing ML inference endpoints without calling real LLM APIs. `dependency_overrides` swaps `Depends(get_llm_client)` with a mock returning canned predictions, enabling free CI/CD testing of the entire RAG pipeline without spending API credits.
 
 #### 🎨 Visual Concept
 
@@ -188,6 +197,9 @@ Plain Def Status: Handled by Threadpool
 ```
 
 **Why It Matters**: A single synchronous blocking call inside an `async def` function drops FastAPI server concurrency from thousands of requests per second down to 1 request at a time!
+
+#### 🤖 Real-Time AI/ML Use Case
+Serving ML model inference. If `model.predict()` is a synchronous blocking call (most scikit-learn/ONNX models), wrapping it in `async def` freezes the entire server. Use plain `def` to let FastAPI's threadpool handle it, or wrap with `asyncio.to_thread` for async endpoints.
 
 #### 🎨 Visual Concept
 
@@ -238,6 +250,9 @@ Thread Result: 42
 
 **Why It Matters**: Allows using legacy synchronous database or SDK libraries inside async FastAPI endpoints without stalling the main event loop.
 
+#### 🤖 Real-Time AI/ML Use Case
+Running synchronous scikit-learn `model.predict()` or ONNX Runtime inference inside async FastAPI endpoints. `asyncio.to_thread(model.predict, input_data)` offloads CPU-bound inference to a background thread while the event loop continues serving concurrent requests.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -278,6 +293,9 @@ Header Value: no
 ```
 
 **Why It Matters**: Essential for real-time LLM token streaming in production environments behind NGINX proxies.
+
+#### 🤖 Real-Time AI/ML Use Case
+Building ChatGPT-style streaming inference endpoints. `StreamingResponse` with an async generator yields LLM tokens as they're generated, while `X-Accel-Buffering: no` ensures NGINX passes tokens through to the frontend in real-time instead of buffering the entire response.
 
 #### 🎨 Visual Concept
 

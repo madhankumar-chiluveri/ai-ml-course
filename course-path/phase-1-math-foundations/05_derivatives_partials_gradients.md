@@ -53,6 +53,9 @@ Gradient at (2,1): [4. 6.]
 
 **Why It Matters**: Gradient descent is the core optimization engine used to train all machine learning models and neural networks.
 
+#### 🤖 Real-Time AI/ML Use Case
+Gradient Descent optimization in PyTorch (`optimizer.step()`). Neural network training (SGD, Adam, AdamW) computes loss function gradients $\nabla L(w)$ with respect to millions of model weights $w$, taking step $-\eta \nabla L(w)$ to minimize prediction error.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -95,6 +98,9 @@ Grad Norm: 5.0
 ```
 
 **Why It Matters**: Proves mathematically why gradient descent MUST update parameters along $-\nabla f$ to achieve maximum loss reduction.
+
+#### 🤖 Real-Time AI/ML Use Case
+Adversarial Perturbations (FGSM / Fast Gradient Sign Attack). Finding the exact direction vector $u$ in image pixel space that maximizes loss increase ($D_u L > 0$), adding imperceptible noise to trick image classification models.
 
 #### 🎨 Visual Concept
 
@@ -148,6 +154,9 @@ Analytic Grad: [4.0, 27.0]
 
 **Why It Matters**: The gold standard test used during PyTorch custom C++/CUDA autograd kernel development to catch backpropagation derivation bugs.
 
+#### 🤖 Real-Time AI/ML Use Case
+Gradient checking (`torch.autograd.gradcheck`). Writing custom PyTorch C++/CUDA operators require gradient checking via central finite differences to verify that your analytical `backward()` implementation matches the numerical derivative within $10^{-6}$ tolerance.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -194,6 +203,9 @@ Error h=1e-5 : 8.8818e-12
 ```
 
 **Why It Matters**: Explains why setting step size $h$ too small in numerical gradient checks produces corrupted comparisons due to float64 machine epsilon limits.
+
+#### 🤖 Real-Time AI/ML Use Case
+Choosing numerical step size $h$ in gradient-based hyperparameter tuning and custom autograd kernel testing. Choosing $h \approx 10^{-5}$ for float64 balances truncation error and floating-point cancellation noise, preventing false failures in unit test suites.
 
 #### 🎨 Visual Concept
 

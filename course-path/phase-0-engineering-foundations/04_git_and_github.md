@@ -46,6 +46,9 @@ M  src/main.py
 
 **Why It Matters**: Understanding the three trees prevents accidental commits of temporary test scripts, API keys, or half-finished debug logs.
 
+#### 🤖 Real-Time AI/ML Use Case
+Preventing accidental commits of `.env` files containing OpenAI API keys, large model checkpoint `.pt` files, and raw training datasets. Understanding the staging area lets you `git add` only source code while keeping multi-GB model weights and secret keys out of version control.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -89,6 +92,9 @@ Successfully rebased and updated refs/heads/feature-branch.
 
 **Why It Matters**: Rebasing shared public branches corrupts commit hashes for team members, causing duplicate commits and painful merge conflicts.
 
+#### 🤖 Real-Time AI/ML Use Case
+Clean commit history for ML experiment branches. Rebasing a feature branch (`experiment/lora-finetune`) onto `main` before PR produces a linear history that makes it easy to trace exactly which hyperparameter change improved the evaluation metrics.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -129,6 +135,9 @@ git log --oneline -n 2
 
 **Why It Matters**: Explains why amending or rebasing past commits forces you to `--force-with-lease` push to remote repositories.
 
+#### 🤖 Real-Time AI/ML Use Case
+Reproducibility in ML experiments. Commit hashes serve as immutable experiment IDs — MLflow and Weights & Biases log the Git SHA alongside each training run so you can always trace a deployed model back to the exact code version that produced it.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -163,6 +172,9 @@ git log --all -S "sk-proj-98427598247" --oneline
 ```
 
 **Why It Matters**: Deleting an API key in a new commit does **NOT** remove it from Git history. Attackers scan public Git commit histories for deleted secrets!
+
+#### 🤖 Real-Time AI/ML Use Case
+Auditing AI project repositories for leaked LLM API keys (`sk-proj-...`, `ANTHROPIC_API_KEY`), HuggingFace tokens, and cloud credentials. Automated security scanners like `truffleHog` use pickaxe-style searches across entire Git histories of ML repos.
 
 #### 🎨 Visual Concept
 
@@ -202,6 +214,9 @@ Parsed 45 commits. Rewrote 45 commits. Completely removed 1 path.
 
 **Why It Matters**: Replaces the deprecated, dangerously slow `git filter-branch` command. Essential when revoking and purging accidentally committed credentials.
 
+#### 🤖 Real-Time AI/ML Use Case
+Purging accidentally committed OpenAI API keys, AWS credentials, or HuggingFace access tokens from public ML project repositories before the keys are harvested by automated credential scrapers that monitor GitHub pushes in real-time.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -237,6 +252,9 @@ Everything up-to-date
 ```
 
 **Why It Matters**: Prevents developers from accidentally wiping out hours of teammate work when updating feature branch histories.
+
+#### 🤖 Real-Time AI/ML Use Case
+Safe force-pushing after rebasing ML experiment branches in collaborative AI research teams. When multiple researchers share experiment branches, `--force-with-lease` prevents one researcher's rebase from silently destroying another's committed hyperparameter tuning results.
 
 #### 🎨 Visual Concept
 
@@ -281,6 +299,9 @@ git revert --no-edit HEAD
 ```
 
 **Why It Matters**: Using `reset --hard` on shared branches causes severe git tree desynchronization for teammates. `revert` is the only safe way to rollback production main branches.
+
+#### 🤖 Real-Time AI/ML Use Case
+Rolling back a broken model deployment in production. When a newly deployed ML model version causes degraded predictions, `git revert` on the deployment commit cleanly triggers the CI/CD pipeline to redeploy the previous working model version without rewriting shared branch history.
 
 #### 🎨 Visual Concept
 
@@ -557,6 +578,9 @@ M  src/main.py
 ```
 
 **Why It Matters**: Understanding the three trees prevents accidental commits of temporary test scripts, API keys, or half-finished debug logs.
+
+#### 🤖 Real-Time AI/ML Use Case
+Preventing accidental commits of `.env` files containing OpenAI API keys, large model checkpoint `.pt` files, and raw training datasets. Understanding the staging area lets you `git add` only source code while keeping multi-GB model weights and secret keys out of version control.
 
 ---
 

@@ -48,6 +48,9 @@ Dimension: 3
 
 **Why It Matters**: Text embeddings, image features, and neural network weights are all high-dimensional vectors. Understanding vector spaces enables calculating distances between data points in AI/ML.
 
+#### 🤖 Real-Time AI/ML Use Case
+Vector embeddings in LLM systems. Words, sentences, and documents are embedded into dense 1536-dimensional vector spaces (e.g. OpenAI `text-embedding-3-small`). Semantic search and RAG work by measuring vector distances in this vector space.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -99,6 +102,9 @@ L1: 7.0, L2: 5.0, L-inf: 4.0
 
 **Why It Matters**: $L_2$ is the default distance for vector search (RAG embeddings). $L_1$ is used in Lasso regularization to drive weak features to zero.
 
+#### 🤖 Real-Time AI/ML Use Case
+Vector normalization and loss functions. $L_2$ norm is used to unit-normalize text embedding vectors so dot-product equals cosine similarity. $L_1$ norm is used in L1 loss (Mean Absolute Error) for robust regression in the presence of extreme data outliers.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -147,6 +153,9 @@ L2 Output: 0.26666666666666666
 ```
 
 **Why It Matters**: Explains why Lasso ($L_1$) performs automatic feature selection by zeroing out useless variables, while Ridge ($L_2$) keeps all variables with shrunk weights.
+
+#### 🤖 Real-Time AI/ML Use Case
+Regularization in high-dimensional ML models. Lasso ($L_1$) regularization zeroes out non-essential feature weights in tabular models (creating sparse interpretable models), while Weight Decay ($L_2$ regularization) in PyTorch neural networks prevents overfitting by shrinking weights toward 0 without making them exactly 0.
 
 #### 🎨 Visual Concept
 

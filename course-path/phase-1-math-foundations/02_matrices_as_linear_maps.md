@@ -51,6 +51,9 @@ Destination of e1: [0. 2.]
 
 **Why It Matters**: Demystifies matrix multiplication. Any linear layer in a neural network ($y = Wx + b$) is simply a linear transformation whose weights $W$ record the destination coordinates of the input space basis vectors.
 
+#### 🤖 Real-Time AI/ML Use Case
+Linear layers in neural networks. PyTorch `nn.Linear(in_features, out_features)` computes $y = Wx + b$. The weight matrix $W$ is a linear map transforming input feature vectors from an `in_features`-dimensional space into an `out_features`-dimensional representation space.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -98,6 +101,9 @@ Matrix Multiply Result: [17 39]
 ```
 
 **Why It Matters**: The column picture explains how linear models generate output vectors as linear combinations of feature column vectors in feature space.
+
+#### 🤖 Real-Time AI/ML Use Case
+Self-Attention mechanisms in Transformer models (GPT-4, LLaMA). Computing `Values @ Attention_Weights` in Multi-Head Attention represents output token embeddings as weighted linear combinations of value vector columns, weighted by attention scores.
 
 #### 🎨 Visual Concept
 
@@ -151,6 +157,9 @@ Stretch then Rotate (S @ R):
 
 **Why It Matters**: Swapping matrix order in neural network layer equations ($W_2 W_1 x \neq W_1 W_2 x$) produces completely wrong, invalid math.
 
+#### 🤖 Real-Time AI/ML Use Case
+Sequential neural network forward passes. In a multi-layer perceptron, $y = W_3 \sigma(W_2 \sigma(W_1 x + b_1) + b_2) + b_3$. Matrix multiplication order is strict: applying $W_2 W_1 x$ applies Layer 1 transformation first, then Layer 2 transformation.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -199,6 +208,9 @@ det(B): 0.0
 ```
 
 **Why It Matters**: Matrices with zero (or near-zero) determinants cannot be inverted, causing `LinAlgError: Singular matrix` during linear system solving and model fitting.
+
+#### 🤖 Real-Time AI/ML Use Case
+Multicollinearity in Linear Regression and covariance matrix inversion in Gaussian Process models. When two input features are perfectly correlated, the covariance matrix $X^T X$ has a determinant of 0 ($\det(X^T X) = 0$), making $(X^T X)^{-1}$ singular and causing regression solver crashes.
 
 #### 🎨 Visual Concept
 

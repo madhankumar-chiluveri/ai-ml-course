@@ -45,6 +45,9 @@ Session connection pool configured cleanly.
 
 **Why It Matters**: Creating a new connection per API call consumes socket file descriptors, leading to `OSError: [Errno 99] Cannot assign requested address` in high-throughput microservices.
 
+#### 🤖 Real-Time AI/ML Use Case
+Batch embedding generation pipelines calling OpenAI's embedding API thousands of times. A `Session` with connection pooling reuses the TCP+TLS connection across all calls, reducing per-request overhead from ~300ms to ~20ms and avoiding socket exhaustion during large-scale document ingestion.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -85,6 +88,9 @@ Connect Timeout: 3.0s, Read Timeout: 30.0s
 ```
 
 **Why It Matters**: Passing a single integer `timeout=30` allows a dead server to hang DNS/TCP negotiation for 30 full seconds before failing.
+
+#### 🤖 Real-Time AI/ML Use Case
+LLM API timeout tuning. Connect timeout should be low (3s) to detect dead inference servers fast, while read timeout must be high (60–120s) because GPT-4 generation legitimately takes 30–60 seconds for long outputs. A single scalar forces a bad compromise that either kills valid generations or hangs on dead servers.
 
 #### 🎨 Visual Concept
 
@@ -131,6 +137,9 @@ Attempt 2 Jittered Delay: 2.56s
 
 **Why It Matters**: Essential for enterprise API consumption. Prevents rate-limit recovery loops from crashing remote services.
 
+#### 🤖 Real-Time AI/ML Use Case
+Production LLM agent retry logic. When an OpenAI API call returns 429 (rate limited), exponential backoff with full jitter prevents all concurrent agent sessions from retrying simultaneously, which would rebuild the exact traffic spike that caused the rate limit in the first place.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -169,6 +178,9 @@ Thundering Herd Mitigated: True
 ```
 
 **Why It Matters**: Explains why simple `time.sleep(2)` retry loops ruin production server recoveries during outages.
+
+#### 🤖 Real-Time AI/ML Use Case
+Multi-agent fan-out systems calling shared LLM APIs. When 100 LangGraph agent nodes hit an OpenAI rate limit simultaneously and all retry with `time.sleep(2)`, they create a synchronized stampede every 2 seconds — the thundering herd pattern that extends outages indefinitely.
 
 #### 🎨 Visual Concept
 

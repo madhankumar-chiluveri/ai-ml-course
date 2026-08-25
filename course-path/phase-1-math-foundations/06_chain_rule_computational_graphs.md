@@ -64,6 +64,9 @@ b.grad: 3.0
 
 **Why It Matters**: Reverse-mode autodiff computes gradients for $N=70\text{ billion}$ LLM parameters in a **single backward pass** ($O(1)$ complexity), whereas forward mode would require 70 billion passes ($O(N)$).
 
+#### 🤖 Real-Time AI/ML Use Case
+PyTorch Autograd engine (`loss.backward()`). Reverse-mode automatic differentiation is the engine powering all deep learning frameworks, traversing computational graphs backward to compute parameter gradients $\frac{\partial \text{Loss}}{\partial W}$ in a single pass.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -120,6 +123,9 @@ Topological Execution Order: ['x', 'a', 'loss']
 
 **Why It Matters**: Walking a computational graph in arbitrary order without topological sorting causes gradients to be propagated before all child paths have accumulated, leading to silent calculation errors.
 
+#### 🤖 Real-Time AI/ML Use Case
+Dynamic computation graph execution in PyTorch/Micrograd. Before calling `_backward()`, PyTorch builds a topologically sorted list of active autograd nodes so that backpropagation evaluates consumer node gradients before parent nodes consume them.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -171,6 +177,9 @@ Accumulated Result: 8.0
 ```
 
 **Why It Matters**: The #1 silent bug when implementing custom autograd engines. Residual networks (ResNets) and Transformer attention mechanisms rely heavily on fan-out summation.
+
+#### 🤖 Real-Time AI/ML Use Case
+Residual connections (`x + SubLayer(x)`) in Transformer blocks and PyTorch gradient accumulation (`loss.backward()` over multiple mini-batches). When a feature tensor branches into multiple layers, `grad` values must be summed (`+=`) during backpropagation.
 
 #### 🎨 Visual Concept
 
@@ -225,6 +234,9 @@ Derivative dx: 0.501
 ```
 
 **Why It Matters**: Explains why training deep neural networks consumes **3x to 5x more GPU VRAM** than inference — all forward activations must be cached in VRAM until the backward pass completes!
+
+#### 🤖 Real-Time AI/ML Use Case
+GPU VRAM memory management and Gradient Checkpointing (`torch.utils.checkpoint`). Forward activations (e.g. intermediate feature maps in Attention layers) are cached in VRAM for backward local derivative calculations; gradient checkpointing trades computation for VRAM by recomputing activations during backward.
 
 #### 🎨 Visual Concept
 

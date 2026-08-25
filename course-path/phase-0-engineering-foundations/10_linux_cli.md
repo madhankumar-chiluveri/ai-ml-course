@@ -37,6 +37,9 @@ echo -e "500\n200\n500\n404\n500" | grep "500" | wc -l
 
 **Why It Matters**: Allows processing gigabytes of server log data in memory with stream composition, using virtually zero disk space.
 
+#### 🤖 Real-Time AI/ML Use Case
+Analyzing LLM inference server logs. `cat app.log | grep "429" | awk '{print $4}' | sort | uniq -c | sort -rn` instantly identifies which AI agent sessions are getting rate-limited most frequently, without loading entire multi-GB log files into memory.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -72,6 +75,9 @@ grep -rn "API_KEY" .
 
 **Why It Matters**: Quick, zero-dependency secret scanner to catch hardcoded API keys before committing code to public Git repositories.
 
+#### 🤖 Real-Time AI/ML Use Case
+Pre-commit secret scanning for AI projects. `grep -rn "sk-proj\|OPENAI_API_KEY\|HF_TOKEN" .` catches hardcoded LLM API keys, HuggingFace tokens, and cloud credentials before they get committed to public ML repositories.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -104,6 +110,9 @@ echo "   42   user_a" | awk '{print $1}'
 ```
 
 **Why It Matters**: Shell pipelines parsing system statistics (`ps`, `df`, `uniq -c`) fail silently when using `cut` due to space padding.
+
+#### 🤖 Real-Time AI/ML Use Case
+Parsing GPU usage from `nvidia-smi` output. `nvidia-smi | awk '/MiB/ {print $9, $11}'` correctly extracts VRAM usage despite variable column padding, while `cut` would silently return wrong values — critical for monitoring GPU memory during model training.
 
 #### 🎨 Visual Concept
 
@@ -141,6 +150,9 @@ echo -e "200\n500\n200" | sort | uniq -c
 ```
 
 **Why It Matters**: Running `uniq -c` without a prior `sort` produces completely incorrect line count metrics without throwing an error.
+
+#### 🤖 Real-Time AI/ML Use Case
+Counting error frequencies in ML training logs. `grep ERROR training.log | sort | uniq -c | sort -rn | head` reveals the top recurring failure modes (CUDA OOM, NaN loss, checkpoint save failures) during long overnight training runs.
 
 #### 🎨 Visual Concept
 
@@ -186,6 +198,9 @@ LISTEN  0  128  *:8000  *:*  users:(('uvicorn',pid=4821,fd=3))
 
 **Why It Matters**: Replaces legacy `netstat`. The primary diagnostic command for resolving port conflicts (`Address already in use`).
 
+#### 🤖 Real-Time AI/ML Use Case
+Debugging ML inference server port conflicts. When a FastAPI/vLLM server fails to start with "Address already in use" on port 8000, `ss -ltnp | grep :8000` identifies the stale uvicorn process still holding the port from a previous crashed training run.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -222,6 +237,9 @@ Sent SIGTERM (15) to PID 4821
 ```
 
 **Why It Matters**: Overusing `kill -9` leaves orphaned database locks, incomplete file writes, and corrupted sqlite/pgstate files.
+
+#### 🤖 Real-Time AI/ML Use Case
+Gracefully stopping ML training processes. `kill -15` allows PyTorch training scripts to save the latest checkpoint and flush metrics to MLflow/W&B before exiting. `kill -9` corrupts half-written model checkpoints, losing hours of GPU training time.
 
 #### 🎨 Visual Concept
 
@@ -261,6 +279,9 @@ echo "[Mon Aug 3 20:00:00 2026] Out of memory: Kill process 1420 (python3) score
 ```
 
 **Why It Matters**: OOM crashes leave **zero application-level tracebacks**. `dmesg` is the only place to confirm why a model training run vanished.
+
+#### 🤖 Real-Time AI/ML Use Case
+Diagnosing silent ML training crashes. When a PyTorch training script on a 16GB RAM machine loading a 20GB dataset mysteriously vanishes with no error output, `dmesg -T | grep -i oom` reveals the kernel killed the process — the only way to distinguish OOM from other crash causes.
 
 #### 🎨 Visual Concept
 
@@ -304,6 +325,9 @@ ls -l id_rsa | awk '{print $1}'
 
 **Why It Matters**: Setting loose permissions on SSH keys (`chmod 777 id_rsa`) causes `ssh` connections to be rejected with `Permissions are too open`.
 
+#### 🤖 Real-Time AI/ML Use Case
+SSH access to GPU cloud instances (AWS, OCI, GCP) for remote ML training. SSH rejects keys with permissions looser than `600`, blocking access to GPU servers. Also relevant for securing `.env` files containing LLM API keys on shared development machines.
+
 #### 🎨 Visual Concept
 
 ```mermaid
@@ -336,6 +360,9 @@ line3
 ```
 
 **Why It Matters**: The fundamental live-debugging tool for watching application logs on remote servers during deployment tests.
+
+#### 🤖 Real-Time AI/ML Use Case
+Live-monitoring ML inference servers during deployment. `tail -f /var/log/vllm/server.log` streams real-time inference requests, latency metrics, and error logs from a vLLM/Ollama server running on a remote GPU instance.
 
 #### 🎨 Visual Concept
 
