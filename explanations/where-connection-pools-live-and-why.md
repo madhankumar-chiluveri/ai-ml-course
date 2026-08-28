@@ -1,5 +1,6 @@
 # 📌 Where Connection Pools Live & Why We Use Them
 
+> **Reference / Context**: [08_consuming_rest_apis.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/08_consuming_rest_apis.md) | [09_building_apis_with_fastapi.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | [15_postgres_pgvector_redis.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/15_postgres_pgvector_redis.md)
 > **Topic Context**: System Architecture, Client vs. Server-Side Pooling, Latency vs. Throughput & Resource Protection
 
 ---

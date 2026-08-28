@@ -1,5 +1,6 @@
 # 📌 End-to-End API Lifecycle: From User Click to Database & Connection Limits
 
+> **Reference / Context**: [07_http_fundamentals.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/07_http_fundamentals.md) | [09_building_apis_with_fastapi.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | [12_nginx_reverse_proxy.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/12_nginx_reverse_proxy.md) | [15_postgres_pgvector_redis.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/15_postgres_pgvector_redis.md)
 > **Topic Context**: Web Architecture, DNS, Inbound & Outbound Domains, Connection Pool Lifecycle, and Multi-User Concurrency
 
 ---

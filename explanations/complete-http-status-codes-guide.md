@@ -1,5 +1,7 @@
 # 📌 The Complete HTTP Status Codes Reference (1xx, 2xx, 3xx, 4xx, 5xx)
 
+> **Reference / Context**: [07_http_fundamentals.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/07_http_fundamentals.md) | [08_consuming_rest_apis.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/08_consuming_rest_apis.md) | [09_building_apis_with_fastapi.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md)
+
 > **Quick Mnemonic**:
 > - **1xx**: *"Hold on, I'm processing..."* (Informational)
 > - **2xx**: *"Here you go, all good!"* (Success)

@@ -14,6 +14,26 @@ Two properties make it the right choice here rather than Flask. It is **async-na
 
 Depends on **0.3** and **0.7**; unlocks **6.13** MCP servers, **7.11** deployment, and every capstone.
 
+### 🔬 Architectural Deep-Dives & Explanations
+
+For in-depth systems architecture, kernel mechanics, and production guides related to this topic, see:
+
+- [complete-fastapi-and-systems-architecture-guide.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/complete-fastapi-and-systems-architecture-guide.md) — Complete vertical journey from physical electrons and NICs to FastAPI route handlers.
+- [web-server-vs-web-framework-fastapi.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/web-server-vs-web-framework-fastapi.md) — Why FastAPI is NOT a web server: The division of labor between Uvicorn and FastAPI.
+- [uvicorn-asgi-event-loop-explained.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/uvicorn-asgi-event-loop-explained.md) — Uvicorn, ASGI standard (`scope, receive, send`), and the Single-Threaded Event Loop.
+- [what-is-wsgi-gunicorn-flask.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/what-is-wsgi-gunicorn-flask.md) — WSGI, Gunicorn, and Flask Architecture vs Modern ASGI.
+- [fastapi-lifespan-callback-pattern.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/fastapi-lifespan-callback-pattern.md) — The FastAPI Lifespan Callback Pattern: Startup/Shutdown Lifecycle and Resource Pooling.
+- [openapi-specification.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/openapi-specification.md) — OpenAPI Specification in FastAPI: Automatic Schema Generation and Type Contracts.
+- [how-domain-reaches-vm-fastapi.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/how-domain-reaches-vm-fastapi.md) — How Domain Traffic Reaches FastAPI on `0.0.0.0:8000` via Firewalls and Reverse Proxies.
+- [fastapi-aws-to-postgresql-handshakes-and-lifecycle.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/fastapi-aws-to-postgresql-handshakes-and-lifecycle.md) — FastAPI Cloud VM to PostgreSQL Handshake, SSL/TLS, and Query Lifecycle.
+- [ephemeral-ports-port-0-and-free-port-runner.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/ephemeral-ports-port-0-and-free-port-runner.md) — Ephemeral Ports, Port 0 Binding, and the Dynamic `free_port()` Test Runner Pattern.
+- [file-descriptors-ip-ports-and-0000-explained.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/file-descriptors-ip-ports-and-0000-explained.md) — File Descriptors, IP Binding (`0.0.0.0` vs `127.0.0.1`), and Port Mechanics.
+- [file-descriptor-limits-and-server-crashes.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/file-descriptor-limits-and-server-crashes.md) — File Descriptor Limits, Socket Exhaustion & `EMFILE: Too many open files` Server Crashes.
+- [why-file-descriptors-cannot-be-unlimited.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/why-file-descriptors-cannot-be-unlimited.md) — Kernel RAM Allocation and Why File Descriptors Cannot Be Unlimited.
+- [what-is-the-os-kernel.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/what-is-the-os-kernel.md) — What is the OS Kernel? (User Space vs Kernel Space Master Controller).
+- [where-sockets-live-in-the-kernel.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/where-sockets-live-in-the-kernel.md) — Where Sockets Live in Kernel RAM (`struct sock`, FIFO Buffers, TCP State Machine).
+- [why-is-the-os-so-large.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/why-is-the-os-so-large.md) — What Makes Up an OS: Kernel vs Device Drivers vs Background Daemons.
+
 ---
 
 ## 2. Glossary

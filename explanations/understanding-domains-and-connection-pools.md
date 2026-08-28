@@ -1,5 +1,6 @@
 # 📌 Understanding Domains, Hosts, & Pool Keys in Connection Pooling
 
+> **Reference / Context**: [07_http_fundamentals.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/07_http_fundamentals.md) | [08_consuming_rest_apis.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/08_consuming_rest_apis.md)
 > **Topic Context**: Networking Fundamentals, URL Anatomy, TCP/TLS Sockets, and HTTP Pool Keys
 
 ---

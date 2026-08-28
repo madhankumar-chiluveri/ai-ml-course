@@ -1,6 +1,6 @@
 # 📌 File Descriptor Limits & Server Crashes: `Too Many Open Files`
 
-> **Reference / Context**: [file-descriptors-ip-ports-and-0000-explained.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/file-descriptors-ip-ports-and-0000-explained.md) | [where-sockets-live-in-the-kernel.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/where-sockets-live-in-the-kernel.md) | [09_building_apis_with_fastapi.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md)
+> **Reference / Context**: [09_building_apis_with_fastapi.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | [10_linux_cli.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md) | [file-descriptors-ip-ports-and-0000-explained.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/file-descriptors-ip-ports-and-0000-explained.md) | [where-sockets-live-in-the-kernel.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/where-sockets-live-in-the-kernel.md)
 
 ---
 
@@ -9,6 +9,7 @@
 **Yes, exceeding available File Descriptors is one of the most common causes of production server outages (the infamous `OSError: [Errno 24] Too many open files`).**
 
 When your server runs out of File Descriptors, it doesn't just stop serving web pages—**it is paralyzed**:
+
 - It cannot accept new client TCP connections (`accept()` fails).
 - It cannot open connections to PostgreSQL or Redis.
 - It cannot load files from disk.
@@ -41,13 +42,14 @@ flowchart TD
     style P1 fill:#ae2012,stroke:#e9d8a6,color:#fff
 ```
 
-| Device Type | Default Per-Process Limit (`ulimit -n`) | Production-Tuned Limit | System-Wide Total Limit |
-|---|---|---|---|
-| **Android / OxygenOS Phone** | `1,024` – `4,096` per app | Configured per app sandbox | $\approx 500,000$ |
-| **Default Laptop (Windows / Mac / Linux)** | `1,024` per process | `65,535` | $\approx 1,000,000 - 3,000,000$ |
-| **Production Cloud Server (AWS / GCP / Linux)** | `1,024` (Default un-tuned) | **`1,048,576` ($1\text{ Million}+$ FDs)** | **`10,000,000+`** |
+| Device Type                                           | Default Per-Process Limit (`ulimit -n`) | Production-Tuned Limit                              | System-Wide Total Limit           |
+| ----------------------------------------------------- | ----------------------------------------- | --------------------------------------------------- | --------------------------------- |
+| **Android / OxygenOS Phone**                    | `1,024` – `4,096` per app            | Configured per app sandbox                          | $\approx 500,000$               |
+| **Default Laptop (Windows / Mac / Linux)**      | `1,024` per process                     | `65,535`                                          | $\approx 1,000,000 - 3,000,000$ |
+| **Production Cloud Server (AWS / GCP / Linux)** | `1,024` (Default un-tuned)              | **`1,048,576` ($1\text{ Million}+$ FDs)** | **`10,000,000+`**         |
 
 #### Why is the Default Only 1,024?
+
 The default limit of `1024` is a historical legacy safety guard from the 1980s. In early Unix, a rogue runaway script that opened files in an infinite loop could exhaust all system RAM. In modern production, engineers always raise this limit to **$65,536$ or $1,048,576$**.
 
 ---
@@ -68,7 +70,7 @@ sequenceDiagram
     Kernel->>App: accept() syscall triggered
     Note over Kernel: Kernel checks process table:<br>Process exceeded limit!
     Kernel-->>App: Returns Error: EMFILE (Errno 24: Too many open files)
-    
+  
     Note over App: 💥 CATASTROPHIC FAILURE:<br>App cannot open socket -> Client gets 'Connection Refused'<br>App tries to log error -> open('app.log') FAILS!<br>App tries to query DB -> socket() FAILS!
 ```
 
@@ -79,6 +81,7 @@ sequenceDiagram
 A server rarely runs out of FDs simply from legitimate traffic—it almost always runs out because of a **coding bug called an FD Leak**:
 
 #### ❌ The Buggy Leak Code:
+
 ```python
 # BAD: Creating a new client on every request and never closing it!
 @app.get("/price")
@@ -94,6 +97,7 @@ async def get_price():
 - **Request #1025**: **CRASH! `Too many open files`!**
 
 #### ✅ The Fixed Code (Reusing or Context Managers):
+
 ```python
 # GOOD: Using async context manager (auto-closes socket on exit)
 @app.get("/price")

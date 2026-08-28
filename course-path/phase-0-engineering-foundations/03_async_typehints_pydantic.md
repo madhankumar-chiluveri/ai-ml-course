@@ -20,6 +20,17 @@ This is the highest-leverage topic in Phase 0 for everything after it, because t
 
 Depends on **0.2**; unlocks **0.9**, **4.8**, **6.3**, **6.14**.
 
+### 🔬 Architectural Deep-Dives & Explanations
+
+For in-depth concurrency mechanics, event loop internals, and async execution models related to this topic, see:
+
+- [threads-vs-event-loop-explained.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/threads-vs-event-loop-explained.md) — Processes, Threads & The Event Loop: GIL, Asyncio, Context Switching, and Non-blocking I/O.
+- [manual-vs-automatic-multiprocessing-and-threading.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/manual-vs-automatic-multiprocessing-and-threading.md) — Manual vs. Automatic Multiprocessing & Threading (Gunicorn/Uvicorn Workers vs `multiprocessing.Process`).
+- [uvicorn-asgi-event-loop-explained.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/uvicorn-asgi-event-loop-explained.md) — Uvicorn, ASGI Standard, and the Single-Threaded Event Loop.
+- [fastapi-lifespan-callback-pattern.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/fastapi-lifespan-callback-pattern.md) — The FastAPI Lifespan Callback Pattern: Async Context Managers (`@asynccontextmanager`).
+- [httpx.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/httpx.md) — HTTPX: Next-Generation Sync & Async HTTP Client for Python.
+- [openapi-specification.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/openapi-specification.md) — OpenAPI Specification in FastAPI: Automatic Pydantic Schema Generation.
+
 ---
 
 ## 2. Glossary

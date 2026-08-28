@@ -14,6 +14,19 @@ The reason it earns its own slot rather than being assumed: the retry and timeou
 
 Depends on **0.7**; feeds **5.6** reranker calls, **6.13** MCP tool implementations, and **6.14** failure handling.
 
+### 🔬 Architectural Deep-Dives & Explanations
+
+For in-depth connection pooling mechanics, HTTP client architecture, and scaling guides related to this topic, see:
+
+- [pool-connections-vs-pool-maxsize.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/pool-connections-vs-pool-maxsize.md) — `pool_connections` (host cache capacity) vs `pool_maxsize` (connections per host) in `HTTPAdapter`.
+- [httpx.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/httpx.md) — HTTPX: Next-Generation Sync & Async HTTP Client for Python.
+- [connection-pooling-and-maxsize-explained-simply.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/connection-pooling-and-maxsize-explained-simply.md) — Beginner Guide to Connection Pooling & Max Size (The Phone Call & Taxi Stand Analogies).
+- [connection-pooling-and-max-size.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/connection-pooling-and-max-size.md) — Connection Pooling & Pool Max Size: Client vs Server-Side Architecture.
+- [where-connection-pools-live-and-why.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/where-connection-pools-live-and-why.md) — Where Connection Pools Live & Why We Use Them: Latency vs Resource Protection.
+- [understanding-domains-and-connection-pools.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/understanding-domains-and-connection-pools.md) — Understanding Domains, Hosts, and URL Pool Keys in Connection Pooling.
+- [linkedin-scale-connection-pooling-and-domains.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/linkedin-scale-connection-pooling-and-domains.md) — Real-World Architecture: LinkedIn at Scale Connection Pooling & Domain Management.
+- [complete-http-status-codes-guide.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/complete-http-status-codes-guide.md) — Complete HTTP Status Codes Reference (1xx, 2xx, 3xx, 4xx, 5xx).
+
 ---
 
 ## 2. Glossary

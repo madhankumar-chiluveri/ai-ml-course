@@ -14,6 +14,12 @@ Two constructs carry the weight. **Fixtures** — setup that gets injected by na
 
 Builds on **0.1** (a test is just a function) and **0.2** (`__init__.py` is what makes your package importable from `tests/`). Feeds **7.5** CI regression gates directly, and **7.10** reproducibility indirectly — an untested pipeline cannot be trusted to reproduce.
 
+### 🔬 Architectural Deep-Dives & Explanations
+
+For in-depth test server mechanics and dynamic fixture execution models related to this topic, see:
+
+- [ephemeral-ports-port-0-and-free-port-runner.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/ephemeral-ports-port-0-and-free-port-runner.md) — Ephemeral Ports, Port 0 Binding, and the Dynamic `free_port()` Runner Pattern for Non-Colliding Pytest Test Servers.
+
 ---
 
 ## 2. Glossary

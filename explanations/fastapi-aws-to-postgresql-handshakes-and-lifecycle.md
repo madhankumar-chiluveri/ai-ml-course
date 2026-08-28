@@ -1,6 +1,7 @@
 # 📌 FastAPI on AWS to PostgreSQL: Complete Handshake & Lifecycle Guide
 
-> **Scenario**: A FastAPI server running on an AWS EC2 VM, connected to a PostgreSQL database (e.g., AWS RDS or another VM), handling incoming user requests.
+> **Reference / Context**: [09_building_apis_with_fastapi.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | [13_oci_compute_deployment.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/13_oci_compute_deployment.md) | [15_postgres_pgvector_redis.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/15_postgres_pgvector_redis.md)
+> **Scenario**: A FastAPI server running on a cloud VM, connected to a PostgreSQL database (e.g., AWS RDS or cloud VM), handling incoming user requests.
 
 ---
 
@@ -9,7 +10,7 @@
 ```mermaid
 flowchart LR
     User["👤 User / Mobile App"] -->|"1. HTTPS / API Call"| EC2["☁️ AWS EC2 VM<br>(FastAPI + Uvicorn + SQLAlchemy)"]
-    
+  
     subgraph AWSVPC ["AWS VPC Private Network"]
         EC2
         RDS["🗄️ PostgreSQL Database<br>(Port 5432)"]
@@ -59,7 +60,7 @@ sequenceDiagram
     App->>PG: SASLInitialResponse (Client password proof)
     PG-->>App: AuthenticationOk (Password verified! Access granted)
     PG-->>App: ReadyForQuery ('Z' message: "I am ready for SQL commands")
-    
+  
     Note over App: Socket is placed into FastAPI's Connection Pool (Idle & Ready)
 ```
 
@@ -67,12 +68,12 @@ sequenceDiagram
 
 ### 3. ⏱️ Breakdown of Each Handshake Layer
 
-| Layer | Protocol | What is Verified? | What Fails if Broken? |
-| :--- | :--- | :--- | :--- |
-| **1. AWS Network** | AWS Security Groups / VPC | Is EC2's IP allowed to talk to Postgres on Port 5432? | `Connection timed out` / Hangs forever. |
-| **2. Transport** | TCP (Layer 4) | Can the two operating systems exchange IP packets? | `Connection Refused` (Postgres not running). |
-| **3. Encryption** | SSL / TLS (Layer 6) | Is the connection encrypted? Is the server's certificate valid? | `SSLError: Certificate verify failed`. |
-| **4. Application** | Postgres SCRAM-SHA-256 | Is username/password valid? Does the database `appdb` exist? | `FATAL: password authentication failed for user`. |
+| Layer                    | Protocol                  | What is Verified?                                               | What Fails if Broken?                               |
+| :----------------------- | :------------------------ | :-------------------------------------------------------------- | :-------------------------------------------------- |
+| **1. AWS Network** | AWS Security Groups / VPC | Is EC2's IP allowed to talk to Postgres on Port 5432?           | `Connection timed out` / Hangs forever.           |
+| **2. Transport**   | TCP (Layer 4)             | Can the two operating systems exchange IP packets?              | `Connection Refused` (Postgres not running).      |
+| **3. Encryption**  | SSL / TLS (Layer 6)       | Is the connection encrypted? Is the server's certificate valid? | `SSLError: Certificate verify failed`.            |
+| **4. Application** | Postgres SCRAM-SHA-256    | Is username/password valid? Does the database`appdb` exist?   | `FATAL: password authentication failed for user`. |
 
 ---
 

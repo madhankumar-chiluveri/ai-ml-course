@@ -85,6 +85,8 @@ The **Network Interface Card (NIC)** on your motherboard processes this in two s
 > - [where-sockets-live-in-the-kernel.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/where-sockets-live-in-the-kernel.md)
 > - [file-descriptors-ip-ports-and-0000-explained.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/file-descriptors-ip-ports-and-0000-explained.md)
 > - [how-web-servers-bind-sockets-tls-and-bytes.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/how-web-servers-bind-sockets-tls-and-bytes.md)
+> - [ephemeral-ports-port-0-and-free-port-runner.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/ephemeral-ports-port-0-and-free-port-runner.md)
+
 
 ### 2.1 The Kernel: Gatekeeper & Privilege Isolation
 The **Kernel** is the master software program of the OS running in **Ring 0 (Supervisor Mode)**. Normal user applications (Python, Chrome) run in **Ring 3 (User Mode)**, a restricted sandbox.

@@ -14,6 +14,11 @@ What matters here is **fluency, not knowledge**. You can look up syntax. What yo
 
 Feeds **0.5** pytest (a test is just a function), **0.6** the scientific stack (Pandas method chaining is comprehension thinking applied to tables), and **0.9** FastAPI (every endpoint is a decorated, typed function).
 
+### 🔬 Architectural Deep-Dives & Explanations
+
+- [interpreter-compiler-bytecode-cpython.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/interpreter-compiler-bytecode-cpython.md) — How Python actually runs: CPython's two-phase model (source → bytecode → VM interpretation), why Python is called "interpreted", what bytecode looks like, and where the OS kernel enters the execution pipeline.
+- [os-kernel-vs-ai-gpu-kernels.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/os-kernel-vs-ai-gpu-kernels.md) — OS Kernel vs AI/GPU Compute Kernels: Understanding how GPU kernels (CUDA, Triton, FlashAttention) differ completely from operating system kernels.
+
 ### 1.1 Python Core Cheat Sheet
 
 | Topic | Concept | Example / Note |

@@ -1,5 +1,6 @@
 # 📌 Real-World Architecture: LinkedIn at Scale (~50M+ Concurrent Users)
 
+> **Reference / Context**: [08_consuming_rest_apis.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/08_consuming_rest_apis.md) | [12_nginx_reverse_proxy.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/12_nginx_reverse_proxy.md) | [15_postgres_pgvector_redis.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/15_postgres_pgvector_redis.md)
 > **Topic Context**: LinkedIn Web & Mobile Client Architecture, Edge Gateways, HTTP/2 Multiplexing, Microservice Pools, and Database Connection Management
 
 ---

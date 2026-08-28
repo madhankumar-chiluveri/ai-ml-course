@@ -1,5 +1,6 @@
 # 📌 The Ultimate Beginner Guide: Connection Pooling & Max Size
 
+> **Reference / Context**: [08_consuming_rest_apis.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/08_consuming_rest_apis.md) | [09_building_apis_with_fastapi.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | [15_postgres_pgvector_redis.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/15_postgres_pgvector_redis.md) | [pool-connections-vs-pool-maxsize.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/pool-connections-vs-pool-maxsize.md)
 > **The Goal**: Connect every single dot from scratch with zero confusing jargon.
 
 ---

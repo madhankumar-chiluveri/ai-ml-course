@@ -14,6 +14,17 @@ Streaming matters more than usual on this path. **4.9** streaming and **6.9** La
 
 Unlocks **0.8** consuming APIs, **0.9** FastAPI, and **6.12** MCP Streamable HTTP.
 
+### 🔬 Architectural Deep-Dives & Explanations
+
+For in-depth networking mechanics, socket internals, and protocol breakdowns related to this topic, see:
+
+- [complete-http-status-codes-guide.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/complete-http-status-codes-guide.md) — The Complete HTTP Status Codes Reference (1xx Informational, 2xx Success, 3xx Redirection, 4xx Client Errors, 5xx Server Errors).
+- [how-web-servers-bind-sockets-tls-and-bytes.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/how-web-servers-bind-sockets-tls-and-bytes.md) — Under the Hood: Sockets, IP/Port Binding, TLS Handshakes, and Raw Wire Byte Signals.
+- [why-127-0-0-1-and-how-loopback-works.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/why-127-0-0-1-and-how-loopback-works.md) — Why `127.0.0.1`? How the OS Loopback Interface (`lo`) Bypasses Physical Hardware.
+- [understanding-domains-and-connection-pools.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/understanding-domains-and-connection-pools.md) — Understanding Domains, Host Headers, and HTTP Pool Keys.
+- [end-to-end-api-lifecycle-and-connection-pooling.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/end-to-end-api-lifecycle-and-connection-pooling.md) — End-to-End API Lifecycle: From User Click through DNS, Sockets, Reverse Proxies, and DB Pools.
+- [nic-and-fifo-buffers-explained.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/nic-and-fifo-buffers-explained.md) — Network Interface Cards (NIC), Physical-to-Digital Ingestion, DMA & Kernel Ring Buffers.
+
 ---
 
 ## 2. Glossary

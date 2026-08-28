@@ -16,6 +16,16 @@ The single rule that outranks everything else on this page is that values reach 
 
 Depends on **0.14** for SQL and schema design, and on **0.9** for where a connection pool gets opened and closed. Feeds **5.2**, **5.4**, **6.5**, **7.7**, and capstones **C3** and **C4**.
 
+### 🔬 Architectural Deep-Dives & Explanations
+
+For in-depth database connection pooling, query lifecycle, and backend storage guides related to this topic, see:
+
+- [connection-pooling-and-max-size.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/connection-pooling-and-max-size.md) — Connection Pooling & Pool Max Size: Database Performance, Bounded Queues, and Resource Limits.
+- [connection-pooling-and-maxsize-explained-simply.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/connection-pooling-and-maxsize-explained-simply.md) — Beginner Guide to Database Connection Pools (The Phone Call & Taxi Stand Analogies).
+- [where-connection-pools-live-and-why.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/where-connection-pools-live-and-why.md) — Where Connection Pools Live & Why We Use Them: Server-Side vs. Client-Side Pooling.
+- [fastapi-aws-to-postgresql-handshakes-and-lifecycle.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/fastapi-aws-to-postgresql-handshakes-and-lifecycle.md) — FastAPI Cloud VM to PostgreSQL Handshake, SSL/TLS Encryption, and Query Lifecycle.
+- [fastapi-lifespan-callback-pattern.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/fastapi-lifespan-callback-pattern.md) — The FastAPI Lifespan Callback Pattern: Initializing and Gracefully Closing DB Pools at Startup/Shutdown.
+
 **What is real in the script, and what is modelled.** No Postgres server, no pgvector extension and no Redis instance is contacted anywhere in this topic — `psycopg` and `redis` are not installed and nothing is reachable. The script is a **teaching model**: SQLite stands in for Postgres, numpy stands in for the vector column and its index, and a Python dict plus threads stand in for a Redis key. Every measurement it prints is genuinely measured, and the mechanism it demonstrates is the same mechanism the real server implements — but the stand-in is a stand-in, so §4 carries the actual psycopg calls, the actual pgvector DDL and the actual Redis commands, which is the syntax to type in **5.2** and **7.7**.
 
 | Idea | How it is demonstrated | Status |

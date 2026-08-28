@@ -16,6 +16,15 @@ The specific reason it earns a slot on an AI path: **it is the component most li
 
 Depends on **0.7**, **0.9** and **0.10**; unlocks **0.13** and **7.11**.
 
+### 🔬 Architectural Deep-Dives & Explanations
+
+For in-depth reverse proxy mechanics, gateway architectures, and ingress lifecycle guides related to this topic, see:
+
+- [web-server-vs-web-framework-fastapi.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/web-server-vs-web-framework-fastapi.md) — Web Servers (NGINX/Uvicorn) vs. Web Frameworks (FastAPI): The Separation of Concerns.
+- [how-domain-reaches-vm-fastapi.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/how-domain-reaches-vm-fastapi.md) — How Domain Requests Reach Backend Upstreams via Reverse Proxies on Cloud VMs.
+- [end-to-end-api-lifecycle-and-connection-pooling.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/end-to-end-api-lifecycle-and-connection-pooling.md) — End-to-End API Lifecycle: Reverse Proxy Ingress, TLS Termination, and Upstream Sockets.
+- [linkedin-scale-connection-pooling-and-domains.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/linkedin-scale-connection-pooling-and-domains.md) — Real-World Architecture: Edge Gateways, Reverse Proxies & Microservice Load Balancing.
+
 ---
 
 ## 2. Glossary

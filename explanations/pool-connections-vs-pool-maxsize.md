@@ -1,5 +1,6 @@
 # 📌 `pool_connections` vs `pool_maxsize`
 
+> **Reference / Context**: [07_http_fundamentals.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/07_http_fundamentals.md) | [08_consuming_rest_apis.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/08_consuming_rest_apis.md) | [`08_consuming_rest_apis.py`](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/08_consuming_rest_apis.py)
 > **Context**: Python `requests.adapters.HTTPAdapter` & `urllib3.PoolManager`
 
 ---
