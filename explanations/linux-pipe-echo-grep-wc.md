@@ -1,6 +1,6 @@
 # 📌 Anatomy of a Linux Pipeline: `echo -e "500\n200\n500\n404\n500" | grep "500" | wc -l`
 
-> **Reference / Context**: [10_linux_cli.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md#L33-L65) | [what-is-unix.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/what-is-unix.md) | [07_http_fundamentals.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/07_http_fundamentals.md)
+> **Reference / Context**: [10_linux_cli.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md#L33-L65) | [what-is-unix.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/what-is-unix.md) | [07_http_fundamentals.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/07_http_fundamentals.md)
 
 ---
 

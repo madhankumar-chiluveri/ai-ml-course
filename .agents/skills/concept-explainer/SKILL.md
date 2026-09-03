@@ -23,12 +23,12 @@ Use this skill whenever the user asks to explain a concept, keyword, architectur
    - Create parent folders if they do not exist.
 
 4. **Enforce Two-Way (Bidirectional) Hyperlinking**:
-   - **Forward Link (in Explanation Note)**: In the explanation markdown file header, include a `> **Reference / Context**:` block hyperlinking back to the related main concept file(s) in `course-path/` (e.g. `[09_building_apis_with_fastapi.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md)`).
-   - **Reverse Link (in Main Concept File)**: Immediately open the related main concept file in `course-path/` and ensure it contains an `### 🔬 Architectural Deep-Dives & Explanations` subsection under `## 1. Overview` (or append to it if it exists), adding the new explanation with a direct clickable `file:///` link and a 1-line summary:
+   - **Forward Link (in Explanation Note)**: In the explanation markdown file header, include a `> **Reference / Context**:` block hyperlinking back to the related main concept file(s) in `course-path/` (e.g. `[09_building_apis_with_fastapi.md](../course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md)`).
+   - **Reverse Link (in Main Concept File)**: Immediately open the related main concept file in `course-path/` and ensure it contains an `### 🔬 Architectural Deep-Dives & Explanations` subsection under `## 1. Overview` (or append to it if it exists), adding the new explanation with a repo-relative markdown link and a 1-line summary:
      ```markdown
-     - [<topic-slug>.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/<topic-slug>.md) — <Brief 1-sentence architectural summary>.
+     - [<topic-slug>.md](../../explanations/<topic-slug>.md) — <Brief 1-sentence architectural summary>.
      ```
-   - **Chat Response Link**: Output a clean, clickable markdown link in the chat using `file:///` format: `[📄 Open Full Explanation Note (<Topic>)](file:///<absolute-path-to-explanation-file>)`.
+   - **Chat Response Link**: Output a clean, clickable markdown link in the chat using a path relative to the repo root: `[📄 Open Full Explanation Note (<Topic>)](explanations/<topic-slug>.md)`.
 
 ---
 
@@ -37,7 +37,7 @@ Use this skill whenever the user asks to explain a concept, keyword, architectur
 ```markdown
 # 📌 <Topic Name>
 
-> **Reference / Context**: [09_building_apis_with_fastapi.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | [Optional Related Explanation](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/another-explanation.md)
+> **Reference / Context**: [09_building_apis_with_fastapi.md](../course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | [Optional Related Explanation](./another-explanation.md)
 
 ---
 
@@ -87,5 +87,5 @@ When executing this skill:
 3. **Step 3 — Minimal Chat Response**: In the chat response, keep output strictly minimal (saving context tokens):
    - A 1-2 sentence core takeaway.
    - A prominent clickable markdown link:
-     `👉 [View Full Explanation Note: explanations/<topic-slug>.md](file:///<full-path-to-file>)`
+     `👉 [View Full Explanation Note: explanations/<topic-slug>.md](explanations/<topic-slug>.md)`
 

@@ -1,6 +1,6 @@
 # 📌 The Complete Story of Linux & Why It Powers Modern AI Engineering
 
-> **Reference / Context**: [10_linux_cli.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md) | [what-is-unix.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/what-is-unix.md) | [what-is-posix.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/what-is-posix.md) | [what-is-the-os-kernel.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/what-is-the-os-kernel.md)
+> **Reference / Context**: [10_linux_cli.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md) | [what-is-unix.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/what-is-unix.md) | [what-is-posix.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/what-is-posix.md) | [what-is-the-os-kernel.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/what-is-the-os-kernel.md)
 
 ---
 

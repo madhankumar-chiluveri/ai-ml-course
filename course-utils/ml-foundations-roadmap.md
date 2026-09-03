@@ -90,7 +90,7 @@ Everything else marked **ALREADY-COVERED** below rests on the stated professiona
 
 ### R7 — Assets already on disk (planning-relevant, not a resource list)
 
-Relevant material already present under `d:\Madhan_Utils\learnings\ai-ml\`: *Introduction to Statistical Learning*, *Mathematics for AI ML Data Science*, *Hands-On Machine Learning with Scikit-Learn*, Murphy's *Machine Learning*, *Data Science from Scratch*, and *Python for Data Analysis*. Phases 1 and 2 need **no new purchases**. Specific chapter mappings belong to the resource pass, not this document.
+Relevant material already present under `d:\Madhan_Utils\learning\reference\`: *Introduction to Statistical Learning*, *Mathematics for AI ML Data Science*, *Hands-On Machine Learning with Scikit-Learn*, Murphy's *Machine Learning*, *Data Science from Scratch*, and *Python for Data Analysis*. Phases 1 and 2 need **no new purchases**. Specific chapter mappings belong to the resource pass, not this document.
 
 ### R8 — Unverified items
 

@@ -2,7 +2,7 @@
 
 > **Status:** 🟢 Ready to Publish
 > **Topic Category:** Operating Systems, CLI Architecture & Systems Engineering
-> **Source Material:** [`explanations/terminal-vs-shell-and-powershell-vs-cmd.md`](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/terminal-vs-shell-and-powershell-vs-cmd.md) & [`explanations/posix-unix-linux-gnu-kernel-terminal-shell.md`](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/posix-unix-linux-gnu-kernel-terminal-shell.md)
+> **Source Material:** [`explanations/terminal-vs-shell-and-powershell-vs-cmd.md`](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/terminal-vs-shell-and-powershell-vs-cmd.md) & [`explanations/posix-unix-linux-gnu-kernel-terminal-shell.md`](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/posix-unix-linux-gnu-kernel-terminal-shell.md)
 > **Aesthetic Theme:** Claude / Anthropic Warm Editorial (`#FBF9F5` canvas, `#DA7756` terracotta coral accent, `#1A1A1A` charcoal text, `#EFEBE4` borders)
 
 ---
@@ -292,4 +292,4 @@ Which shell/terminal stack do you use locally: Windows Terminal + WSL2, native Z
 
 ### 3. Engagement Trigger
 
-* When viewers comment `SHELL`, set up an automated DM reply delivering a direct link to the high-res infographic image and your open-source learning repository topic ([`10_linux_cli.md`](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md)).
+* When viewers comment `SHELL`, set up an automated DM reply delivering a direct link to the high-res infographic image and your open-source learning repository topic ([`10_linux_cli.md`](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md)).

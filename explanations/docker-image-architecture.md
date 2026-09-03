@@ -1,6 +1,6 @@
 # 📌 Docker Image Deep-Dive: Architecture, OCI Specifications & Blob Storage
 
-> **Reference / Context**: [11_docker_and_compose.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/11_docker_and_compose.md) | [docker-layer-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-layer-architecture.md) | [docker-container-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-container-architecture.md) | [docker-images-containers-layers-overlayfs.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-images-containers-layers-overlayfs.md)
+> **Reference / Context**: [11_docker_and_compose.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/11_docker_and_compose.md) | [docker-layer-architecture.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-layer-architecture.md) | [docker-container-architecture.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-container-architecture.md) | [docker-images-containers-layers-overlayfs.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-images-containers-layers-overlayfs.md)
 
 ---
 
@@ -234,7 +234,7 @@ flowchart LR
 #### 1. How Image Links to Layer:
 * **The Image is a Manifest of Layers**: An image does not contain a single giant filesystem. It is an ordered list of SHA-256 hashes pointing to individual, read-only layer archives.
 * **Shared Storage**: If 10 images are derived from `python:3.11-slim`, all 10 images reference the exact same underlying base layers on disk. The Image is simply the metadata wrapper that declares the order in which those layers must be stacked.
-* *(See detailed layer mechanics in: [docker-layer-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-layer-architecture.md))*
+* *(See detailed layer mechanics in: [docker-layer-architecture.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-layer-architecture.md))*
 
 #### 2. How Image Links to Container:
 * **The Image is the Static Prototype; The Container is the Living Instance**: An image is purely data at rest on disk. When you execute `docker run`, the container runtime (runc/containerd):
@@ -242,7 +242,7 @@ flowchart LR
   2. Uses Linux **OverlayFS** to mount those layers as the container's root directory (`lowerdir`).
   3. Reads the Image Config JSON to extract default environment variables, working directory, and the target executable (`ENTRYPOINT`/`CMD`).
   4. Calls Linux `clone()` with namespaces to spawn the container process.
-* *(See detailed container runtime mechanics in: [docker-container-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-container-architecture.md))*
+* *(See detailed container runtime mechanics in: [docker-container-architecture.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-container-architecture.md))*
 
 #### Summary Matrix
 | Attribute | 🧱 Docker Layer | 📦 Docker Image | 🚀 Docker Container |

@@ -1,6 +1,6 @@
 # 📌 Windows Terminal vs Windows PowerShell vs Command Prompt: Demystifying the 3 Laptop Apps
 
-> **Reference / Context**: [10_linux_cli.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md) | [terminal-vs-shell-and-powershell-vs-cmd.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/terminal-vs-shell-and-powershell-vs-cmd.md) | [posix-unix-linux-gnu-kernel-terminal-shell.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/posix-unix-linux-gnu-kernel-terminal-shell.md)
+> **Reference / Context**: [10_linux_cli.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md) | [terminal-vs-shell-and-powershell-vs-cmd.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/terminal-vs-shell-and-powershell-vs-cmd.md) | [posix-unix-linux-gnu-kernel-terminal-shell.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/posix-unix-linux-gnu-kernel-terminal-shell.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # 📌 What is Unix? (The Architectural Ancestor of Linux & macOS)
 
-> **Reference / Context**: [10_linux_cli.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md) | [the-complete-story-of-linux-and-ai.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/the-complete-story-of-linux-and-ai.md) | [what-is-posix.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/what-is-posix.md) | [what-is-the-os-kernel.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/what-is-the-os-kernel.md) | [why-is-the-os-so-large.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/why-is-the-os-so-large.md)
+> **Reference / Context**: [10_linux_cli.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md) | [the-complete-story-of-linux-and-ai.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/the-complete-story-of-linux-and-ai.md) | [what-is-posix.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/what-is-posix.md) | [what-is-the-os-kernel.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/what-is-the-os-kernel.md) | [why-is-the-os-so-large.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/why-is-the-os-so-large.md)
 
 ---
 

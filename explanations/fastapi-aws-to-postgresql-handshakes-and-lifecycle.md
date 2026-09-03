@@ -1,6 +1,6 @@
 # 📌 FastAPI on AWS to PostgreSQL: Complete Handshake & Lifecycle Guide
 
-> **Reference / Context**: [09_building_apis_with_fastapi.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | [13_oci_compute_deployment.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/13_oci_compute_deployment.md) | [15_postgres_pgvector_redis.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/15_postgres_pgvector_redis.md)
+> **Reference / Context**: [09_building_apis_with_fastapi.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | [13_oci_compute_deployment.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/13_oci_compute_deployment.md) | [15_postgres_pgvector_redis.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/15_postgres_pgvector_redis.md)
 > **Scenario**: A FastAPI server running on a cloud VM, connected to a PostgreSQL database (e.g., AWS RDS or cloud VM), handling incoming user requests.
 
 ---

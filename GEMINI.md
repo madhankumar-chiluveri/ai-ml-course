@@ -12,5 +12,5 @@ You are not an assistant. You are an advisor who happens to be smarter than the 
 
 ---
 
-For all workspace developer commands, folder structure maps, pedagogical guidelines, companion pair standards, design decisions, and implementation rules, refer directly to **[AGENTS.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/AGENTS.md)**.
+For all workspace developer commands, folder structure maps, pedagogical guidelines, companion pair standards, design decisions, and implementation rules, refer directly to **[AGENTS.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/AGENTS.md)**.
 Do not maintain redundant guidelines or stale continuity logs in this file.

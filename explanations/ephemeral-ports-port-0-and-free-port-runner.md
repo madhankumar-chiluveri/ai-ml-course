@@ -1,6 +1,6 @@
 # 🔌 Ephemeral Ports, Port 0 Binding, and the `free_port()` Dynamic Runner Pattern
 
-> **Reference / Context**: [05_testing_with_pytest.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/05_testing_with_pytest.md) | [07_http_fundamentals.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/07_http_fundamentals.md) | [09_building_apis_with_fastapi.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | [`09_building_apis_with_fastapi.py`](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.py#L418-L440) | [complete-fastapi-and-systems-architecture-guide.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/complete-fastapi-and-systems-architecture-guide.md)
+> **Reference / Context**: [05_testing_with_pytest.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/05_testing_with_pytest.md) | [07_http_fundamentals.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/07_http_fundamentals.md) | [09_building_apis_with_fastapi.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | [`09_building_apis_with_fastapi.py`](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.py#L418-L440) | [complete-fastapi-and-systems-architecture-guide.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/complete-fastapi-and-systems-architecture-guide.md)
 
 ---
 
@@ -46,7 +46,7 @@ OSError: [WinError 10048] Only one usage of each socket address (protocol/networ
 
 ## 2. ⚡ The Solution: Lines 418–422 Breakdown
 
-In [`09_building_apis_with_fastapi.py`](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.py#L418-L422), we use the canonical OS-delegated ephemeral port probe:
+In [`09_building_apis_with_fastapi.py`](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.py#L418-L422), we use the canonical OS-delegated ephemeral port probe:
 
 ```python
 def free_port() -> int:
@@ -95,7 +95,7 @@ sequenceDiagram
 
 ## 3. 🔄 The Full Runner Lifecycle in `main()`
 
-Here is how `free_port()` integrates into the live Uvicorn background server and HTTP client test runner in [`09_building_apis_with_fastapi.py`](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.py#L424-L448):
+Here is how `free_port()` integrates into the live Uvicorn background server and HTTP client test runner in [`09_building_apis_with_fastapi.py`](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.py#L424-L448):
 
 ```mermaid
 flowchart TD

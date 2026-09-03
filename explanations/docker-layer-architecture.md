@@ -1,6 +1,6 @@
 # 📌 Docker Layer Deep-Dive: Storage Drivers, Copy-on-Write & BuildKit Caching
 
-> **Reference / Context**: [11_docker_and_compose.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/11_docker_and_compose.md) | [docker-image-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-image-architecture.md) | [docker-container-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-container-architecture.md) | [docker-images-containers-layers-overlayfs.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-images-containers-layers-overlayfs.md)
+> **Reference / Context**: [11_docker_and_compose.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/11_docker_and_compose.md) | [docker-image-architecture.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-image-architecture.md) | [docker-container-architecture.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-container-architecture.md) | [docker-images-containers-layers-overlayfs.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-images-containers-layers-overlayfs.md)
 
 ---
 
@@ -201,13 +201,13 @@ flowchart TD
 #### 1. How Layer Links to Image:
 * **Layers are the Atomic Ingredients of an Image**: An Image has no independent filesystem payload of its own. It is simply a serialized manifest of Layer SHA-256 hashes.
 * **Layer Deduplication**: When 20 different Docker images share the same `FROM ubuntu:22.04` base layer, that layer exists **exactly once** in physical storage on disk. The Image manifests merely point to that shared layer hash.
-* *(See full image specification details in: [docker-image-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-image-architecture.md))*
+* *(See full image specification details in: [docker-image-architecture.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-image-architecture.md))*
 
 #### 2. How Layer Links to Container:
 * **The Base (`lowerdir`) vs. The Scratchpad (`upperdir`)**: When a container launches, the Docker engine mounts the image's stacked layers as read-only base directories (`lowerdir`). It then attaches a single, ephemeral, read-write layer (`upperdir`) on top.
 * **Isolation of Mutation**: Any file modification, log creation, or temporary file generated during container runtime exists solely inside that container's private top layer.
 * **Destruction**: When the container is destroyed (`docker rm`), its top writable layer is permanently erased. The underlying image layers remain untouched for other containers to use.
-* *(See full container lifecycle details in: [docker-container-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-container-architecture.md))*
+* *(See full container lifecycle details in: [docker-container-architecture.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-container-architecture.md))*
 
 #### Summary Matrix
 | Attribute | 🧱 Docker Layer | 📦 Docker Image | 🚀 Docker Container |

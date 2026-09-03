@@ -32,5 +32,5 @@ All visual assets and carousel slides adhere to the **Claude Warm Editorial Them
 
 ## 📁 Content Directory
 
-- [01_os_kernel_vs_ai_gpu_kernels.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/social-posts/01_os_kernel_vs_ai_gpu_kernels.md) — Complete content pack for Topic #01.
-- [02_terminal_vs_shell_vs_kernel.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/social-posts/02_terminal_vs_shell_vs_kernel.md) — Complete content pack for Topic #02.
+- [01_os_kernel_vs_ai_gpu_kernels.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/social-posts/01_os_kernel_vs_ai_gpu_kernels.md) — Complete content pack for Topic #01.
+- [02_terminal_vs_shell_vs_kernel.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/social-posts/02_terminal_vs_shell_vs_kernel.md) — Complete content pack for Topic #02.

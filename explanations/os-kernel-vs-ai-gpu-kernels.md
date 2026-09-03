@@ -1,6 +1,6 @@
 # 📌 OS Kernel vs. AI/GPU Compute Kernels — Demystifying the Name Collision
 
-> **Reference / Context**: [what-is-the-os-kernel.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/what-is-the-os-kernel.md) | [interpreter-compiler-bytecode-cpython.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/interpreter-compiler-bytecode-cpython.md) | [01_python_basics.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/01_python_basics.md) | [06_numpy_pandas_matplotlib.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/06_numpy_pandas_matplotlib.md)
+> **Reference / Context**: [what-is-the-os-kernel.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/what-is-the-os-kernel.md) | [interpreter-compiler-bytecode-cpython.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/interpreter-compiler-bytecode-cpython.md) | [01_python_basics.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/01_python_basics.md) | [06_numpy_pandas_matplotlib.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/06_numpy_pandas_matplotlib.md)
 
 ---
 

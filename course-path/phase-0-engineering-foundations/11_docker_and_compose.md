@@ -20,11 +20,11 @@ Depends on **0.10**; unlocks **0.13** OCI deployment, **0.15** the data stack, a
 
 For in-depth operating system internals, OverlayFS storage drivers, and Linux kernel isolation mechanics related to Docker, see:
 
-- [docker-image-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-image-architecture.md) — Docker Image Deep-Dive: OCI Image Specifications, manifest JSON schemas, config metadata, multi-arch builds, and content-addressable blob storage.
-- [docker-layer-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-layer-architecture.md) — Docker Layer Deep-Dive: Storage drivers, OverlayFS union mounts, Copy-on-Write (CoW), whiteout deletion markers, and BuildKit caching DAG.
-- [docker-container-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-container-architecture.md) — Docker Container Deep-Dive: Container runtime engine (containerd/runc), Linux namespaces, Cgroups v2 resource governor, host process isolation, and signal forwarding.
-- [docker-images-containers-layers-overlayfs.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-images-containers-layers-overlayfs.md) — Docker Internals: Images, Containers, Layers & OverlayFS (Union mounts, Copy-on-Write, Namespaces, Cgroups, and host process reality).
-- [what-is-a-tarball.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/what-is-a-tarball.md) — What is a Tarball? (`.tar`, `.tar.gz`, `.tgz`): Archiving vs Compression, POSIX permissions preservation, and Docker layer transfer format.
+- [docker-image-architecture.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-image-architecture.md) — Docker Image Deep-Dive: OCI Image Specifications, manifest JSON schemas, config metadata, multi-arch builds, and content-addressable blob storage.
+- [docker-layer-architecture.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-layer-architecture.md) — Docker Layer Deep-Dive: Storage drivers, OverlayFS union mounts, Copy-on-Write (CoW), whiteout deletion markers, and BuildKit caching DAG.
+- [docker-container-architecture.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-container-architecture.md) — Docker Container Deep-Dive: Container runtime engine (containerd/runc), Linux namespaces, Cgroups v2 resource governor, host process isolation, and signal forwarding.
+- [docker-images-containers-layers-overlayfs.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-images-containers-layers-overlayfs.md) — Docker Internals: Images, Containers, Layers & OverlayFS (Union mounts, Copy-on-Write, Namespaces, Cgroups, and host process reality).
+- [what-is-a-tarball.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/what-is-a-tarball.md) — What is a Tarball? (`.tar`, `.tar.gz`, `.tgz`): Archiving vs Compression, POSIX permissions preservation, and Docker layer transfer format.
 
 ---
 

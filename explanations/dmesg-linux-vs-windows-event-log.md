@@ -1,6 +1,6 @@
 # 📌 `dmesg` vs Windows Event Log: Why `dmesg` Fails in PowerShell
 
-> **Reference / Context**: [10_linux_cli.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md) | [posix-unix-linux-gnu-kernel-terminal-shell.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/posix-unix-linux-gnu-kernel-terminal-shell.md) | [windows-shortcuts-cmd-powershell-terminal-apps.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/windows-shortcuts-cmd-powershell-terminal-apps.md)
+> **Reference / Context**: [10_linux_cli.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md) | [posix-unix-linux-gnu-kernel-terminal-shell.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/posix-unix-linux-gnu-kernel-terminal-shell.md) | [windows-shortcuts-cmd-powershell-terminal-apps.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/windows-shortcuts-cmd-powershell-terminal-apps.md)
 
 ---
 
@@ -79,7 +79,7 @@ flowchart TD
 
 ### 5. ⚠️ Key Takeaway for Topic 0.10 Linux CLI Drills
 
-All terminal drills in **[10_linux_cli.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md)** (`cat`, `grep`, `awk`, `tail -f`, `dmesg`, `ps aux`, `lsof -i`) are **POSIX/Linux commands**. 
+All terminal drills in **[10_linux_cli.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md)** (`cat`, `grep`, `awk`, `tail -f`, `dmesg`, `ps aux`, `lsof -i`) are **POSIX/Linux commands**. 
 
 When practicing on a Windows machine:
 * **DO NOT run them in native PowerShell**.

@@ -1,6 +1,6 @@
 # 📌 Linux CLI Prerequisites: Echo, Cat, Awk, Streams & Command Flags
 
-> **Reference / Context**: [10_linux_cli.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md) | [linux-pipe-echo-grep-wc.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/linux-pipe-echo-grep-wc.md) | [what-is-posix.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/what-is-posix.md)
+> **Reference / Context**: [10_linux_cli.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md) | [linux-pipe-echo-grep-wc.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/linux-pipe-echo-grep-wc.md) | [what-is-posix.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/what-is-posix.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # 🌐 The Complete FastAPI & Systems Architecture Master Guide
 
-> **Curriculum Path**: [Phase 0 — Topic 0.9: Building APIs with FastAPI](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | **Companion Script**: [`09_building_apis_with_fastapi.py`](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.py)
+> **Curriculum Path**: [Phase 0 — Topic 0.9: Building APIs with FastAPI](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | **Companion Script**: [`09_building_apis_with_fastapi.py`](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.py)
 
 ---
 
@@ -55,7 +55,7 @@ flowchart TD
 
 ## 1. The Physical & Hardware Ingestion Layer
 
-> 📖 **Dedicated Deep-Dive**: [nic-and-fifo-buffers-explained.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/nic-and-fifo-buffers-explained.md)
+> 📖 **Dedicated Deep-Dive**: [nic-and-fifo-buffers-explained.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/nic-and-fifo-buffers-explained.md)
 
 ### 1.1 Analog Waves to Digital Bits
 When a client sends an HTTP request, it travels across physical mediums as continuous analog energy:
@@ -81,11 +81,11 @@ The **Network Interface Card (NIC)** on your motherboard processes this in two s
 ## 2. The OS Kernel, Sockets, File Descriptors & Port Binding
 
 > 📖 **Dedicated Deep-Dives**:
-> - [what-is-the-os-kernel.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/what-is-the-os-kernel.md)
-> - [where-sockets-live-in-the-kernel.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/where-sockets-live-in-the-kernel.md)
-> - [file-descriptors-ip-ports-and-0000-explained.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/file-descriptors-ip-ports-and-0000-explained.md)
-> - [how-web-servers-bind-sockets-tls-and-bytes.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/how-web-servers-bind-sockets-tls-and-bytes.md)
-> - [ephemeral-ports-port-0-and-free-port-runner.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/ephemeral-ports-port-0-and-free-port-runner.md)
+> - [what-is-the-os-kernel.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/what-is-the-os-kernel.md)
+> - [where-sockets-live-in-the-kernel.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/where-sockets-live-in-the-kernel.md)
+> - [file-descriptors-ip-ports-and-0000-explained.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/file-descriptors-ip-ports-and-0000-explained.md)
+> - [how-web-servers-bind-sockets-tls-and-bytes.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/how-web-servers-bind-sockets-tls-and-bytes.md)
+> - [ephemeral-ports-port-0-and-free-port-runner.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/ephemeral-ports-port-0-and-free-port-runner.md)
 
 
 ### 2.1 The Kernel: Gatekeeper & Privilege Isolation
@@ -131,8 +131,8 @@ To start listening on a network port, the web server executes **4 fundamental sy
 ## 3. Web Server vs. Web Framework: Uvicorn & ASGI
 
 > 📖 **Dedicated Deep-Dives**:
-> - [web-server-vs-web-framework-fastapi.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/web-server-vs-web-framework-fastapi.md)
-> - [uvicorn-asgi-event-loop-explained.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/uvicorn-asgi-event-loop-explained.md)
+> - [web-server-vs-web-framework-fastapi.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/web-server-vs-web-framework-fastapi.md)
+> - [uvicorn-asgi-event-loop-explained.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/uvicorn-asgi-event-loop-explained.md)
 
 ### 3.1 Why FastAPI is NOT a Web Server
 - **Web Server (Uvicorn / NGINX)**: Low-level networking program that binds to ports, manages sockets, decrypts TLS, and handles byte streams.
@@ -165,7 +165,7 @@ FastAPI is fundamentally a single asynchronous function conforming to the 3-part
 
 ## 4. FastAPI Request Lifecycle & Validation Gates
 
-> 📖 **Companion Code**: [`09_building_apis_with_fastapi.py`](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.py) (Demos 1 & 2)
+> 📖 **Companion Code**: [`09_building_apis_with_fastapi.py`](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.py) (Demos 1 & 2)
 
 ```mermaid
 flowchart TD
@@ -204,7 +204,7 @@ When a client sends malformed JSON (e.g. negative numbers, missing strings, wron
 
 ## 5. The Lifespan Callback Architecture
 
-> 📖 **Dedicated Deep-Dive**: [fastapi-lifespan-callback-pattern.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/fastapi-lifespan-callback-pattern.md)
+> 📖 **Dedicated Deep-Dive**: [fastapi-lifespan-callback-pattern.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/fastapi-lifespan-callback-pattern.md)
 
 ### 5.1 Why the Syntax Looks Circular (Type Hints vs. Runtime Handshake)
 Learners often get confused by:
@@ -256,7 +256,7 @@ Without `lifespan`, loading a 7GB model inside an endpoint would force every sin
 
 ## 6. OpenAPI Schema Generation & The AI / MCP Link
 
-> 📖 **Dedicated Deep-Dive**: [openapi-specification.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/openapi-specification.md)
+> 📖 **Dedicated Deep-Dive**: [openapi-specification.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/openapi-specification.md)
 
 ### 6.1 One Typed Signature, Three Artifacts
 
@@ -282,7 +282,7 @@ In modern AI engineering, **OpenAPI is not just documentation for humans**.
 
 ## 7. Production Engineering & AI Serving Mechanics
 
-> 📖 **Companion Code**: [`09_building_apis_with_fastapi.py`](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.py) (Demos 3, 5, 6, 7)
+> 📖 **Companion Code**: [`09_building_apis_with_fastapi.py`](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.py) (Demos 3, 5, 6, 7)
 
 ### 7.1 The Fatal "Async Trap" (Demo 5 Measurements)
 Because Uvicorn runs on **ONE single event loop thread**, placing synchronous blocking code inside an `async def` function stalls the entire server.

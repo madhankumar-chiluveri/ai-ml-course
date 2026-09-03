@@ -353,12 +353,12 @@ A **Virtual Environment** gives every project its own **private toolbox** contai
 ```bash
 # Verify active Python environment path:
 python -c "import sys; print('Active Venv Path:', sys.prefix)"
-# Expected Output: Active Venv Path: d:\Madhan_Utils\learnings\ai-ml\ai-ml-course\.venv
+# Expected Output: Active Venv Path: d:\Madhan_Utils\learning\courses\ai-ml-course\.venv
 ```
 
 ##### Verified Output
 ```text
-Active Venv Path: d:\Madhan_Utils\learnings\ai-ml\ai-ml-course\.venv
+Active Venv Path: d:\Madhan_Utils\learning\courses\ai-ml-course\.venv
 ```
 
 **Why It Matters**: Prevents dependency conflicts where upgrading a library for one project breaks unrelated applications running on the same machine.

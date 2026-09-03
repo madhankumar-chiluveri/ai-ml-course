@@ -1,6 +1,6 @@
 # 📌 File Descriptor Limits & Server Crashes: `Too Many Open Files`
 
-> **Reference / Context**: [09_building_apis_with_fastapi.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | [10_linux_cli.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md) | [file-descriptors-ip-ports-and-0000-explained.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/file-descriptors-ip-ports-and-0000-explained.md) | [where-sockets-live-in-the-kernel.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/where-sockets-live-in-the-kernel.md)
+> **Reference / Context**: [09_building_apis_with_fastapi.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | [10_linux_cli.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md) | [file-descriptors-ip-ports-and-0000-explained.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/file-descriptors-ip-ports-and-0000-explained.md) | [where-sockets-live-in-the-kernel.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/where-sockets-live-in-the-kernel.md)
 
 ---
 

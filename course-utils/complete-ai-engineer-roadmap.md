@@ -747,4 +747,4 @@ flowchart LR
 - `AI_Roadmap_Krish_Naik_References.docx` (local); playlist titles **[VERIFY]**
 - `GenAI_Engineering_Handbook.docx` (local)
 
-**Books already on disk** under `d:\Madhan_Utils\learnings\ai-ml\` — Phases 1 and 2 need no new purchases: *Introduction to Statistical Learning*, *Mathematics for AI ML Data Science*, *Hands-On Machine Learning with Scikit-Learn*, Murphy's *Machine Learning*, *Data Science from Scratch*, *Python for Data Analysis*.
+**Books already on disk** under `d:\Madhan_Utils\learning\reference\` — Phases 1 and 2 need no new purchases: *Introduction to Statistical Learning*, *Mathematics for AI ML Data Science*, *Hands-On Machine Learning with Scikit-Learn*, Murphy's *Machine Learning*, *Data Science from Scratch*, *Python for Data Analysis*.

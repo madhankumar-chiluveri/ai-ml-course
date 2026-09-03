@@ -1,6 +1,6 @@
 # 📌 What is POSIX? (Portable Operating System Interface)
 
-> **Reference / Context**: [10_linux_cli.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md) | [what-is-unix.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/what-is-unix.md) | [linux-cli-prerequisites-echo-cat-awk-flags.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/linux-cli-prerequisites-echo-cat-awk-flags.md)
+> **Reference / Context**: [10_linux_cli.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md) | [what-is-unix.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/what-is-unix.md) | [linux-cli-prerequisites-echo-cat-awk-flags.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/linux-cli-prerequisites-echo-cat-awk-flags.md)
 
 ---
 

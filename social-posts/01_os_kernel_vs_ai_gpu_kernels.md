@@ -2,7 +2,7 @@
 
 > **Status:** 🟢 Ready to Publish  
 > **Topic Category:** AI Systems & Operating Systems Architecture  
-> **Source Material:** [`explanations/os-kernel-vs-ai-gpu-kernels.md`](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/os-kernel-vs-ai-gpu-kernels.md) & [`explanations/what-is-the-os-kernel.md`](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/what-is-the-os-kernel.md)  
+> **Source Material:** [`explanations/os-kernel-vs-ai-gpu-kernels.md`](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/os-kernel-vs-ai-gpu-kernels.md) & [`explanations/what-is-the-os-kernel.md`](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/what-is-the-os-kernel.md)  
 > **Aesthetic Theme:** Claude / Anthropic Warm Editorial (`#FBF9F5` canvas, `#DA7756` coral accent, `#1A1A1A` charcoal text)
 
 ---

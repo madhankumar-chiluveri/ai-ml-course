@@ -1,6 +1,6 @@
 # 📌 Docker Container Deep-Dive: Runtime Engine, Namespaces & Process Isolation
 
-> **Reference / Context**: [11_docker_and_compose.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/course-path/phase-0-engineering-foundations/11_docker_and_compose.md) | [docker-image-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-image-architecture.md) | [docker-layer-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-layer-architecture.md) | [docker-images-containers-layers-overlayfs.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-images-containers-layers-overlayfs.md)
+> **Reference / Context**: [11_docker_and_compose.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/11_docker_and_compose.md) | [docker-image-architecture.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-image-architecture.md) | [docker-layer-architecture.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-layer-architecture.md) | [docker-images-containers-layers-overlayfs.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-images-containers-layers-overlayfs.md)
 
 ---
 
@@ -176,13 +176,13 @@ flowchart TD
 #### 1. How Container Links to Image:
 * **Instantiation**: A Container cannot exist without an Image. The Image is the static template; the Container is the running instance.
 * **Inheritance**: The Container inherits its base filesystem, environment variables, exposed ports, and default startup command directly from the Image's metadata configuration (`config.json`).
-* *(See full image specification details in: [docker-image-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-image-architecture.md))*
+* *(See full image specification details in: [docker-image-architecture.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-image-architecture.md))*
 
 #### 2. How Container Links to Layer:
 * **The Layer Consumer**: The Container runtime stacks the Image's read-only Layers into an OverlayFS `lowerdir` and automatically attaches one dynamic, writable Layer (`upperdir`) specifically for this container instance.
 * **Runtime Mutation & Ephemerality**: Every time the container writes a log, updates a file, or creates a temp file, the write is captured in this container's writable layer.
 * **Destruction Cycle**: When the container is stopped and removed (`docker rm`), its writable layer is discarded. The shared image layers beneath it remain 100% untouched.
-* *(See full layer storage mechanics in: [docker-layer-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-layer-architecture.md))*
+* *(See full layer storage mechanics in: [docker-layer-architecture.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/docker-layer-architecture.md))*
 
 #### Summary Matrix
 | Attribute | 🧱 Docker Layer | 📦 Docker Image | 🚀 Docker Container |
