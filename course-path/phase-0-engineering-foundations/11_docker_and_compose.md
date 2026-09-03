@@ -16,6 +16,16 @@ The second reason it earns ten hours rather than two: the local stack for the re
 
 Depends on **0.10**; unlocks **0.13** OCI deployment, **0.15** the data stack, and **7.11** production serving.
 
+### 🔬 Architectural Deep-Dives & Explanations
+
+For in-depth operating system internals, OverlayFS storage drivers, and Linux kernel isolation mechanics related to Docker, see:
+
+- [docker-image-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-image-architecture.md) — Docker Image Deep-Dive: OCI Image Specifications, manifest JSON schemas, config metadata, multi-arch builds, and content-addressable blob storage.
+- [docker-layer-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-layer-architecture.md) — Docker Layer Deep-Dive: Storage drivers, OverlayFS union mounts, Copy-on-Write (CoW), whiteout deletion markers, and BuildKit caching DAG.
+- [docker-container-architecture.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-container-architecture.md) — Docker Container Deep-Dive: Container runtime engine (containerd/runc), Linux namespaces, Cgroups v2 resource governor, host process isolation, and signal forwarding.
+- [docker-images-containers-layers-overlayfs.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/docker-images-containers-layers-overlayfs.md) — Docker Internals: Images, Containers, Layers & OverlayFS (Union mounts, Copy-on-Write, Namespaces, Cgroups, and host process reality).
+- [what-is-a-tarball.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/what-is-a-tarball.md) — What is a Tarball? (`.tar`, `.tar.gz`, `.tgz`): Archiving vs Compression, POSIX permissions preservation, and Docker layer transfer format.
+
 ---
 
 ## 2. Glossary
@@ -779,10 +789,16 @@ docker compose down -v
 
 ---
 
-## 6. Video
+## 6. Video & Visual Deep-Dives
 
-**"Docker Tutorial for Beginners [FULL COURSE in 3 Hours]"** — *TechWorld with Nana* — [youtube.com/watch?v=3c-iBn73dDE](https://www.youtube.com/watch?v=3c-iBn73dDE). Title and channel confirmed live via YouTube's oEmbed endpoint in this pass. Covers containers versus virtual machines, the main commands, debugging a running container, Compose for multiple services, writing a Dockerfile, and pushing to a private registry.
+If you struggle with 360-degree comprehension from reading static text alone, container internals become crystal clear when watched visually and in live systems code:
 
+1. **"Building a container from scratch in Go"** — *Liz Rice* (GOTO Conferences / Aqua Security) — **The Gold Standard Systems Talk**: Liz builds a miniature Docker clone live in ~60 lines of Go code on stage. Visually demonstrates that a container has no guest OS or hypervisor—it is simply a host Linux process spawned via `clone()` with `CLONE_NEWPID`, `CLONE_NEWNS`, `pivot_root`, and `cgroups` resource limits.
+2. **"Docker Tutorial for Beginners [FULL COURSE in 3 Hours]"** — *TechWorld with Nana* — [youtube.com/watch?v=3c-iBn73dDE](https://www.youtube.com/watch?v=3c-iBn73dDE) — **The Best Visual Whiteboard / Diagrams**: Clear color-coded animated breakdowns of image layer stacking, read-only vs writable container layers, volume lifecycle decoupling, and multi-service Docker Compose networks.
+3. **"How Docker Works Under the Hood (OverlayFS & Storage Drivers)"** — *Hussein Nasser* — **Storage Driver & Kernel Mechanics**: Hands-on inspection of `/var/lib/docker/overlay2`, demonstrating `lowerdir`/`upperdir` Copy-on-Write (CoW), whiteout deletion character devices (`0:0`), and socket binding in real time.
+4. **"Docker in 100 Seconds"** — *Fireship* — **High-Speed Concept Primer**: Rapid-fire 3D animated motion graphics contrasting Virtual Machines vs Containers, explaining image blueprints, layer caching, and container orchestration.
+
+### Authoritative Documentation References
 For the two things this note measures most closely, the authoritative sources are short and worth reading directly: the **Dockerfile reference** on `docs.docker.com` (the `CMD` section states the exec/shell distinction and the PID 1 consequence) and the **Compose file reference** section on `depends_on` (which states plainly that it does not wait for readiness without a condition). Read the build-cache page too — it is the primary source for the ordering rule Demos 2 and 3 measure.
 
 ---

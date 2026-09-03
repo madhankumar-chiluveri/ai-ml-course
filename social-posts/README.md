@@ -9,10 +9,11 @@ Central tracking ledger for technical content packs generated across LinkedIn an
 | ID | Topic / Headline | Primary Domain | Instagram Format | LinkedIn Format | Source Note | Status |
 |:---:|---|---|---|---|---|:---:|
 | **01** | **OS Kernel vs. AI GPU Kernels** | Systems & AI Systems | Reel + 10-Slide Carousel | 4:5 Infographic + Authority Post | [`explanations/os-kernel-vs-ai-gpu-kernels.md`](../explanations/os-kernel-vs-ai-gpu-kernels.md) | 🟢 **Ready to Publish** |
-| **02** | *FastAPI Async vs Event Loop Trap* | Backend & Async | Reel + 8-Slide Carousel | Comparison Infographic + Post | [`09_building_apis_with_fastapi.md`](../course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | ⏳ Planned |
+| **02** | **Terminal vs. Shell vs. Kernel** | Systems & CLI Architecture | Reel + 10-Slide Carousel | 4:5 Infographic + Authority Post | [`terminal-vs-shell-and-powershell-vs-cmd.md`](../explanations/terminal-vs-shell-and-powershell-vs-cmd.md) | 🟢 **Ready to Publish** |
 | **03** | *Where Sockets Actually Live (Kernel & FDs)* | Systems & Networking | Reel + 9-Slide Carousel | Architecture Infographic + Post | [`where-sockets-live-in-the-kernel.md`](../explanations/where-sockets-live-in-the-kernel.md) | ⏳ Planned |
-| **04** | *Why Python .get() Lies on CSV Data* | Data & Python Core | Reel + 7-Slide Carousel | Code Trap Infographic + Post | [`01_python_basics.md`](../course-path/phase-0-engineering-foundations/01_python_basics.md) | ⏳ Planned |
-| **05** | *Vectorization Speedup (NumPy vs Loops)* | Math & ML Foundations | Reel + 8-Slide Carousel | Benchmark Infographic + Post | [`06_numpy_pandas_matplotlib.md`](../course-path/phase-0-engineering-foundations/06_numpy_pandas_matplotlib.md) | ⏳ Planned |
+| **04** | *FastAPI Async vs Event Loop Trap* | Backend & Async | Reel + 8-Slide Carousel | Comparison Infographic + Post | [`09_building_apis_with_fastapi.md`](../course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | ⏳ Planned |
+| **05** | *Why Python .get() Lies on CSV Data* | Data & Python Core | Reel + 7-Slide Carousel | Code Trap Infographic + Post | [`01_python_basics.md`](../course-path/phase-0-engineering-foundations/01_python_basics.md) | ⏳ Planned |
+| **06** | *Vectorization Speedup (NumPy vs Loops)* | Math & ML Foundations | Reel + 8-Slide Carousel | Benchmark Infographic + Post | [`06_numpy_pandas_matplotlib.md`](../course-path/phase-0-engineering-foundations/06_numpy_pandas_matplotlib.md) | ⏳ Planned |
 
 ---
 
@@ -32,3 +33,4 @@ All visual assets and carousel slides adhere to the **Claude Warm Editorial Them
 ## 📁 Content Directory
 
 - [01_os_kernel_vs_ai_gpu_kernels.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/social-posts/01_os_kernel_vs_ai_gpu_kernels.md) — Complete content pack for Topic #01.
+- [02_terminal_vs_shell_vs_kernel.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/social-posts/02_terminal_vs_shell_vs_kernel.md) — Complete content pack for Topic #02.

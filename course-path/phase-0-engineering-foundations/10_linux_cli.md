@@ -19,6 +19,9 @@ Depends on nothing; unlocks **0.11**, **0.12**, **0.13**, and **7.11**.
 For in-depth operating system internals, kernel memory management, and file descriptor diagnostics related to this topic, see:
 
 - [posix-unix-linux-gnu-kernel-terminal-shell.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/posix-unix-linux-gnu-kernel-terminal-shell.md) — POSIX, UNIX, Linux, GNU, Kernel, Terminal & Shell: Complete end-to-end systems architecture and command-to-hardware pipeline.
+- [windows-shortcuts-cmd-powershell-terminal-apps.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/windows-shortcuts-cmd-powershell-terminal-apps.md) — Windows Terminal vs Windows PowerShell vs Command Prompt: Demystifying the 3 laptop applications.
+- [terminal-vs-shell-and-powershell-vs-cmd.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/terminal-vs-shell-and-powershell-vs-cmd.md) — Why Do We Need a Terminal Emulator? & Is PowerShell Running Behind CMD?
+- [dmesg-linux-vs-windows-event-log.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/dmesg-linux-vs-windows-event-log.md) — `dmesg` vs Windows Event Log: Why `dmesg` Fails in PowerShell & How to Check OOM/Crashes on Windows vs Linux.
 - [linux-cli-prerequisites-echo-cat-awk-flags.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/linux-cli-prerequisites-echo-cat-awk-flags.md) — Linux CLI Prerequisites: Standard streams (stdin/stdout), Heredocs, `awk` vs `cut`, and master command flag reference.
 - [linux-pipe-echo-grep-wc.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/linux-pipe-echo-grep-wc.md) — Anatomy of a Linux Pipeline: How `echo -e`, `grep`, and `wc -l` stream through kernel FIFO buffers.
 - [the-complete-story-of-linux-and-ai.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/the-complete-story-of-linux-and-ai.md) — The Complete Story of Linux: From Linus Torvalds' 1991 hobby to the operating system powering 100% of modern AI & LLM infrastructure.
@@ -30,6 +33,7 @@ For in-depth operating system internals, kernel memory management, and file desc
 - [where-sockets-live-in-the-kernel.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/where-sockets-live-in-the-kernel.md) — Where Sockets Live in Kernel RAM (`struct sock`, FIFO Buffers, TCP State Machine).
 - [why-127-0-0-1-and-how-loopback-works.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/why-127-0-0-1-and-how-loopback-works.md) — Why `127.0.0.1`? How the OS Loopback Interface (`lo`) Bypasses Physical Hardware.
 - [why-is-the-os-so-large.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/why-is-the-os-so-large.md) — What Makes Up an OS: Kernel vs Device Drivers vs Background Daemons.
+- [what-is-a-tarball.md](file:///d:/Madhan_Utils/learnings/ai-ml/ai-ml-course/explanations/what-is-a-tarball.md) — What is a Tarball? (`.tar`, `.tar.gz`, `.tgz`): Archiving vs Compression, POSIX permissions preservation, and Docker layer transfer format.
 
 ---
 
