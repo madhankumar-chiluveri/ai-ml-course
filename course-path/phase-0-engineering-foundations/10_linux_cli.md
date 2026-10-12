@@ -18,6 +18,8 @@ Depends on nothing; unlocks **0.11**, **0.12**, **0.13**, and **7.11**.
 
 For in-depth operating system internals, kernel memory management, and file descriptor diagnostics related to this topic, see:
 
+- [linux-namespaces-explained.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/linux-namespaces-explained.md) — Linux Namespaces Architecture: How the Linux kernel isolates PIDs, networks, mount trees, and users via `nsproxy` pointers and the 3 core syscalls (`clone`, `unshare`, `setns`).
+- [from-cpu-registers-to-global-system-resources.md](file:///d:/madhan-utils/learning/courses/ai-ml-course/explanations/from-cpu-registers-to-global-system-resources.md) — From CPU Silicon and Registers to Global System Resources: The Hardware-to-Kernel Architecture (Silicon, Transistors, Instruction Pointer, Registers, `task_struct`, OS Tables, and Namespaces).
 - [posix-unix-linux-gnu-kernel-terminal-shell.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/posix-unix-linux-gnu-kernel-terminal-shell.md) — POSIX, UNIX, Linux, GNU, Kernel, Terminal & Shell: Complete end-to-end systems architecture and command-to-hardware pipeline.
 - [windows-shortcuts-cmd-powershell-terminal-apps.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/windows-shortcuts-cmd-powershell-terminal-apps.md) — Windows Terminal vs Windows PowerShell vs Command Prompt: Demystifying the 3 laptop applications.
 - [terminal-vs-shell-and-powershell-vs-cmd.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/terminal-vs-shell-and-powershell-vs-cmd.md) — Why Do We Need a Terminal Emulator? & Is PowerShell Running Behind CMD?
