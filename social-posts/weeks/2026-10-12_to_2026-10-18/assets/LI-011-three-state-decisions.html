@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Three state decisions for an AI product</title>
+  <style>
+    :root {
+      --paper: #fbf8f1;
+      --ink: #111318;
+      --note: #2246a8;
+      --mint: #ddf6e9;
+      --lilac: #ece6ff;
+      --butter: #fff1b8;
+      --muted: #5d6470;
+      --rule: #cdd3dc;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 1080px; height: 1350px; overflow: hidden; }
+    body {
+      background:
+        radial-gradient(circle at 14% 8%, rgba(34, 70, 168, .035), transparent 23%),
+        var(--paper);
+      color: var(--ink);
+      font-family: Inter, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .canvas {
+      position: relative;
+      width: 1080px;
+      height: 1350px;
+      padding: 62px 70px 44px;
+      display: grid;
+      grid-template-rows: 330px 1fr 92px 42px;
+      gap: 22px;
+    }
+
+    .canvas::before {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border: 1px solid rgba(17, 19, 24, .06);
+      border-radius: 30px;
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--note);
+      font-size: 23px;
+      font-weight: 850;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "03";
+      display: grid;
+      place-items: center;
+      width: 54px;
+      height: 42px;
+      border: 2px solid var(--ink);
+      border-radius: 13px;
+      background: var(--butter);
+      color: var(--ink);
+      letter-spacing: .02em;
+      box-shadow: 3px 3px 0 rgba(17, 19, 24, .12);
+    }
+
+    h1 {
+      margin: 24px 0 16px;
+      max-width: 900px;
+      font-family: "Arial Black", Inter, Arial, sans-serif;
+      font-size: 83px;
+      line-height: .94;
+      letter-spacing: -.062em;
+    }
+
+    .dek {
+      max-width: 790px;
+      color: var(--muted);
+      font-size: 29px;
+      line-height: 1.28;
+      font-weight: 570;
+    }
+
+    .annotation {
+      position: absolute;
+      top: 285px;
+      right: 72px;
+      color: var(--note);
+      font-family: "Segoe Print", "Comic Sans MS", cursive;
+      font-size: 27px;
+      font-weight: 700;
+      transform: rotate(-3deg);
+    }
+
+    .annotation::after {
+      content: "";
+      display: block;
+      width: 184px;
+      height: 12px;
+      margin: 2px 0 0 18px;
+      border-bottom: 4px solid var(--note);
+      border-radius: 50%;
+      transform: rotate(2deg);
+    }
+
+    .decisions {
+      display: grid;
+      grid-template-rows: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .decision {
+      position: relative;
+      display: grid;
+      grid-template-columns: 190px 260px 1fr;
+      align-items: center;
+      min-height: 190px;
+      padding: 24px 28px;
+      border: 2px solid var(--ink);
+      border-radius: 27px;
+      overflow: hidden;
+      box-shadow: 5px 6px 0 rgba(17, 19, 24, .10);
+    }
+
+    .decision.pg { background: var(--mint); }
+    .decision.vector { background: var(--lilac); }
+    .decision.redis { background: var(--butter); }
+
+    .ordinal {
+      height: 100%;
+      display: grid;
+      align-content: center;
+      justify-items: start;
+      border-right: 2px dashed rgba(17, 19, 24, .30);
+    }
+
+    .number {
+      font-family: "Arial Black", Inter, Arial, sans-serif;
+      font-size: 55px;
+      line-height: 1;
+      letter-spacing: -.05em;
+    }
+
+    .verb {
+      margin-top: 8px;
+      font-size: 21px;
+      font-weight: 850;
+      letter-spacing: .06em;
+    }
+
+    .tool { padding-left: 34px; }
+
+    .tool-name {
+      font-family: "Arial Black", Inter, Arial, sans-serif;
+      font-size: 39px;
+      line-height: 1;
+      letter-spacing: -.035em;
+    }
+
+    .inside {
+      display: inline-block;
+      margin-top: 11px;
+      padding: 7px 11px 6px;
+      border: 2px solid var(--note);
+      border-radius: 999px;
+      color: var(--note);
+      background: rgba(255,255,255,.42);
+      font-size: 18px;
+      font-weight: 850;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .purpose { padding-left: 30px; }
+
+    .purpose h2 {
+      margin: 0 0 10px;
+      font-size: 30px;
+      line-height: 1.12;
+      letter-spacing: -.02em;
+    }
+
+    .purpose p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 24px;
+      line-height: 1.25;
+      font-weight: 620;
+    }
+
+    .icon {
+      position: absolute;
+      top: 18px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      opacity: .82;
+    }
+
+    .rule {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      border: 2px solid var(--ink);
+      border-radius: 24px;
+      background: white;
+      font-size: 24px;
+      font-weight: 820;
+      letter-spacing: .015em;
+      box-shadow: 4px 5px 0 rgba(34, 70, 168, .12);
+    }
+
+    .rule strong {
+      color: var(--note);
+      font-family: "Arial Black", Inter, Arial, sans-serif;
+      font-size: 28px;
+      letter-spacing: -.015em;
+    }
+
+    footer {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      border-top: 2px solid var(--rule);
+      color: var(--muted);
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+
+    footer span:last-child {
+      color: var(--note);
+      letter-spacing: .02em;
+      text-transform: none;
+      font-size: 21px;
+    }
+  </style>
+</head>
+<body>
+  <main class="canvas">
+    <header>
+      <div class="eyebrow">AI product storage · Phase 0</div>
+      <h1>One AI product.<br>Three state decisions.</h1>
+      <p class="dek">Choose the failure you can afford before you choose the tool.</p>
+      <div class="annotation">same backend ≠ same job</div>
+    </header>
+
+    <section class="decisions" aria-label="Three state decisions">
+      <article class="decision pg">
+        <div class="ordinal"><span class="number">01</span><span class="verb">MUST SURVIVE</span></div>
+        <div class="tool"><div class="tool-name">PostgreSQL</div></div>
+        <div class="purpose">
+          <h2>What must still be true after restart?</h2>
+          <p>Users · run history · checkpoints</p>
+        </div>
+        <svg class="icon" viewBox="0 0 64 64" fill="none" stroke="#111318" stroke-width="3" aria-hidden="true">
+          <ellipse cx="32" cy="12" rx="21" ry="8" fill="rgba(255,255,255,.5)"/>
+          <path d="M11 12v36c0 4.5 9.4 8 21 8s21-3.5 21-8V12"/>
+          <path d="M11 29c0 4.5 9.4 8 21 8s21-3.5 21-8M11 46c0 4.5 9.4 8 21 8s21-3.5 21-8"/>
+        </svg>
+      </article>
+
+      <article class="decision vector">
+        <div class="ordinal"><span class="number">02</span><span class="verb">MUST MATCH</span></div>
+        <div class="tool"><div class="tool-name">pgvector</div><span class="inside">inside PostgreSQL</span></div>
+        <div class="purpose">
+          <h2>What is semantically similar?</h2>
+          <p>Embeddings · semantic retrieval</p>
+        </div>
+        <svg class="icon" viewBox="0 0 64 64" fill="none" stroke="#111318" stroke-width="3" aria-hidden="true">
+          <circle cx="25" cy="25" r="13" fill="rgba(255,255,255,.5)"/>
+          <path d="m35 35 15 15M10 52l12-8 10 5 14-12"/>
+          <circle cx="10" cy="52" r="3" fill="#2246a8"/><circle cx="22" cy="44" r="3" fill="#2246a8"/><circle cx="32" cy="49" r="3" fill="#2246a8"/>
+        </svg>
+      </article>
+
+      <article class="decision redis">
+        <div class="ordinal"><span class="number">03</span><span class="verb">MAY EXPIRE</span></div>
+        <div class="tool"><div class="tool-name">Redis</div></div>
+        <div class="purpose">
+          <h2>What only matters right now?</h2>
+          <p>Rate limits · short-lived cache</p>
+        </div>
+        <svg class="icon" viewBox="0 0 64 64" fill="none" stroke="#111318" stroke-width="3" aria-hidden="true">
+          <circle cx="32" cy="32" r="23" fill="rgba(255,255,255,.5)"/>
+          <path d="M32 18v15l10 7M24 5h16"/>
+        </svg>
+      </article>
+    </section>
+
+    <div class="rule"><span>Choose by</span><strong>QUERY SHAPE + DURABILITY + LIFETIME</strong></div>
+
+    <footer><span>Reliable AI product engineering</span><span>Madhan Kumar</span></footer>
+  </main>
+</body>
+</html>

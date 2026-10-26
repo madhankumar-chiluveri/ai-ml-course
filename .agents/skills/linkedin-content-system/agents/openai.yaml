@@ -1,4 +1,4 @@
 interface:
   display_name: "LinkedIn Content System"
-  short_description: "Route topics into credible LinkedIn styles"
-  default_prompt: "Use $linkedin-content-system to route this topic into an evidence-led LinkedIn draft with the right editorial treatment, format, and visual theme."
+  short_description: "Create evidence-led LinkedIn and Instagram posts"
+  default_prompt: "Use $linkedin-content-system to turn this topic into an evidence-led LinkedIn post and its paired Instagram adaptation with one shared claim and the right native format for each platform."

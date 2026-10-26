@@ -1,0 +1,4 @@
+interface:
+  display_name: "Madhan Visual Style"
+  short_description: "Render clear editorial technical visuals"
+  default_prompt: "Use $madhan-visual-style to create a clear technical social visual in my default style."

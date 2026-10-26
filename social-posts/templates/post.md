@@ -9,7 +9,7 @@ instagram_format: carousel
 primary_goal: saves
 instagram_primary_goal: saves
 audience:
-research:
+research: ../research/LI-###-topic.html
 course_source:
 published_url:
 instagram_published_url:
@@ -20,7 +20,7 @@ instagram_published_url:
 ## Shared strategy
 
 - **Topic:** The one concept both platform versions will teach.
-- **Evidence and limits:** Link the study note, proof, trace, or confirmed experience. State the boundary that keeps the claim honest.
+- **Evidence and limits:** Link the interactive HTML research artifact (`../research/LI-###-topic.html`), proof, trace, or confirmed experience. State the boundary that keeps the claim honest.
 - **AI-product connection:** Explain the component, failure, trade-off, or decision this concept changes.
 
 ## LinkedIn
@@ -31,7 +31,7 @@ Name exactly one LinkedIn format and why it fits the information shape. Do not l
 
 ### Working hook
 
-> One specific, defensible opening promise.
+Reference the first line under **Final copy**; do not duplicate it here.
 
 ### Reader promise
 
@@ -55,7 +55,7 @@ Ask for one specific experience, a decision, or a technical counterexample.
 
 ### Final copy
 
-Write the publishable LinkedIn copy here.
+Write the sole canonical publishable LinkedIn copy here. Make it directly pasteable: use sparse Unicode bold for intentional emphasis, not Markdown `**`/`__` markers, and do not use backticks as visual formatting. Keep code identifiers, URLs, and hashtags in plain ASCII. Do not repeat the final copy elsewhere in the repository or assistant response.
 
 ### AI assistant prompt
 
@@ -69,7 +69,7 @@ Use only this brief and its linked study/research note:
 - AI-product connection: [connection]
 - CTA: [CTA]
 
-Produce only the chosen format. Open with a concrete tension, result, failure, or decision; explain the engineering consequence; then give the practical takeaway. Do not invent proof, production experience, metrics, external citations, or a claim about "most developers." Do not add a different LinkedIn format. Use 0–3 relevant hashtags only if they improve discovery.
+Produce only the chosen format. Open with a concrete tension, result, failure, or decision; explain the engineering consequence; then give the practical takeaway. Make the result directly pasteable in LinkedIn: use sparse Unicode bold for intentional emphasis and no Markdown emphasis markers or backticks. Do not invent proof, production experience, metrics, external citations, or a claim about "most developers." Do not add a different LinkedIn format. Use 0–3 relevant hashtags only if they improve discovery. Store the full final copy only once.
 ~~~~
 
 ## Instagram

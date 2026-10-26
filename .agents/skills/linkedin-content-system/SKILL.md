@@ -1,6 +1,6 @@
 ---
 name: linkedin-content-system
-description: Plan, research, theme, draft, review, and improve evidence-led LinkedIn content for an AI Product Engineer. Use when turning course lessons, engineering work, experiments, product news, or audience questions into LinkedIn ideas or posts; selecting text, single-image, document/carousel, video, or poll formats; choosing topic-appropriate editorial and visual treatments; coordinating LinkedIn planner, writer, hook, humanizer, or repurposing skills; creating or updating weekly social-post files; auditing claims, positioning, voice, and assets; or learning from post metrics. Do not publish or schedule without explicit user approval.
+description: Plan, research, theme, draft, adapt, review, and improve evidence-led LinkedIn and paired Instagram content for an AI Product Engineer. Use when turning course lessons, engineering work, experiments, product news, or audience questions into social posts; selecting platform-native text, single-image, document/carousel, video, Reel, Story, or poll formats; creating a LinkedIn post with its Instagram adaptation in one pass; choosing editorial and visual treatments; coordinating writer, hook, humanizer, or repurposing skills; creating or updating weekly social-post files; auditing claims, positioning, voice, and assets; or learning from post metrics. Do not publish or schedule without explicit user approval.
 ---
 
 # LinkedIn Content System
@@ -83,20 +83,30 @@ Use three to five posts and at least three pillars. Vary goals across saves, com
 
 ### Research
 
-Create or update a dated research file using the project's template. Maintain a claim ledger with confidence, source or proof, publication rule, limitations, and unresolved questions. Prefer the smallest experiment capable of disproving the intended claim.
+Generate research notes strictly as self-contained interactive HTML artifacts (`LI-###-topic.html`) using the `claude-artifact-creator` Flexoki + Atkinson Hyperlegible standard. Never use plain `.md` files for research explanations. Every research artifact must embed:
+1. Mental model invariant hero card;
+2. Interactive SVG simulation stage with step scrubber;
+3. Dynamic telemetry inspector updating on step change;
+4. Diagnostic sandbox with clickable real-world "break it" failure scenarios;
+5. Interactive Claim Ledger maintaining confidence ratings, primary sources, proof limits, and publication rules.
 
 ### Drafting
 
 Create or update the selected post file using the project's post template.
 
+- Treat a production LinkedIn post request as a request for its Instagram adaptation in the same pass unless the user explicitly asks for LinkedIn only. Store both under the same stable post ID and research note.
+- Lock the topic, central claim, evidence, limitation, audience outcome, and visual identity across platforms. Adapt the hook, length, CTA, hashtags, SEO wording, and native format without changing the underlying claim.
+- Choose exactly one native format per platform. Reuse one 4:5 single-image asset when it remains legible and complete on both platforms; create platform-specific assets only when the information shape or safe area requires them.
 - Write in the user's demonstrated voice and at the target reader's technical level.
 - Simplify without flattening mechanisms or trade-offs.
 - Use an analogy only when it clarifies more than code, a trace, or a diagram.
 - Use the shortest length that completes the idea; respect LinkedIn's 3,000-character hard limit.
+- Make LinkedIn final copy directly pasteable: do not use Markdown emphasis markers or backticks for visual formatting. Apply Unicode bold sparingly to the hook, key result, or takeaway; keep code identifiers, URLs, and hashtags in plain ASCII.
+- Keep each platform's full publishable copy in exactly one canonical section of the post file. Do not repeat that copy in working hooks, prompts, plans, research notes, or the final assistant response; link to the canonical section instead.
 - Make the opening specific and defensible. Never manufacture a statistic or use deficit framing such as “most developers” without evidence.
 - Make the CTA goal-dependent and optional. Prefer a concrete experience, counterexample, decision, or next-breakdown choice.
 - Use zero to three relevant hashtags only when they add discovery value.
-- Output only the requested assets. Do not automatically create both a post and infographic.
+- Output only the chosen platform assets. The paired Instagram adaptation is part of a production LinkedIn deliverable, but do not add unused alternative formats such as a second carousel, Reel, or infographic.
 - Treat `recommend`, `propose`, `plan`, `brief`, `preview`, and `no edits` as non-production modes. Return copy or an asset brief only; do not invoke image/design tools or create files unless the user explicitly asks for the finished artifact without a conflicting preview-only constraint.
 
 ### Review
@@ -109,6 +119,7 @@ After publication, record consistent 24-hour and 72-hour snapshots in the projec
 
 ## Hard rules
 
+- Do not omit the paired Instagram adaptation from a production LinkedIn deliverable unless the user explicitly requests LinkedIn-only output.
 - Do not claim to be a “top 1% influencer,” imitate a named creator's voice, or promise virality, reach, or follower growth.
 - Do not use fabricated authority, borrowed brand identity, or another creator's signature layout.
 - Do not force an infographic, carousel, analogy, CTA, hashtag count, length range, or posting time on every topic.

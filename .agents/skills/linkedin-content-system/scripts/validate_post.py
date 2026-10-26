@@ -60,6 +60,10 @@ PRECISE_NUMBER_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+UNICODE_BOLD_PATTERN = re.compile(
+    r"[\U0001D400-\U0001D433\U0001D7CE-\U0001D7D7\U0001D5D4-\U0001D607\U0001D7EC-\U0001D7F5]"
+)
+
 
 def issue(level: str, code: str, message: str) -> dict[str, str]:
     return {"level": level, "code": code, "message": message}
@@ -195,6 +199,32 @@ def validate_one(path: Path) -> dict[str, Any]:
         result["errors"].append(
             issue("error", "character-limit", f"Final copy is {len(final_copy)} characters; LinkedIn hard limit is 3,000.")
         )
+
+    if status in FINAL_STATUSES and not is_placeholder(final_copy):
+        if "**" in final_copy or "__" in final_copy:
+            result["errors"].append(
+                issue(
+                    "error",
+                    "markdown-emphasis",
+                    "Final copy contains Markdown emphasis (** or __). LinkedIn requires Unicode bold or plain text.",
+                )
+            )
+        if "`" in final_copy:
+            result["errors"].append(
+                issue(
+                    "error",
+                    "markdown-backtick",
+                    "Final copy contains backticks. LinkedIn requires plain text for code tokens.",
+                )
+            )
+        if not UNICODE_BOLD_PATTERN.search(final_copy):
+            result["warnings"].append(
+                issue(
+                    "warning",
+                    "unicode-bold-missing",
+                    "Final copy contains no Unicode bold characters. Apply sparse Unicode bold to the hook, key numbers, or takeaways for copy-paste readiness.",
+                )
+            )
 
     review_text = "\n".join(part for part in (section(body, "Working hook"), final_copy) if part)
     for code, pattern in AI_TELL_PATTERNS:

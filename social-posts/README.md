@@ -1,6 +1,6 @@
-# LinkedIn Content Operating System
+# LinkedIn + Instagram Content Operating System
 
-This directory is the durable planning context for Madhan Kumar Chiluveri's LinkedIn account. LinkedIn remains the source of truth for published posts; this repository stores strategy, evidence, weekly execution, post drafts, and normalized metrics.
+This directory is the durable planning context for Madhan Kumar Chiluveri's LinkedIn and Instagram content. Each platform remains the source of truth for its published posts; this repository stores shared strategy, evidence, platform-native drafts, assets, weekly execution, and normalized metrics.
 
 Use the shared [`linkedin-content-system`](../.agents/skills/linkedin-content-system/SKILL.md) skill for topic routing, evidence checks, format/theme selection, drafting, review, and metric-driven iteration across Codex, Gemini, and Claude.
 
@@ -9,6 +9,12 @@ Use the shared [`linkedin-content-system`](../.agents/skills/linkedin-content-sy
 Content is currently limited to **Phase 0 — Engineering Foundations**. Every active post must be grounded in one of its 15 topics and connect that topic to a concrete AI-product consequence. Ideas from later phases stay deferred in the backlog until that phase becomes active; they must not fill empty publishing slots.
 
 Each post file contains one chosen **LinkedIn** section and one chosen **Instagram** section. Choose the strongest native format for each platform from the topic and evidence; do not include unused image, carousel, or Reel alternatives.
+
+### Cross-platform delivery rule
+
+- Every production LinkedIn post request must produce its Instagram adaptation in the same attempt and store both under one post ID. Keep each platform's full publishable copy exactly once in the post file; omit Instagram only when explicitly requested.
+- Preserve one central claim, proof boundary, limitation, audience outcome, and visual identity. Adapt hooks, length, CTA, SEO wording, hashtags, and native format instead of copying captions verbatim. Make LinkedIn final copy directly pasteable with sparse Unicode bold and no Markdown styling markers.
+- Reuse one 4:5 single-image asset when it is complete and legible on both platforms. Create separate assets only when platform-native information shape or safe areas require them.
 
 ## Positioning
 
@@ -84,7 +90,7 @@ social-posts/
 ├── weeks/
 │   └── YYYY-MM-DD_to_YYYY-MM-DD/
 │       ├── plan.md                   # schedule plus retrospective
-│       ├── research/                 # study notes, post intent, proof limits
+│       ├── research/                 # interactive HTML artifacts (claude-artifact-creator Flexoki standard)
 │       └── posts/                    # briefs, prompt packs, final copy
 └── templates/
     ├── plan.md
@@ -96,7 +102,7 @@ social-posts/
 
 - Week: `YYYY-MM-DD_to_YYYY-MM-DD`
 - Post file: `NN-day-post-title.md`, for example `01-tue-why-phase-zero-foundations.md`
-- Study-note file: `LI-###-topic.md`
+- Study-note / research file: `LI-###-topic.html` (interactive HTML artifact)
 - Every post receives a stable `LI-###` ID in front matter. The human-readable filename may change if the schedule changes; the ID never changes.
 
 ## Ownership rules
@@ -109,7 +115,7 @@ social-posts/
 | Metric definitions | `strategy/metrics-framework.md` |
 | Raw numeric outcomes | `data/linkedin-metrics.csv` |
 | Schedule and weekly status | The dated week's `plan.md` |
-| Study explanation, proof limits, and sources | The linked research file |
+| Study explanation, proof limits, and sources | The linked research HTML artifact (`LI-###-topic.html`) |
 | Final copy, asset brief, and AI assistant prompts | The post file |
 | Long-term interpretation | Dated audits and weekly retrospectives |
 
@@ -118,14 +124,14 @@ Do not duplicate full post copy, raw analytics, or research notes across files.
 ## Workflow
 
 ```text
-Phase 0 topic → Study note and post intent → Proof/limits → Brief and prompt pack
-              → Draft → Review → Scheduled on LinkedIn → Published
-              → 24 h / 72 h metrics → Retrospective
+Phase 0 topic → Interactive HTML research artifact → Proof/limits → Shared route
+              → LinkedIn + Instagram drafts/assets → Review → Platform scheduling
+              → Published → 24 h / 72 h metrics → Retrospective
 ```
 
 1. Refresh recent account data directly from LinkedIn before each new weekly plan.
 2. Select only ideas whose source is in the active course phase, then place their IDs in a dated week.
-3. Create a study note explaining what will be posted; record proof and limits when a claim needs verification.
+3. Create an interactive HTML research artifact (`LI-###-topic.html`) following `claude-artifact-creator`; record claim ledger, proof, and limits.
 4. Create the post file from [the post template](templates/post.md), including the reusable AI assistant prompt pack.
 5. Record analytics in the CSV, not inside the post file.
 6. Append a short retrospective to the week's `plan.md` after the 72-hour window.
