@@ -14,7 +14,7 @@ Create original, mobile-legible technical visuals with a strong editorial headli
 3. Reduce the asset to one claim and the smallest supporting structure.
 4. For exact technical text, diagrams, tables, or charts, build in HTML/CSS/SVG from [assets/base-card.html](assets/base-card.html). Do not rely on generated raster text.
 5. Use image generation only for a photographic or illustrative element that cannot be represented clearly with code-native shapes. Keep all labels code-native.
-6. Render with [scripts/render-card.ps1](scripts/render-card.ps1), inspect the PNG at full resolution, and reject any clipped, tiny, or ambiguous text.
+6. Render with [scripts/render-card.ps1](scripts/render-card.ps1), using its default 2× scale. Inspect the PNG and reject clipped, tiny, or ambiguous text.
 
 ## Non-negotiable gates
 
@@ -23,12 +23,13 @@ Create original, mobile-legible technical visuals with a strong editorial headli
 - Use one dominant headline, one reading direction, and no more than one handwritten annotation style.
 - Keep evidence visually dominant; decoration must not compete with it.
 - Meet WCAG AA contrast and add labels or shapes so color is never the only signal.
-- Use the user's name or project series mark only. Never reproduce another creator's handle, signature composition, proprietary illustration, or recognizable brand identity.
+- Use `madvibe.ai` as the public visual credit. Never reproduce another creator's handle, signature composition, proprietary illustration, or recognizable brand identity.
 - Treat supplied references as mood and design-principle inputs, not templates to clone.
 
 ## Output contract
 
-- Default social card: 1080 x 1350 PNG, with its editable HTML/SVG source retained beside it.
+- Default 4:5 social card: 2160 x 2700 PNG, rendered from the editable 1080 x 1350 layout at 2× scale.
+- Retain editable HTML/SVG and vector text/diagrams in carousel PDFs. Keep one final PNG per page; lower-resolution copies require a request.
 - Include concise alt text describing the claim and evidence.
 - Report the saved source and rendered asset paths.
 - If a post system owns colors or evidence semantics, preserve those meanings while applying the layout and texture rules from this skill.

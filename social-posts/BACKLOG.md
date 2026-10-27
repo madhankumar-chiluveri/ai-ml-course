@@ -1,26 +1,33 @@
 # LinkedIn Content Backlog
 
-This is the durable idea queue. The active queue follows the learner's current course phase; IDs remain stable even when an idea is deferred.
+This is the durable idea queue. Course ideas follow the learner's current phase; the separate AI Update series covers sourced trending AI topics. IDs remain stable when an idea is deferred.
 
 ## Current scope
 
-Only Phase 0 — Engineering Foundations ideas are active. A later-phase topic can be retained below as a deferred record, but it cannot be scheduled or drafted until its phase is active.
+Only Phase 0 — Engineering Foundations course ideas are active. Later-phase course ideas remain deferred until their phase is active. The [AI Update series](skills/ai-news-carousel/SKILL.md) can cover any sourced trending AI topic beyond Phase 0 without presenting it as completed study or a tested result. A product release or engineering consequence is not required.
 
 ## Status vocabulary
 
-idea → researching → scheduled → drafting → review → published → measured → archived
+idea → brief → draft → review → scheduled → published → measured → archived
 
 deferred means the topic is valid but outside the active course phase.
 
 ## Phase 0 active candidates
 
-| ID | Working idea | Pillar | Audience problem | Required proof | Source | Priority | Status |
+| ID | Working idea | Pillar | Audience problem | Source / evidence | Source | Priority | Status |
 |---|---|---|---|---|---|---:|---|
 | LI-002 | Why I am beginning AI engineering with Phase 0 foundations | Narrative | Learners jump to frameworks without the systems judgment underneath them | Specific Phase 0-to-AI-product connections | Phase 0 course notes | 1 | scheduled |
 | LI-008 | One blocking function can freeze a streaming AI endpoint | Build proof | Agent latency is blamed only on the model | Concurrency proof and event-loop trace | Phase 0.3 / 0.9 | 2 | review |
-| LI-009 | Retrying HTTP 400 is not resilience | Authority | Agent tools amplify bad retry policies | Fault-injection demo and retry decision tree | Phase 0.7 / 0.8 | 3 | idea |
+| LI-009 | Retrying the same invalid request is not resilience | Authority | Agent tools amplify bad retry policies | Executed offline policy simulation and seven-page decision carousel | Phase 0.7 / 0.8 | 3 | review |
 | LI-011 | One AI product has at least three kinds of state | Authority | Postgres, pgvector, and Redis are treated as interchangeable | Storage-boundary architecture | Phase 0.15 | 3 | idea |
 | LI-012 | NGINX can make token streaming arrive all at once | Build proof | Proxy buffering is mistaken for model latency | Before/after streaming trace | Phase 0.12 | 3 | idea |
+| LI-013 | AI says Fixed; pytest asks for a word | Community | A confident completion message arrives before executable checks | Fictional comic grounded in the testing lesson | Phase 0.5 | 1 | scheduled |
+
+## AI Update candidates
+
+| ID | Working idea | Pillar | Audience angle | Source | Status |
+|---|---|---|---|---|---|
+| LI-014 | Before you add another agent, check what it adds | Authority | Follow the testing comic with a sourced comparison of handoffs, shared context, and useful agent boundaries | Anthropic guide, 22 October 2026 | review |
 
 ## Deferred until their course phase is active
 
@@ -36,4 +43,4 @@ deferred means the topic is valid but outside the active course phase.
 
 ## Intake rule
 
-An idea enters a dated week only when it belongs to the active course phase, has a specific audience problem, explains its AI-product consequence, and has a study source or evidence plan.
+An idea enters a dated week when it is an active-phase course topic or a sourced AI Update with a clear audience angle. Course posts need an AI-product consequence; AI Updates can explain, compare, tell a story, discuss, or curate. Select updates near publication; do not reserve a future headline or change deferred course IDs into news posts.

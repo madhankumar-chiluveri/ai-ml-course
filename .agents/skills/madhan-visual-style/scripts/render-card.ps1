@@ -6,7 +6,10 @@ param(
     [string]$OutputPng,
 
     [int]$Width = 1080,
-    [int]$Height = 1350
+    [int]$Height = 1350,
+
+    [ValidateRange(1, 4)]
+    [int]$Scale = 2
 )
 
 $ErrorActionPreference = 'Stop'
@@ -30,7 +33,8 @@ if (-not $edge) {
     throw 'Microsoft Edge was not found. Install Edge or render the HTML with another deterministic browser workflow.'
 }
 
-$profilePath = Join-Path ([System.IO.Path]::GetTempPath()) ("madhan-card-render-" + [guid]::NewGuid().ToString('N'))
+$renderTempRoot = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd([System.IO.Path]::DirectorySeparatorChar)
+$profilePath = Join-Path $renderTempRoot ("madvibe-card-render-" + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $profilePath | Out-Null
 
 try {
@@ -40,10 +44,13 @@ try {
         '--disable-gpu',
         '--hide-scrollbars',
         '--no-first-run',
-        '--force-device-scale-factor=1',
+        "--force-device-scale-factor=$Scale",
         "--window-size=$Width,$Height",
-        "--user-data-dir=$profilePath",
-        "--screenshot=$outputPath",
+        '--disable-background-mode',
+        '--disable-background-networking',
+        '--virtual-time-budget=1500',
+        ('--user-data-dir="{0}"' -f $profilePath),
+        ('--screenshot="{0}"' -f $outputPath),
         $uri
     )
 
@@ -55,8 +62,10 @@ try {
     Add-Type -AssemblyName System.Drawing
     $bitmap = [System.Drawing.Image]::FromFile($outputPath)
     try {
-        if ($bitmap.Width -ne $Width -or $bitmap.Height -ne $Height) {
-            throw "Rendered image is $($bitmap.Width)x$($bitmap.Height); expected ${Width}x${Height}."
+        $expectedWidth = $Width * $Scale
+        $expectedHeight = $Height * $Scale
+        if ($bitmap.Width -ne $expectedWidth -or $bitmap.Height -ne $expectedHeight) {
+            throw "Rendered image is $($bitmap.Width)x$($bitmap.Height); expected ${expectedWidth}x${expectedHeight}."
         }
     }
     finally {
@@ -67,6 +76,12 @@ try {
 }
 finally {
     if (Test-Path -LiteralPath $profilePath) {
-        Remove-Item -LiteralPath $profilePath -Recurse -Force
+        $resolvedProfile = (Resolve-Path -LiteralPath $profilePath).Path
+        $tempPrefix = $renderTempRoot + [System.IO.Path]::DirectorySeparatorChar
+        if (-not $resolvedProfile.StartsWith($tempPrefix, [System.StringComparison]::OrdinalIgnoreCase) -or
+            (Split-Path -Leaf $resolvedProfile) -notmatch '^madvibe-card-render-[0-9a-f]{32}$') {
+            throw 'Refusing to remove an unexpected browser profile path.'
+        }
+        Remove-Item -LiteralPath $resolvedProfile -Recurse -Force
     }
 }

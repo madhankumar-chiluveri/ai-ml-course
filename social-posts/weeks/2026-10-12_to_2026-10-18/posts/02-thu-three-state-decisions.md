@@ -9,7 +9,6 @@ instagram_format: single_image
 primary_goal: saves
 instagram_primary_goal: saves
 audience: full-stack engineers moving into AI product engineering
-research: ../research/LI-011-three-state-decisions.html
 course_source: ../../../../course-path/phase-0-engineering-foundations/15_postgres_pgvector_redis.md
 asset: ../assets/LI-011-three-state-decisions.png
 asset_source: ../assets/LI-011-three-state-decisions.html
@@ -99,7 +98,7 @@ Where do you draw this boundary in your AI backend?
 ~~~~text
 You are editing one evidence-led LinkedIn single-image post for full-stack engineers moving into AI product engineering.
 
-Use only this brief and its linked study/research note:
+Use only this brief and its linked course source:
 - Topic: storage boundaries for durable state, semantic retrieval, and expiring operational state
 - Reader outcome: choose storage by query shape, durability, and lifetime
 - Evidence and limit: Topic 0.15 plus current pgvector and Redis documentation; this is a design heuristic, not a benchmark or universal law
@@ -151,7 +150,7 @@ Alt text: Architecture decision card separating PostgreSQL for durable state, pg
 ~~~~text
 Create exactly one Instagram single-image post for full-stack engineers moving into AI product engineering about storage boundaries across PostgreSQL, pgvector, and Redis.
 
-Use only this brief and its linked study/research note:
+Use only this brief and its linked course source:
 - Main idea: choose storage by query shape, durability, and lifetime
 - Evidence and limit: Topic 0.15 plus current primary documentation; this is a workload heuristic, not a universal law
 - AI-product connection: crash recovery, semantic retrieval, cache behavior, and rate limiting

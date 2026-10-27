@@ -9,7 +9,6 @@ instagram_format: carousel
 primary_goal: comments
 instagram_primary_goal: saves
 audience: software engineers beginning an AI-engineering transition
-research: ../research/LI-002-why-phase-zero-foundations.md
 course_source: ../../../../course-path/README.md
 published_url:
 instagram_published_url:

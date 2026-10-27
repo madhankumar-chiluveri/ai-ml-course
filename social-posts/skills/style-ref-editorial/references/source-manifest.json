@@ -1,0 +1,21 @@
+{
+  "origin": "C:/Users/madhankumar.ch/Downloads/style-ref",
+  "use": "Internal visual study only; exclude originals from publishing packages.",
+  "references": [
+    {
+      "saved": "comparison.jpg",
+      "original": "SaveClip.App_811137761_17959501290229216_293655964446290366_n.jpg",
+      "sha256": "3ac82a31399ca1fe82463e9c8fe5aef9ceb9bee13a2acf3ee5e6349aa43d93de"
+    },
+    {
+      "saved": "primitives.jpg",
+      "original": "SaveClip.App_811203231_17959501260229216_3782488598136450107_n.jpg",
+      "sha256": "e33350d59d65e15ae5e6e4929bc8ef02929ec1a25f6389985a781a62ef5146d6"
+    },
+    {
+      "saved": "architecture.jpg",
+      "original": "SaveClip.App_817651158_17959501299229216_971785735828488_n.jpg",
+      "sha256": "166f9d07723b338f8ee466a9e3c7cdad77f50bf9ebfaa7aa79651d92770b4d16"
+    }
+  ]
+}

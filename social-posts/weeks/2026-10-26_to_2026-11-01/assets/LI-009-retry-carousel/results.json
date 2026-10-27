@@ -1,0 +1,21 @@
+{
+  "scope": "Recorded offline simulation counts, not a production benchmark.",
+  "cases": [
+    {
+      "name": "invalid_blanket",
+      "attempts": 3
+    },
+    {
+      "name": "invalid_classified",
+      "attempts": 1
+    },
+    {
+      "name": "temporary_rate_limit",
+      "attempts": 2
+    },
+    {
+      "name": "ambiguous_write",
+      "attempts": 1
+    }
+  ]
+}

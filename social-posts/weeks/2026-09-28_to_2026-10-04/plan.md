@@ -28,10 +28,6 @@ Reset the content system to the learner's current course phase. Publish only mat
 | Sat 3 Oct | Replies and 24-hour snapshot, if LI-002 is published | — | — | Conversation and measurement | planned |
 | Sun 4 Oct | Backlog update and review | — | — | Select the next Phase 0 topic | planned |
 
-## Study note required
-
-- [LI-002 study note and post intent](research/LI-002-why-phase-zero-foundations.md)
-
 ## Comment plan
 
 Use the audience distribution in the root strategy when commenting.

@@ -26,7 +26,7 @@ Dot product and cosine similarity
 
 ## Course-derived angle library
 
-This table is evergreen. Active priority and status belong in [`../BACKLOG.md`](../BACKLOG.md); detailed evidence work belongs in a dated week's research file.
+This table is evergreen. Active priority and status belong in [`../BACKLOG.md`](../BACKLOG.md); essential source notes belong in the selected post.
 
 | Suggested order | Course topic | AI-product connection | Evidence to produce | Best first format |
 |---:|---|---|---|---|
@@ -64,7 +64,7 @@ This table is evergreen. Active priority and status belong in [`../BACKLOG.md`](
 
 ## From map to backlog
 
-This file is an evergreen source map, not an execution queue. Promote a selected angle to [`../BACKLOG.md`](../BACKLOG.md), assign a stable post ID, and create research or a post file only when it enters a dated week.
+This file is an evergreen source map, not an execution queue. Promote a selected angle to [`../BACKLOG.md`](../BACKLOG.md), assign a stable post ID, and create its post file when it enters a dated week.
 
 ## Topic-selection gate
 

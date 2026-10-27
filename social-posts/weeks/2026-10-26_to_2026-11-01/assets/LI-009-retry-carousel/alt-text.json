@@ -1,0 +1,37 @@
+[
+  {
+    "page": 1,
+    "title": "Retrying a bad request won't fix it",
+    "alt": "A large 400 invalid-payload card sits inside a retry loop. Replaying the same payload returns to the same failure. Diagnose before an AI tool retries."
+  },
+  {
+    "page": 2,
+    "title": "Three failures, three decisions",
+    "alt": "Three distinct retry paths: invalid payload means fix the request; temporary overload means wait within a budget; an unknown write result means verify replay safety."
+  },
+  {
+    "page": 3,
+    "title": "A malformed request needs a change",
+    "alt": "An illustrative API requires a positive limit. The unchanged payload with limit minus one produces a 400 validation error on all three attempts. Repair the input or stop."
+  },
+  {
+    "page": 4,
+    "title": "Rate limited? Make room to recover",
+    "alt": "A temporary 429 rate-limit response can lead to a successful retry after waiting. Honor Retry-After, add jitter, and cap attempts and elapsed time. Quota and billing errors need classification."
+  },
+  {
+    "page": 5,
+    "title": "A timeout can hide a completed write",
+    "alt": "One possible failure path: a client requests a write, the API commits it, and the response is lost. A client timeout leaves the result unknown. Check the outcome or use API-enforced idempotency."
+  },
+  {
+    "page": 6,
+    "title": "Change the policy, count the attempts",
+    "alt": "Verified offline simulation with a three-attempt cap: blanket retries make three invalid calls; classified retries stop after one; a temporary rate limit succeeds in two; an ambiguous write stops after one for verification. These are synthetic counts, not latency results."
+  },
+  {
+    "page": 7,
+    "title": "Three questions before the next retry",
+    "alt": "Before retrying an AI tool, ask whether the failure can clear without changing the request, whether repeating the operation is safe, and whether the retry fits the remaining time budget. If any answer is no, stop or change the action."
+  }
+]

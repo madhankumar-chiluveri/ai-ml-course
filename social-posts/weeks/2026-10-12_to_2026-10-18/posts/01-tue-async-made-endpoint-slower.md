@@ -9,7 +9,6 @@ instagram_format: single_image
 primary_goal: technical-comments
 instagram_primary_goal: saves
 audience: full-stack engineers moving into AI product engineering
-research: ../research/LI-008-async-made-endpoint-slower.md
 course_source: ../../../../course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.py
 asset: ../assets/LI-008-async-event-loop-result-card.png
 published_url:
@@ -23,6 +22,10 @@ instagram_published_url:
 - **Topic:** Blocking synchronous work inside a FastAPI `async def` endpoint.
 - **Evidence and limits:** One local six-request reproduction measured 0.31 s, 1.81 s, and 0.32 s across three endpoint styles. It is illustrative, not a production benchmark.
 - **AI-product connection:** A blocked event loop delays token streaming, unrelated requests, and health checks, which can be misdiagnosed as model latency.
+
+### Evidence
+
+Recorded illustrative local run with six concurrent requests. The setup and limitation remain in the caption. The course source is in front matter.
 
 ## Shared asset
 

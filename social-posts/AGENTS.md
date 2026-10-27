@@ -1,0 +1,5 @@
+# Social content instructions
+
+- Read `README.md` and the workspace `linkedin-content-system` skill before choosing or drafting a post. For trending AI topics, use `skills/ai-news-carousel/SKILL.md`; this series can go beyond Phase 0 and engineering decisions. Choose its narrative, page count, and visuals for the topic.
+- For social visuals, read `skills/style-ref-editorial/SKILL.md`. Use `madvibe.ai` as the public credit. Export 4:5 PNGs at 2160 × 2700 from editable source at 2× scale; retain vector carousel PDFs and one final PNG per page. Apply metadata-only PNG preparation to generated single-image posts. For funny posts, also read `skills/engineering-humour/SKILL.md`. Explicit user styles take precedence.
+- Keep posts lean: chosen assets, both platform captions, and short source notes only when needed. Create research files, simulators, or claim ledgers only on explicit request. This overrides inherited research-generation steps. The user handles posting and scheduling manually unless they explicitly change that preference.

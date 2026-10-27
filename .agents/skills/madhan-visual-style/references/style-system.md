@@ -39,7 +39,7 @@ Preserve semantic meaning when another project system already assigns colors. Us
 - Prefer asymmetry in the header and strict alignment in the technical body.
 - Use 20-28 px rounded corners, 2 px ink or tinted outlines, and either no shadow or one subtle paper-lift shadow.
 - Add at most two small sketch marks, arrows, or underlines. They must clarify reading order.
-- Finish with a quiet footer: series label on the left, `Madhan Kumar` on the right.
+- Finish with a quiet footer: series label on the left, the exact public credit `madvibe.ai` on the right.
 
 ## Information-shape patterns
 
@@ -65,7 +65,9 @@ Use three to five numbered stages. Keep arrows simple and avoid crossing connect
 - Keep a single-image card near 25-45 visible words; exceed this only for essential evidence.
 - Use at least 34 px body text and 28 px secondary text on a 1080 x 1350 canvas.
 - Check that no card contains more than three short lines beneath its label.
-- Export at device scale 1 to preserve exact 1080 x 1350 dimensions.
+- Treat 1080 x 1350 as the logical layout. Render editable source at device scale 2 for final 2160 x 2700 PNGs.
+- Retain vector text and diagrams in carousel PDFs. Keep one final PNG per page; add lower-resolution copies only when requested.
+- Preserve bitmap illustrations at supported native quality. Enlarging existing pixels does not add detail; render text and vector diagrams at the final scale.
 - Inspect the final PNG, not only the HTML source.
 
 ## Rejection conditions
