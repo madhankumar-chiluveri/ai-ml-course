@@ -1,0 +1,1097 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>0.3 · Async, Type Hints, Pydantic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600;700&display=swap">
+<style>
+body{margin:0}
+:root{
+  /* Layout: ink-on-paper schematic notebook. Annotations sit in a <=70ch column; diagrams, tables and charts widen to 1120px. One continuous scroll, nothing hidden behind clicks. */
+  --bg:#FFFCF0;--bg-2:#F2F0E5;--ui:#E6E4D9;--ui-2:#DAD8CE;--ui-3:#CECDC3;
+  --tx:#100F0F;--tx-2:#6F6E69;--tx-3:#B7B5AC;
+  --stock:#205EA6;--stock-bg:#E1ECEB;
+  --flow:#24837B;--flow-bg:#DDF1E4;
+  --bal:#66800B;--bal-bg:#EDEECF;
+  --rein:#BC5215;--rein-bg:#FFE7CE;
+  --delay:#A02F6F;--delay-bg:#FEE4E5;
+  --risk:#AF3029;--risk-bg:#FFE1D5;
+  --note:#AD8301;--note-bg:#FAEEC6;
+  --info:#5E409D;--info-bg:#F0EAEC;
+  --f-body:"Atkinson Hyperlegible","Atkinson Hyperlegible Next",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"Atkinson Hyperlegible Mono",ui-monospace,"Cascadia Mono","SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#100F0F;--bg-2:#1C1B1A;--ui:#282726;--ui-2:#343331;--ui-3:#403E3C;
+  --tx:#CECDC3;--tx-2:#878580;--tx-3:#575653;
+  --stock:#4385BE;--stock-bg:#101A24;--flow:#3AA99F;--flow-bg:#101F1D;--bal:#879A39;--bal-bg:#1A1E0C;
+  --rein:#DA702C;--rein-bg:#27180E;--delay:#CE5D97;--delay-bg:#24131D;--risk:#D14D41;--risk-bg:#261312;
+  --note:#D0A215;--note-bg:#241E08;--info:#8B7EC8;--info-bg:#1A1623;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#100F0F;--bg-2:#1C1B1A;--ui:#282726;--ui-2:#343331;--ui-3:#403E3C;
+  --tx:#CECDC3;--tx-2:#878580;--tx-3:#575653;
+  --stock:#4385BE;--stock-bg:#101A24;--flow:#3AA99F;--flow-bg:#101F1D;--bal:#879A39;--bal-bg:#1A1E0C;
+  --rein:#DA702C;--rein-bg:#27180E;--delay:#CE5D97;--delay-bg:#24131D;--risk:#D14D41;--risk-bg:#261312;
+  --note:#D0A215;--note-bg:#241E08;--info:#8B7EC8;--info-bg:#1A1623;color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--tx);font-family:var(--f-body);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+h1,h2,h3,h4,h5{line-height:1.15;text-wrap:balance;margin:0;font-weight:700}
+p,ul,ol,dl,figure{margin:0}
+a{color:inherit}
+a:focus-visible,canvas:focus-visible{outline:2px solid var(--stock);outline-offset:3px}
+b,strong{font-weight:700}
+.mono{font-family:var(--f-mono)}
+.wrap{max-width:1120px;margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.col{max-width:70ch}
+
+/* ── header ── */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1.5px solid var(--tx)}
+.top-in{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px}
+.brand{font-weight:700;text-decoration:none;display:flex;align-items:baseline;gap:10px;white-space:nowrap}
+.brand span{font-family:var(--f-mono);font-size:12px;font-weight:400;color:var(--tx-2)}
+.tnav{display:flex;gap:4px;overflow-x:auto}
+.tnav a{font-family:var(--f-mono);font-size:12.5px;text-decoration:none;padding:4px 9px;border:1px solid transparent;white-space:nowrap}
+.tnav a b{color:var(--tx-2);margin-right:4px}
+.tnav a:hover{border-color:var(--ui-3)}
+.tnav a[aria-current="true"]{border-color:var(--tx);background:var(--bg-2)}
+@media (max-width:640px){.brand span{display:none}.tnav a span{display:none}}
+
+/* ── hero ── */
+.hero{display:grid;gap:24px;padding-block:48px 40px}
+.eyebrow{font-family:var(--f-mono);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-2)}
+.hero h1{font-size:clamp(36px,6.4vw,68px);letter-spacing:-.02em;line-height:1.02;max-width:16ch}
+.hero h1 em{font-style:normal;color:var(--stock)}
+.lede{font-size:19px;line-height:1.5;max-width:62ch}
+.key{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1.5px solid var(--tx)}
+.key>div{display:grid;grid-template-columns:62px 1fr;gap:10px;align-items:center;padding:10px 12px;border-right:1px solid var(--ui-2);border-bottom:1px solid var(--ui-2);min-width:0}
+.key svg{width:62px;height:34px}
+.key b{display:block;font-size:14px}
+.key span{font-size:13px;color:var(--tx-2);line-height:1.3;display:block}
+.key .kh{grid-column:1/-1;display:block;background:var(--tx);color:var(--bg);font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border:0}
+@media (max-width:900px){.key{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.key{grid-template-columns:1fr}}
+.map3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1.5px solid var(--tx)}
+.map3 a{display:grid;gap:6px;padding:14px 16px;text-decoration:none;border-right:1px solid var(--ui-2);align-content:start}
+.map3 a:last-child{border-right:0}
+.map3 a:hover{background:var(--bg-2)}
+.map3 .n{font-family:var(--f-mono);font-size:34px;font-weight:700;line-height:1}
+.map3 .p{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-2)}
+.map3 h3{font-size:19px}
+.map3 p{font-size:14.5px;color:var(--tx-2);line-height:1.45}
+@media (max-width:760px){.map3{grid-template-columns:1fr}.map3 a{border-right:0;border-bottom:1px solid var(--ui-2)}}
+.tags-legend{display:flex;flex-wrap:wrap;gap:10px 18px;font-size:14px;color:var(--tx-2);align-items:center}
+
+/* ── chapter opener ── */
+.chapter{padding-top:56px}
+.ch-open{display:grid;grid-template-columns:auto minmax(0,1fr);gap:28px;border-top:4px solid var(--tx);padding-top:22px}
+.ch-num{font-family:var(--f-mono);font-size:clamp(64px,11vw,132px);font-weight:700;line-height:.82;letter-spacing:-.05em}
+.ch-num small{display:block;font-size:12px;letter-spacing:.14em;font-weight:400;color:var(--tx-2);margin-bottom:8px}
+.ch-body{display:grid;gap:12px;align-content:start}
+.ch-body h2{font-size:clamp(30px,4.6vw,48px);letter-spacing:-.015em}
+.ch-sub{font-size:20px;color:var(--tx-2)}
+.goal{max-width:72ch;border:1.5px solid var(--tx);padding:12px 14px;background:var(--bg-2);font-size:15.5px;line-height:1.5}
+.goal b.l{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;margin-right:8px}
+.cmap{display:flex;flex-wrap:wrap;gap:6px}
+.cmap a{font-family:var(--f-mono);font-size:12.5px;border:1px solid var(--ui-3);padding:3px 8px;text-decoration:none;white-space:nowrap}
+.cmap a:hover{border-color:var(--tx);background:var(--bg-2)}
+.cmap a b{color:var(--tx-2);font-weight:400;margin-right:5px}
+@media (max-width:640px){.ch-open{grid-template-columns:1fr;gap:12px}}
+
+/* ── sections ── */
+.sec{display:grid;gap:22px;padding-block:44px;border-top:1px solid var(--ui-2)}
+.sec>*,.sub>*{min-width:0}
+.sec:first-of-type{border-top:0}
+.sh{display:grid;gap:8px;max-width:72ch}
+.sid{font-family:var(--f-mono);font-size:12.5px;letter-spacing:.1em;color:var(--tx-2);text-transform:uppercase}
+.sh h3{font-size:clamp(25px,3.2vw,32px);letter-spacing:-.01em}
+.sh p{font-size:17.5px;line-height:1.55}
+.sub{display:grid;gap:14px}
+.sub>h4{font-size:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sub>h4 .pill{font-size:11px}
+.sub>p,.p{max-width:70ch}
+.small{font-size:14.5px;color:var(--tx-2);line-height:1.5}
+.k{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-2)}
+
+/* grids */
+.g2,.g3,.g4,.g5{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g5{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:980px){.g5{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:900px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:1fr}}
+@media (max-width:640px){.g2,.g4{grid-template-columns:1fr}.g5{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* panels */
+.panel{border:1.5px solid var(--ui-3);background:var(--bg);padding:14px 16px;display:grid;gap:10px;align-content:start;min-width:0}
+.panel.ink{border-color:var(--tx)}
+.panel>.ph{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.panel h5{font-size:17px}
+.panel p{font-size:15.5px;line-height:1.5}
+.tint{--k:var(--tx);--kb:var(--bg);border-color:var(--k);background:var(--kb)}
+.t-stock{--k:var(--stock);--kb:var(--stock-bg)} .t-flow{--k:var(--flow);--kb:var(--flow-bg)}
+.t-bal{--k:var(--bal);--kb:var(--bal-bg)} .t-rein{--k:var(--rein);--kb:var(--rein-bg)}
+.t-delay{--k:var(--delay);--kb:var(--delay-bg)} .t-risk{--k:var(--risk);--kb:var(--risk-bg)}
+.t-note{--k:var(--note);--kb:var(--note-bg)} .t-info{--k:var(--info);--kb:var(--info-bg)}
+.lab{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--k,var(--tx-2));font-weight:700}
+
+/* pills, marks */
+.pill{display:inline-block;font-family:var(--f-mono);font-size:11px;font-weight:700;padding:2px 7px;border:1px solid var(--k,var(--tx-2));color:var(--k,var(--tx-2));background:var(--kb,transparent);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;line-height:1.5}
+.lb{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;border:2px solid var(--k);color:var(--k);font-family:var(--f-mono);font-weight:700;font-size:13px;flex:0 0 auto;background:var(--bg)}
+.m{display:inline-grid;place-items:center;width:20px;height:20px;font-family:var(--f-mono);font-weight:700;font-size:12px;border:1.5px solid var(--k);color:var(--k);background:var(--kb);margin-right:6px;vertical-align:-3px}
+.m.ok{--k:var(--bal);--kb:var(--bal-bg)} .m.no{--k:var(--risk);--kb:var(--risk-bg)}
+
+/* lists */
+ul.dl{list-style:none;padding:0;display:grid;gap:7px}
+ul.dl li{padding-left:18px;position:relative;font-size:15.5px;line-height:1.5}
+ul.dl li::before{content:"";position:absolute;left:1px;top:.7em;width:9px;height:2px;background:var(--k,var(--tx-2))}
+ol.steps{list-style:none;padding:0;display:grid;gap:8px;counter-reset:s}
+ol.steps li{display:grid;grid-template-columns:30px 1fr;gap:10px;font-size:15.5px;line-height:1.5;align-items:start}
+ol.steps li::before{counter-increment:s;content:counter(s);font-family:var(--f-mono);font-weight:700;width:26px;height:26px;display:grid;place-items:center;border:1.5px solid var(--k,var(--tx));color:var(--k,var(--tx));font-size:13px}
+dl.kv{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:5px 12px;font-size:15px;line-height:1.45}
+dl.kv dt{font-family:var(--f-mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--tx-2);padding-top:3px}
+dl.kv dd{margin:0}
+
+/* callouts & editor notes */
+.call{border:1.5px solid var(--k);background:var(--kb);padding:14px 16px;display:grid;gap:6px;max-width:80ch}
+.call .tag,.ed .tag{font-family:var(--f-mono);font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--k)}
+.call p{font-size:15.5px;line-height:1.5}
+.call.imp{--k:var(--stock);--kb:var(--stock-bg)} .call.cau{--k:var(--risk);--kb:var(--risk-bg)}
+.call.nte{--k:var(--flow);--kb:var(--flow-bg)} .call.wrn{--k:var(--rein);--kb:var(--rein-bg)} .call.tip{--k:var(--bal);--kb:var(--bal-bg)}
+.ed{--k:var(--note);border:1.5px dashed var(--note);background:var(--note-bg);padding:12px 14px;display:grid;gap:6px;max-width:80ch}
+.ed p{font-size:15px;line-height:1.5}
+.ed.fix .tag::before{content:"⚑ "}
+.ed .tag::before{content:"+ "}
+
+/* quotes & equations */
+.quote{font-size:clamp(20px,2.5vw,27px);line-height:1.32;font-weight:700;max-width:46ch;border-top:3px solid var(--tx);padding-top:14px;margin:0}
+.quote cite{display:block;font-family:var(--f-mono);font-size:12.5px;font-weight:400;color:var(--tx-2);font-style:normal;margin-top:10px;letter-spacing:.04em}
+.eq{font-family:var(--f-mono);font-size:clamp(14px,1.9vw,18px);border:1.5px solid var(--tx);padding:12px 16px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:center;background:var(--bg-2);text-align:center}
+.eq .s{color:var(--stock);font-weight:700} .eq .fi{color:var(--flow);font-weight:700} .eq .fo{color:var(--risk);font-weight:700}
+.eq .b{color:var(--bal);font-weight:700} .eq .r{color:var(--rein);font-weight:700} .eq .d{color:var(--delay);font-weight:700}
+.eq small{flex-basis:100%;font-size:12px;color:var(--tx-2)}
+
+/* tables */
+.tbl{overflow-x:auto;border:1.5px solid var(--tx);background:var(--bg)}
+.tbl table{border-collapse:collapse;width:100%;font-size:14.5px;line-height:1.4;font-variant-numeric:tabular-nums}
+.tbl th{font-family:var(--f-mono);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;text-align:left;background:var(--bg-2);color:var(--tx-2);padding:8px 10px;border-bottom:1.5px solid var(--tx);vertical-align:bottom}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--ui-2);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td.n,.tbl th.n{text-align:right;font-family:var(--f-mono);white-space:nowrap}
+.tbl td.c,.tbl th.c{text-align:center}
+.tbl tr.hl td{background:var(--kb)}
+.tbl td.pos{color:var(--bal);font-weight:700} .tbl td.neg{color:var(--risk);font-weight:700}
+.tbl caption{caption-side:top;text-align:left;font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:8px 10px;background:var(--tx);color:var(--bg)}
+.tbl .wide{min-width:720px}
+
+/* comparison split */
+.split{display:grid;grid-template-columns:minmax(0,1fr) 46px minmax(0,1fr);align-items:stretch}
+.side{--k:var(--tx);--kb:var(--bg);border:1.5px solid var(--k);background:var(--kb);padding:14px 16px;display:grid;gap:9px;align-content:start;min-width:0}
+.side.bad{--k:var(--risk);--kb:var(--risk-bg)} .side.good{--k:var(--bal);--kb:var(--bal-bg)}
+.side.r{--k:var(--rein);--kb:var(--rein-bg)} .side.s{--k:var(--stock);--kb:var(--stock-bg)}
+.side h4,.side h5{font-size:18px}
+.side p{font-size:15.5px;line-height:1.5}
+.vs{position:relative;display:grid;place-items:center}
+.vs::before{content:"";position:absolute;top:0;bottom:0;left:50%;border-left:1.5px dashed var(--ui-3)}
+.vs span{position:relative;background:var(--bg);font-family:var(--f-mono);font-size:12px;color:var(--tx-2);padding:6px 0;text-transform:uppercase;letter-spacing:.08em}
+@media (max-width:720px){.split{grid-template-columns:1fr}.vs{height:34px}.vs::before{top:50%;bottom:auto;left:0;right:0;border-left:0;border-top:1.5px dashed var(--ui-3)}.vs span{padding:0 10px}}
+
+/* box-and-pipe rails */
+.rail{display:flex;align-items:stretch;min-width:0}
+.rail>.node{flex:1 1 0;min-width:0}
+.rail>.pipe{flex:0 0 84px;position:relative;display:flex;align-items:center;justify-content:center;--pc:var(--tx)}
+.pipe::before{content:"";position:absolute;left:3px;right:11px;top:50%;border-top:3px solid var(--pc);transform:translateY(-50%)}
+.pipe::after{content:"";position:absolute;right:2px;top:50%;transform:translateY(-50%);border-left:10px solid var(--pc);border-top:6px solid transparent;border-bottom:6px solid transparent}
+.pipe>span{position:relative;z-index:1;font-family:var(--f-mono);font-size:11px;line-height:1.25;color:var(--pc);background:var(--bg);padding:2px 4px;text-align:center;max-width:78px;font-weight:600}
+.pipe.flow{--pc:var(--flow)} .pipe.flow::before{border-top-width:5px}
+.pipe.info{--pc:var(--tx-2)} .pipe.info::before{border-top:2px dashed var(--pc)}
+.pipe.bal{--pc:var(--bal)} .pipe.rein{--pc:var(--rein)} .pipe.risk{--pc:var(--risk)}
+.pipe.delay{--pc:var(--delay)} .pipe.delay>span::before{content:"‖ ";font-weight:700}
+.node{border:1.5px solid var(--tx);background:var(--bg);padding:10px 12px;display:flex;flex-direction:column;gap:3px;justify-content:center;--kc:var(--tx-2)}
+.node .nk{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--kc);font-weight:700}
+.node b{font-size:15.5px;line-height:1.25}
+.node small{font-size:13.5px;color:var(--tx-2);line-height:1.35}
+.node.stock{border:4px double var(--stock);background:var(--stock-bg);--kc:var(--stock)}
+.node.stockd{border:4px double var(--delay);background:var(--delay-bg);--kc:var(--delay)}
+.node.flow{border-color:var(--flow);background:var(--flow-bg);--kc:var(--flow)}
+.node.goal{border:1.8px dashed var(--bal);--kc:var(--bal)}
+.node.ctrl{border-color:var(--info);background:var(--info-bg);--kc:var(--info)}
+.node.bal{border-color:var(--bal);background:var(--bal-bg);--kc:var(--bal)}
+.node.rein{border-color:var(--rein);background:var(--rein-bg);--kc:var(--rein)}
+.node.delay{border-color:var(--delay);background:var(--delay-bg);--kc:var(--delay)}
+.node.risk{border-color:var(--risk);background:var(--risk-bg);--kc:var(--risk)}
+.node.cloud{flex:0 0 auto;border:1.5px dashed var(--tx-3);border-radius:999px;background:var(--bg-2);text-align:center;min-width:76px;align-items:center}
+.ret{position:relative;height:30px;margin:0 9%;border:2px dashed var(--rc,var(--tx-2));border-top:0;--rc:var(--tx-2)}
+.ret::before{content:"";position:absolute;left:-7px;top:-3px;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid var(--rc)}
+.ret>span{position:absolute;left:50%;bottom:-11px;transform:translateX(-50%);background:var(--bg);padding:0 8px;font-family:var(--f-mono);font-size:12px;color:var(--rc);white-space:nowrap;font-weight:600}
+.ret.b{--rc:var(--bal)} .ret.r{--rc:var(--rein)} .ret.d{--rc:var(--delay)}
+.loop{display:grid;gap:0;padding-bottom:14px}
+@media (max-width:760px){
+  .rail{flex-direction:column}
+  .rail>.node{flex:0 0 auto}
+  .rail>.pipe{flex:0 0 auto;min-height:46px}
+  .pipe::before{left:50%;right:auto;top:2px;bottom:11px;border-top:0;border-left:3px solid var(--pc);transform:translateX(-50%)}
+  .pipe.flow::before{border-left-width:5px}
+  .pipe.info::before{border-left:2px dashed var(--pc);border-top:0}
+  .pipe::after{right:auto;left:50%;top:auto;bottom:2px;transform:translateX(-50%);border-left:6px solid transparent;border-right:6px solid transparent;border-top:10px solid var(--pc);border-bottom:0}
+  .pipe>span{max-width:none}
+  .ret{height:auto;margin:6px 0 0;border:2px dashed var(--rc);padding:6px 10px;text-align:center}
+  .ret::before{display:none}
+  .ret>span{position:static;transform:none;white-space:normal;padding:0}
+  .ret>span::before{content:"↺ "}
+  .loop{padding-bottom:0}
+}
+
+/* causal chains */
+.chain{display:flex;flex-wrap:wrap;gap:6px 4px;align-items:center;--k:var(--tx);--kb:var(--bg)}
+.chain span{border:1.2px solid var(--k);background:var(--kb);padding:3px 9px;font-size:14px;line-height:1.35}
+.chain i{font-style:normal;color:var(--k);font-family:var(--f-mono);font-weight:700;padding:0 2px}
+.chain.r{--k:var(--rein);--kb:var(--rein-bg)} .chain.b{--k:var(--bal);--kb:var(--bal-bg)} .chain.x{--k:var(--risk);--kb:var(--risk-bg)} .chain.s{--k:var(--stock);--kb:var(--stock-bg)}
+
+/* figures & charts */
+.fig{border:1.5px solid var(--ui-3);background:var(--bg);padding:12px;display:grid;gap:8px;min-width:0}
+.fig.ink{border-color:var(--tx)}
+.fig .scroll{overflow-x:auto;min-width:0}
+.fig svg{display:block;width:100%;height:auto}
+.fig .scroll>svg{min-width:var(--minw,0px)}
+.fig figcaption{font-size:14px;color:var(--tx-2);line-height:1.45}
+.fig .ft{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-2);font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-family:var(--f-mono);font-size:12px;color:var(--tx-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:16px;height:3px;background:var(--k)}
+.legend i.bar{height:10px;width:10px}
+.legend i.dash{background:repeating-linear-gradient(90deg,var(--k) 0 4px,transparent 4px 7px)}
+svg text{font-family:var(--f-mono);font-size:12px;fill:var(--tx)}
+svg .t2{fill:var(--tx-2)} svg .t3{fill:var(--tx-3)} svg .tb{font-weight:700}
+svg .sm{font-size:11px}
+svg .axis{stroke:var(--tx);stroke-width:1.2}
+svg .grid{stroke:var(--ui-2);stroke-width:1}
+svg .ln{fill:none;stroke:var(--k);stroke-width:2.6;stroke-linejoin:round;stroke-linecap:round}
+svg .ln.dash{stroke-dasharray:6 5}
+svg .ln.thin{stroke-width:1.8}
+svg .bar{fill:var(--k)}
+svg .area{fill:var(--k);opacity:.13}
+svg .dot{fill:var(--k);stroke:var(--bg);stroke-width:2}
+svg .band{fill:var(--k);opacity:.09}
+svg .ref{stroke:var(--k);stroke-width:1.5;stroke-dasharray:4 4;fill:none}
+svg .kt{fill:var(--k)}
+svg .halo{paint-order:stroke;stroke:var(--bg);stroke-width:5px;stroke-linejoin:round}
+.k-stock{--k:var(--stock)} .k-flow{--k:var(--flow)} .k-bal{--k:var(--bal)} .k-rein{--k:var(--rein)}
+.k-delay{--k:var(--delay)} .k-risk{--k:var(--risk)} .k-note{--k:var(--note)} .k-info{--k:var(--info)}
+.k-ink{--k:var(--tx)} .k-mute{--k:var(--tx-2)}
+
+/* schematic diagrams (dg) */
+.dg text{font-family:var(--f-mono)}
+.dg .nk{font-size:10.5px;letter-spacing:.06em;fill:var(--kc,var(--tx-2));font-weight:700}
+.dg .nt{font-size:13px;font-weight:700;fill:var(--tx)}
+.dg .ns{font-size:11.5px;fill:var(--tx-2)}
+.dg .lab{font-size:11px;fill:var(--tx-2);text-transform:none;letter-spacing:0;font-weight:400}
+.dg .lab.tb{font-weight:700;fill:var(--tx)}
+.dg .lab.c-bal{fill:var(--bal);font-weight:700} .dg .lab.c-rein{fill:var(--rein);font-weight:700}
+.dg .lab.c-flow{fill:var(--flow);font-weight:700} .dg .lab.c-delay{fill:var(--delay);font-weight:700}
+.dg .lab.c-risk{fill:var(--risk);font-weight:700} .dg .lab.c-stock{fill:var(--stock);font-weight:700}
+.dg .lab.big{font-size:13px}
+.dg .nb{fill:var(--bg);stroke:var(--tx);stroke-width:1.5}
+.dg .n-stock{--kc:var(--stock)} .dg .n-stock .nb{fill:var(--stock-bg);stroke:var(--stock);stroke-width:2.5} .dg .n-stock .nb2{fill:none;stroke:var(--stock);stroke-width:1}
+.dg .n-stockd{--kc:var(--delay)} .dg .n-stockd .nb{fill:var(--delay-bg);stroke:var(--delay);stroke-width:2.5} .dg .n-stockd .nb2{fill:none;stroke:var(--delay);stroke-width:1}
+.dg .n-b{--kc:var(--bal)} .dg .n-b .nb{fill:var(--bal-bg);stroke:var(--bal)}
+.dg .n-r{--kc:var(--rein)} .dg .n-r .nb{fill:var(--rein-bg);stroke:var(--rein)}
+.dg .n-i{--kc:var(--info)} .dg .n-i .nb{fill:var(--info-bg);stroke:var(--info)}
+.dg .n-d{--kc:var(--delay)} .dg .n-d .nb{fill:var(--delay-bg);stroke:var(--delay)}
+.dg .n-x{--kc:var(--risk)} .dg .n-x .nb{fill:var(--risk-bg);stroke:var(--risk)}
+.dg .n-f{--kc:var(--flow)} .dg .n-f .nb{fill:var(--flow-bg);stroke:var(--flow)}
+.dg .n-goal{--kc:var(--bal)} .dg .n-goal .nb{fill:var(--bg);stroke:var(--bal);stroke-dasharray:5 4;stroke-width:1.8}
+.dg .n-mute .nb{fill:var(--bg-2);stroke:var(--ui-3)}
+.dg .e-pipe{stroke:var(--flow);stroke-width:7;fill:none;stroke-linejoin:round}
+.dg .e-empty{stroke:var(--tx-3);stroke-width:3;fill:none;stroke-dasharray:6 6}
+.dg .e-info{stroke:var(--tx-2);stroke-width:1.6;fill:none;stroke-dasharray:5 4}
+.dg .e-bal{stroke:var(--bal);stroke-width:2;fill:none}
+.dg .e-rein{stroke:var(--rein);stroke-width:2;fill:none}
+.dg .e-delay{stroke:var(--delay);stroke-width:2;fill:none}
+.dg .e-ink{stroke:var(--tx);stroke-width:1.6;fill:none}
+.dg .e-risk{stroke:var(--risk);stroke-width:2;fill:none;stroke-dasharray:6 4}
+.dg .e-good{stroke:var(--bal);stroke-width:2;fill:none}
+.dg .valve{fill:var(--bg);stroke:var(--flow);stroke-width:2;stroke-linejoin:round}
+.dg .badge circle{fill:var(--bg);stroke-width:2.2}
+.dg .bt{font-size:13px;font-weight:700}
+.dg .b-bal circle{stroke:var(--bal)} .dg .b-bal .bt{fill:var(--bal)}
+.dg .b-rein circle{stroke:var(--rein)} .dg .b-rein .bt{fill:var(--rein)}
+.dg .dmark{stroke:var(--delay);stroke-width:2.6}
+.dg .region{fill:none;stroke:var(--ui-3);stroke-width:1.3;stroke-dasharray:3 4}
+.dg .rlab{font-size:10.5px;letter-spacing:.1em;fill:var(--tx-2);font-weight:700}
+.mk-ink{fill:var(--tx)} .mk-flow{fill:var(--flow)} .mk-info{fill:var(--tx-2)} .mk-bal{fill:var(--bal)}
+.mk-rein{fill:var(--rein)} .mk-delay{fill:var(--delay)} .mk-risk{fill:var(--risk)}
+
+/* hand-drawn illustration classes */
+.il .ink{stroke:var(--tx);fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.il .thin{stroke-width:1.2}
+.il .paper{fill:var(--bg)}
+.il .paper2{fill:var(--bg-2)}
+.il .water{fill:var(--stock);opacity:.28}
+.il .waterl{stroke:var(--stock);stroke-width:2;fill:none}
+.il .rock{fill:var(--ui-3);stroke:var(--tx-2);stroke-width:1.2}
+.il .rockx{fill:var(--risk-bg);stroke:var(--risk);stroke-width:1.6}
+.il .fl{stroke:var(--flow);stroke-width:7;fill:none;stroke-linejoin:round}
+.il .flt{stroke:var(--flow);stroke-width:3;fill:none}
+.il .valve{fill:var(--bg);stroke:var(--flow);stroke-width:2}
+.il .risk{stroke:var(--risk);fill:none;stroke-width:2.2}
+.il .good{stroke:var(--bal);fill:none;stroke-width:2.2}
+.il .fillg{fill:var(--bal)} .il .fillr{fill:var(--risk)} .il .fills{fill:var(--stock)}
+
+/* diagnostic card */
+.diag{border:2px solid var(--tx);background:var(--bg);max-width:900px}
+.diag-h{background:var(--tx);color:var(--bg);font-family:var(--f-mono);padding:9px 14px;letter-spacing:.08em;text-transform:uppercase;font-size:12.5px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.diag ol{list-style:none;margin:0;padding:0;counter-reset:q}
+.diag li{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;padding:14px 16px;border-top:1px solid var(--ui-2)}
+.diag li:first-child{border-top:0}
+.diag li::before{counter-increment:q;content:counter(q,decimal-leading-zero);font-family:var(--f-mono);font-size:24px;font-weight:700;line-height:1;color:var(--tx-2)}
+.diag li b{display:block;font-size:17px;margin-bottom:3px}
+.diag li p{font-size:15.5px;line-height:1.5;color:var(--tx)}
+.diag li .chk{display:inline-block;width:16px;height:16px;border:1.5px solid var(--tx);margin-right:8px;vertical-align:-2px}
+
+/* laws grid */
+.laws{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:1.5px solid var(--tx)}
+.laws>div{padding:14px 16px;border-bottom:1px solid var(--ui-2);border-right:1px solid var(--ui-2);display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;align-items:start}
+.laws>div:nth-child(2n){border-right:0}
+.laws .ln-n{font-family:var(--f-mono);font-size:22px;font-weight:700;color:var(--tx-2);line-height:1}
+.laws b{display:block;font-size:15.5px;letter-spacing:.01em;text-transform:uppercase;font-family:var(--f-mono);font-size:13px;margin-bottom:4px}
+.laws p{font-size:15px;line-height:1.45}
+.laws>div.span{grid-column:1/-1;border-right:0}
+@media (max-width:720px){.laws{grid-template-columns:1fr}.laws>div{border-right:0}}
+
+/* low vs high leverage rows */
+.lev{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);border:1.5px solid var(--tx)}
+.lev>div{padding:12px 14px;display:grid;gap:6px;align-content:start}
+.lev .lo{background:var(--risk-bg);border-right:1px solid var(--ui-3)}
+.lev .hi{background:var(--bal-bg)}
+.lev .lab{--k:var(--risk)} .lev .hi .lab{--k:var(--bal)}
+.lev p,.lev li{font-size:15px;line-height:1.5}
+.lev h5{grid-column:1/-1;background:var(--tx);color:var(--bg);padding:8px 14px;font-family:var(--f-mono);font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+@media (max-width:720px){.lev{grid-template-columns:1fr}.lev .lo{border-right:0;border-bottom:1px solid var(--ui-3)}}
+
+/* iceberg (events vs stocks) */
+.berg{border:1.5px solid var(--tx);display:grid}
+.berg .above,.berg .below{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0}
+.berg .above>div,.berg .below>div{padding:12px 14px;font-size:14.5px;line-height:1.4;border-right:1px solid var(--ui-2)}
+.berg .above>div:last-child,.berg .below>div:last-child{border-right:0}
+.berg .above{background:var(--bg)}
+.berg .below{background:var(--stock-bg)}
+.berg .wl{display:flex;align-items:center;gap:10px;padding:6px 14px;background:var(--stock);color:var(--bg);font-family:var(--f-mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.berg .ev{font-weight:700}
+.berg .st{color:var(--stock);font-weight:700}
+@media (max-width:760px){.berg .above,.berg .below{grid-template-columns:1fr 1fr}.berg .above>div:nth-child(2),.berg .below>div:nth-child(2){border-right:0}.berg .above>div:nth-child(-n+2),.berg .below>div:nth-child(-n+2){border-bottom:1px solid var(--ui-2)}}
+
+/* tiers */
+.tiers{display:grid;gap:0;border:1.5px solid var(--tx)}
+.tier{display:grid;grid-template-columns:160px minmax(0,1fr);border-bottom:1px solid var(--ui-3)}
+.tier:last-child{border-bottom:0}
+.tier>.th{padding:12px 14px;display:grid;gap:4px;align-content:start;background:var(--kb);border-right:1.5px solid var(--k)}
+.tier>.th b{font-size:15px}
+.tier>.th .lab{font-size:11px}
+.tier>.tb{padding:12px 14px;display:grid;gap:10px;min-width:0}
+@media (max-width:720px){.tier{grid-template-columns:1fr}.tier>.th{border-right:0;border-bottom:1.5px solid var(--k)}}
+
+/* bars (log comparisons) */
+.hbars{display:grid;gap:10px}
+.hbar{display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px;align-items:center}
+.hbar .nm{font-family:var(--f-mono);font-size:12.5px;font-weight:700}
+.hbar .tr{position:relative;height:30px;background:var(--bg-2);border:1px solid var(--ui-3)}
+.hbar .fl{position:absolute;inset:0 auto 0 0;background:var(--k)}
+.hbar .vl{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-family:var(--f-mono);font-size:12.5px;font-weight:700;color:var(--tx);background:var(--bg);padding:0 6px;white-space:nowrap}
+.scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--tx-2);margin-left:120px}
+
+/* gauge */
+.gauge{display:grid;grid-template-columns:3fr 3fr 1.2fr;border:1.5px solid var(--tx);font-size:13.5px}
+.gauge>div{padding:10px 12px;display:grid;gap:2px;background:var(--kb);border-right:1px solid var(--ui-3)}
+.gauge>div:last-child{border-right:0}
+.gauge b{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--k)}
+@media (max-width:640px){.gauge{grid-template-columns:1fr}.gauge>div{border-right:0;border-bottom:1px solid var(--ui-3)}}
+
+/* nested containment (hierarchy) */
+.nest{border:2px solid var(--tx);padding:12px;display:grid;gap:10px;background:var(--bg)}
+.nest .lab{--k:var(--tx)}
+.nest .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.nest .sub2{border:1.5px solid var(--stock);background:var(--stock-bg);padding:10px;display:grid;gap:8px}
+.nest .sub2 .lab{--k:var(--stock)}
+.nest .mods{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.nest .mods span{border:1.2px dashed var(--tx-2);background:var(--bg);padding:8px;text-align:center;font-family:var(--f-mono);font-size:13px}
+@media (max-width:520px){.nest .row{grid-template-columns:1fr}}
+
+/* balance beam */
+.beam{display:grid;gap:10px;justify-items:center}
+.beam .bar{display:grid;grid-template-columns:1fr auto 1fr;width:100%;max-width:820px;align-items:center;gap:10px}
+.beam .bar>span{border:1.5px solid var(--tx);padding:8px 10px;text-align:center;font-weight:700;font-size:15px}
+.beam .bar>span small{display:block;font-weight:400;color:var(--tx-2);font-size:13px}
+.beam .bar>i{font-style:normal;font-family:var(--f-mono);font-size:20px}
+.beam .fulcrum{width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:22px solid var(--tx)}
+
+/* GoL & boids */
+.gol{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}
+.gol figure{display:grid;gap:4px;justify-items:center}
+.gol figcaption{font-family:var(--f-mono);font-size:11.5px;color:var(--tx-2);text-align:center}
+.gol svg{width:auto;height:auto}
+.gol .on{fill:var(--tx)} .gol .off{fill:var(--bg-2);stroke:var(--ui-2);stroke-width:1}
+.gol .grp{display:grid;gap:6px;border:1px solid var(--ui-3);padding:10px}
+.gol .grp>.row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.boids{position:relative;border:1.5px solid var(--tx);background:var(--bg-2);height:260px}
+.boids canvas{display:block;width:100%;height:100%}
+.boids .cap{position:absolute;left:10px;top:8px;font-family:var(--f-mono);font-size:11.5px;color:var(--tx-2);background:var(--bg-2);padding:2px 6px;letter-spacing:.06em;text-transform:uppercase}
+
+/* generic chart hosts */
+.scroll{overflow-x:auto;min-width:0}
+.scroll>svg{min-width:var(--minw,0px)}
+[id^="sp-"] svg,[id^="ch-"] svg,[id^="dg-"] svg{display:block;width:100%;height:auto}
+.wm{display:block;width:100%;height:auto;max-width:460px;min-width:240px}
+.wm .wm-lost{fill:var(--risk)} .wm .wm-ok{fill:var(--bal)} .wm .wm-empty{fill:var(--bg-2);stroke:var(--ui-3);stroke-width:.6}
+
+/* next-chapter + footer */
+.next{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border:1.5px solid var(--tx);padding:14px 16px;text-decoration:none;background:var(--bg-2)}
+.next:hover{background:var(--ui)}
+.next b{font-size:18px}
+.next span{font-family:var(--f-mono);font-size:12px;color:var(--tx-2);letter-spacing:.08em;text-transform:uppercase}
+footer.foot{border-top:4px solid var(--tx);margin-top:56px;padding-block:24px 48px;font-size:14px;color:var(--tx-2);display:grid;gap:8px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id="ah-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-ink"/></marker>
+    <marker id="ah-info" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-info"/></marker>
+    <marker id="ah-bal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-bal"/></marker>
+    <marker id="ah-rein" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-rein"/></marker>
+    <marker id="ah-delay" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-delay"/></marker>
+    <marker id="ah-risk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-risk"/></marker>
+    <marker id="ah-flow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="20" markerHeight="20" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-flow"/></marker>
+    <symbol id="cloud" viewBox="0 0 64 40"><path d="M16 35 C6 35 3 25 10 21 C8 11 19 6 26 11 C30 2 45 3 47 13 C56 11 62 21 56 28 C59 33 53 37 48 35 Z" style="fill:var(--bg-2);stroke:var(--tx-2);stroke-width:1.6"/></symbol>
+  </defs>
+</svg>
+
+<header class="top"><div class="wrap top-in">
+  <a class="brand" href="#top">0.3 · Async, Type Hints, Pydantic<span>Phase 0 · Foundations</span></a>
+  <nav class="tnav" aria-label="Page sections">
+    <a href="#overview"><b>01</b><span>Overview</span></a>
+    <a href="#glossary"><b>02</b><span>Glossary</span></a>
+    <a href="#skiptest"><b>03</b><span>Skip Test</span></a>
+    <a href="#visuals"><b>04</b><span>Visuals</span></a>
+    <a href="#deepdive"><b>05</b><span>Deep Dive</span></a>
+    <a href="#handson"><b>06</b><span>Hands-On</span></a>
+    <a href="#checkpoint"><b>07</b><span>Checkpoint</span></a>
+    <a href="#rebuild"><b>08</b><span>Rebuild</span></a>
+  </nav>
+</div></header>
+<style>
+  pre { overflow-x: auto; max-width: 100%; }
+  pre.screen { overflow-x: auto; max-width: 100%; font-family: var(--f-mono); font-size: 13px; line-height: 1.4; padding: 12px 14px; background: var(--bg-2); border: 1.5px solid var(--ui-3); }
+  .nav-siblings { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 1.5rem; font-size: 13px; font-family: var(--f-mono); }
+  .nav-siblings .active { font-weight: 700; color: var(--tx); border-bottom: 2px solid var(--tx); }
+  .nav-siblings a { color: var(--tx-2); text-decoration: none; }
+  .nav-siblings a:hover { color: var(--tx); }
+</style>
+<main id="top">
+
+<section class="hero wrap">
+  <div class="nav-siblings">
+    <a href="01_python_basics.html">← 0.1 · Python Basics</a>
+    <a href="02_oop_modules_virtualenvs.html">← 0.2 · OOP, Modules, venvs</a>
+    <span class="active">0.3 · Async, Type Hints, Pydantic</span>
+  </div>
+  <p class="eyebrow">Phase 0 · Engineering Foundations · Topic 0.3</p>
+  <h1>Asynchronous Pipelines &amp; Schemas: <em>Coroutines, Reducers &amp; Validation.</em></h1>
+  <p class="lede">Modern AI pipelines run on event loops, fan-out tool calls, and strict JSON schema boundaries. Master concurrent coroutine execution with asyncio, LangGraph state reducers, and Pydantic validation guards.</p>
+
+  <div class="rail">
+    <div class="node stock"><span class="nk">01 · EVENT LOOP</span><b>Coroutines</b><small>Non-blocking I/O &amp; await</small></div>
+    <div class="pipe flow"><span>fan-out</span></div>
+    <div class="node ctrl"><span class="nk">02 · CONCURRENCY</span><b>asyncio.gather</b><small>Concurrent multi-tool dispatch</small></div>
+    <div class="pipe flow"><span>merge</span></div>
+    <div class="node bal"><span class="nk">03 · GRAPH STATE</span><b>Annotated Reducers</b><small>Conflict-free concurrent state update</small></div>
+    <div class="pipe flow"><span>validate</span></div>
+    <div class="node rein"><span class="nk">04 · BOUNDARY</span><b>Pydantic Validation</b><small>Self-healing structured LLM outputs</small></div>
+  </div>
+
+  <div class="laws" aria-label="Four Core Principles">
+    <div><span class="ln-n">01</span><div><b>Non-Blocking I/O Concurrency</b><p>Sequential awaits sum latencies. asyncio.gather bounds total runtime to the maximum individual tool delay, delivering ~3x speedups.</p></div></div>
+    <div><span class="ln-n">02</span><div><b>Cooperative Task Cancellation</b><p>asyncio.wait_for cancels timed-out tasks cooperatively. Remote operations may still run if the underlying library does not handle cancellation.</p></div></div>
+    <div><span class="ln-n">03</span><div><b>Reducer Prevents State Collision</b><p>Concurrent agent graph updates to a single state key require an Annotated reducer function. Without it, LangGraph rejects concurrent updates.</p></div></div>
+    <div><span class="ln-n">04</span><div><b>Construction-Time Type Enforcement</b><p>Pydantic enforces types at object construction. Field validators sanitize inputs and reject hallucinations before model payloads pollute databases.</p></div></div>
+  </div>
+</section>
+
+<section class="chapter wrap" id="overview">
+  <div class="ch-open"><div class="ch-num">01</div><div class="ch-body"><p class="eyebrow">Executive Summary</p><h2>Overview &amp; The AI Stack Matrix</h2><p class="ch-sub">How asynchronous execution, typing, and schema validation form the runtime infrastructure of production AI systems.</p></div></div>
+
+  <div class="tbl">
+    <table class="wide">
+      <thead><tr><th>Component</th><th>Mechanism</th><th>Latency / Throughput Impact</th><th>AI/ML Pipeline Pattern</th></tr></thead>
+      <tbody>
+        <tr><td><b>Coroutine (<code>async</code>/<code>await</code>)</b></td><td>Generator-based frame suspension yielding to event loop</td><td>CPU free during HTTP / RPC network wait</td><td>FastAPI endpoints serving LLM streaming tokens</td></tr>
+        <tr><td><b><code>asyncio.gather</code></b></td><td>Fan-out concurrent scheduling with fan-in tuple return</td><td>Latency drops from SUM(t) to MAX(t) (~3x gain)</td><td>Multi-tool execution (SQL + Search + Vector DB)</td></tr>
+        <tr><td><b><code>asyncio.wait_for</code></b></td><td>Timer cancellation wrapping target task</td><td>Guarantees bounds on unresponsive external APIs</td><td>Hard SLA deadlines on third-party model inference</td></tr>
+        <tr><td><b><code>Annotated[T, reducer]</code></b></td><td>Type metadata inspected by LangGraph runtime</td><td>Resolves concurrent state merges without collision</td><td>Multi-agent graph architectures (parallel workers)</td></tr>
+        <tr><td><b>Pydantic <code>BaseModel</code></b></td><td>Rust-based core validation (pydantic-core)</td><td>Instant rejection and type coercion at API edge</td><td>Structured JSON output parsing &amp; function calling</td></tr>
+        <tr><td><b>Field Validators</b></td><td><code>@field_validator</code> custom assertions</td><td>Prevents LLM placeholders from persisting to DB</td><td>Self-healing reflection loops (retry on ValidationError)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="split">
+    <div class="side bad">
+      <h4>❌ Fragile Synchronous Architecture</h4>
+      <p>Calling three 0.5s search tools sequentially forces the user to wait 1.53 seconds.</p>
+      <pre><code># Sequential: SUM of latencies
+res1 = await search_sql()     # 0.5s
+res2 = await search_web()     # 0.5s
+res3 = await search_vector()  # 0.5s
+# Total wall clock: 1.53s</code></pre>
+    </div>
+    <div class="side good">
+      <h4>✅ Production Concurrent Fan-Out</h4>
+      <p>Gathering three tools concurrently returns in 0.51 seconds (2.98x speedup).</p>
+      <pre><code># Concurrent: MAX of latencies
+res1, res2, res3 = await asyncio.gather(
+    search_sql(),
+    search_web(),
+    search_vector()
+)
+# Total wall clock: 0.51s (2.98x speedup!)</code></pre>
+    </div>
+  </div>
+
+  <aside class="ed fix"><span class="tag">Corrected · LangGraph Concurrent Write Semantics</span><p>The companion script demonstrates sequential <code>dict.update</code> calls. In actual LangGraph, multiple concurrent updates to an unconfigured state key in the same execution step raise <code>INVALID_CONCURRENT_GRAPH_UPDATE</code>. An <code>Annotated</code> reducer (such as <code>operator.add</code>) is required to combine them.</p></aside>
+</section>
+
+<section class="chapter wrap" id="glossary">
+  <div class="ch-open"><div class="ch-num">02</div><div class="ch-body"><p class="eyebrow">Terminology &amp; Mechanisms</p><h2>The 9 Core Glossary Terms</h2><p class="ch-sub">Deep-dive technical mechanics, production analogies, traps, verified code, and real AI use cases.</p></div></div>
+
+  <div class="term-card">
+    <div class="th"><span class="tag">2.1</span><h3>Coroutine (`async` / `await`)</h3></div>
+    <p class="def">A function declared with <code>async def</code> that returns a coroutine object. Execution pauses at <code>await</code>, yielding control back to the event loop until the awaited operation completes.</p>
+    <div class="panel tint t-info"><h5>💡 Production Mechanism</h5><p>A restaurant pager buzzer. You place an order and hold a lightweight pager while returning to your seat; the kitchen buzzer signals when your food is ready, without you blocking the service counter.</p></div>
+    <div class="g2">
+      <div class="panel"><h5>⚠️ Syntax Example</h5><pre><code>async def fetch_embeddings(text: str) -> list[float]:
+    async with httpx.AsyncClient() as client:
+        resp = await client.post("https://api/embed", json={"text": text})
+        return resp.json()["embedding"]</code></pre></div>
+      <div class="panel"><h5>✅ Key Mechanism</h5><p>When <code>await</code> is hit, CPython suspends the execution frame. Other scheduled tasks (such as websocket pings or concurrent HTTP requests) execute on the same thread without blocking.</p></div>
+    </div>
+    <div class="panel tint t-bal"><h5>🤖 AI/ML Pipeline Application</h5><p>High-throughput LLM token streaming in FastAPI backends, multiplexing hundreds of concurrent user prompts over a single Python process.</p></div>
+    <div class="rail"><div class="node stock"><b>async def func()</b><small>Returns coroutine</small></div><div class="pipe flow"><span>await</span></div><div class="node ctrl"><b>Frame Suspended</b><small>Control yields to loop</small></div><div class="pipe flow"><span>I/O ready</span></div><div class="node bal"><b>Frame Resumed</b><small>Returns result</small></div></div>
+  </div>
+
+  <div class="term-card">
+    <div class="th"><span class="tag">2.2</span><h3>`asyncio.gather` &amp; The Fan-Out / Fan-In Pattern</h3></div>
+    <p class="def">Concurrently runs multiple awaitables on the event loop and returns an aggregated list of results preserving input argument ordering.</p>
+    <div class="panel tint t-info"><h5>💡 Production Mechanism</h5><p>A head chef dispatching three prep cooks simultaneously: one chops onions, one boils broth, one sears steak. The head chef plates the meal when all three finish, bounded by the slowest task.</p></div>
+    <div class="g2">
+      <div class="panel"><h5>⚠️ Concurrent Invocation</h5><pre><code>results = await asyncio.gather(
+    query_sql(q),
+    search_web(q),
+    vector_search(q)
+)
+# Returns [sql_res, web_res, vec_res] in exact order</code></pre></div>
+      <div class="panel"><h5>✅ Verified Production Output</h5><pre class="screen"><code>sequential : 1.53s  ['sql done', 'search done', 'email done']
+gather     : 0.51s  ['sql done', 'search done', 'email done']
+speedup    : 2.98x
+same result: True
+^ sequential = SUM of delays. gather = MAX of delays.</code></pre></div>
+    </div>
+    <div class="panel tint t-bal"><h5>🤖 AI/ML Pipeline Application</h5><p>Multi-Agent systems (e.g. AutoGen / CrewAI / LangGraph): dispatching sub-queries concurrently across multiple specialized retrieval tools.</p></div>
+    <div class="split"><div class="side bad"><h4>Sequential: 1.53s</h4><p>Tool 1 (0.5s) → Tool 2 (0.5s) → Tool 3 (0.5s). Sum of delays.</p></div><div class="side good"><h4>Gather: 0.51s (2.98x)</h4><p>Tool 1, 2, 3 run in parallel. Max of delays.</p></div></div>
+  </div>
+
+  <div class="term-card">
+    <div class="th"><span class="tag">2.3</span><h3>`asyncio.wait_for` &amp; Timeout SLA Enforcement</h3></div>
+    <p class="def">Wraps an awaitable in a timeout deadline. If the operation does not complete within the specified timeout, it cancels the task and raises <code>TimeoutError</code>.</p>
+    <div class="panel tint t-info"><h5>💡 Production Mechanism</h5><p>A chess match countdown clock. If an external participant does not play a move within their allotted time window, their turn is forfeited to keep the tournament progressing.</p></div>
+    <div class="g2">
+      <div class="panel"><h5>⚠️ Timeout Guard Pattern</h5><pre><code>try:
+    res = await asyncio.wait_for(hung_api_call(), timeout=1.0)
+except TimeoutError:
+    res = {"error": "API timeout", "fallback": True}</code></pre></div>
+      <div class="panel"><h5>✅ Verified Production Output</h5><pre class="screen"><code>called a 30s tool with timeout=1.0s
+returned after 1.01s -> TIMEOUT after 1.0s -> return a typed error to the agent
+^ Without wait_for, this blocks a graph node until the process dies.</code></pre></div>
+    </div>
+    <div class="panel tint t-bal"><h5>🤖 AI/ML Pipeline Application</h5><p>Bounding slow LLM API calls and flaky web scrapers. Prevents hung connections from exhausting worker connection pools.</p></div>
+    <aside class="ed fix"><span class="tag">Corrected · Cancellation Semantics</span><p><code>asyncio.wait_for</code> cancels the awaited task and waits for the cancellation to take effect. The elapsed wall time can slightly exceed the timeout (e.g. 1.01s vs 1.00s). Task cancellation is cooperative: if the underlying operation does not yield at an await point, cancellation cannot interrupt it immediately.</p></aside>
+  </div>
+
+  <div class="term-card">
+    <div class="th"><span class="tag">2.4</span><h3>The GIL (Global Interpreter Lock) &amp; Free-Threading</h3></div>
+    <p class="def">A mutex that prevents multiple native threads from executing CPython bytecodes simultaneously. The GIL protects CPython's reference counting memory management from race conditions.</p>
+    <div class="panel tint t-info"><h5>💡 Production Mechanism</h5><p>A restaurant kitchen with ten chefs but only a single master chef knife. Even if ten chefs stand at prep stations, only the chef holding the knife can cut ingredients.</p></div>
+    <div class="g2">
+      <div class="panel"><h5>⚠️ CPU vs. I/O vs. GPU Decision Matrix</h5><div class="tbl"><table class="wide">
+        <thead><tr><th>Workload Type</th><th>GIL Impact</th><th>Recommended Concurrency</th></tr></thead>
+        <tbody>
+          <tr><td>I/O Bound (HTTP, DB)</td><td>Released during socket wait</td><td><code>asyncio</code> or <code>ThreadPoolExecutor</code></td></tr>
+          <tr><td>CPU Bound (Data prep)</td><td>Blocked by GIL</td><td><code>multiprocessing</code> or C extensions</td></tr>
+          <tr><td>AI / Tensor (PyTorch)</td><td>Released! CUDA runs on GPU</td><td>Native threads / CUDA streams</td></tr>
+        </tbody>
+      </table></div></div>
+      <div class="panel"><h5>✅ Python 3.13+ Free-Threading (PEP 703)</h5><p>Starting in Python 3.13, CPython supports building without the GIL (free-threaded binary). Reference counting is replaced with biased reference counting and mimalloc. Note: importing incompatible C extensions will re-enable the GIL automatically.</p></div>
+    </div>
+    <div class="panel tint t-bal"><h5>🤖 AI/ML Pipeline Application</h5><p>Understanding why PyTorch training is not slowed by Python: PyTorch releases the GIL before executing C++/CUDA kernels on the GPU.</p></div>
+    <div class="rail"><div class="node stock"><b>Python Code</b><small>Holds GIL</small></div><div class="pipe flow"><span>calls C/CUDA</span></div><div class="node ctrl"><b>Py_BEGIN_ALLOW_THREADS</b><small>Releases GIL</small></div><div class="pipe flow"><span>parallel GPU</span></div><div class="node bal"><b>PyTorch CUDA Kernels</b><small>True hardware parallel execution</small></div></div>
+  </div>
+
+  <div class="term-card">
+    <div class="th"><span class="tag">2.5</span><h3>`TypedDict`</h3></div>
+    <p class="def">A typing construct that declares a dictionary type with fixed keys and specified value types. Dictates shape for static analysis (mypy/pyright) without runtime validation overhead.</p>
+    <div class="panel tint t-info"><h5>💡 Production Mechanism</h5><p>A standardized printed form sheet. It defines which boxes must be filled in with text or numbers for documentation purposes, but does not employ an armed guard to verify input validity at entry.</p></div>
+    <div class="g2">
+      <div class="panel"><h5>⚠️ Declaration Pattern</h5><pre><code>from typing import TypedDict
+
+class AgentState(TypedDict):
+    question: str
+    findings: list[str]
+    step_count: int</code></pre></div>
+      <div class="panel"><h5>✅ Zero Runtime Overhead</h5><p><code>TypedDict</code> instances are plain Python dictionaries at runtime (<code>isinstance(d, dict) is True</code>). They incur zero construction or validation overhead, making them ideal for high-throughput state schemas.</p></div>
+    </div>
+    <div class="panel tint t-bal"><h5>🤖 AI/ML Pipeline Application</h5><p>Defining the core shared state schema in LangGraph and AutoGen agent workflows.</p></div>
+    <div class="chain"><span class="cn">TypedDict Schema</span><span>→</span><span class="cn">Static Type Check</span><span>→</span><span class="cn">Plain Python Dict</span><span>→</span><span class="cn">Zero Overhead</span></div>
+  </div>
+
+  <div class="term-card">
+    <div class="th"><span class="tag">2.6</span><h3>`Annotated[T, metadata]` &amp; LangGraph Reducers</h3></div>
+    <p class="def">A typing construct combining a base type <code>T</code> with arbitrary metadata. In agent frameworks (LangGraph), the metadata specifies a reducer function defining how concurrent state updates are combined.</p>
+    <div class="panel tint t-info"><h5>💡 Production Mechanism</h5><p>A shared company bank deposit box. When two division managers send money, a teller does not throw away the first envelope; the teller runs an addition rule (reducer) to sum both deposits.</p></div>
+    <div class="g2">
+      <div class="panel"><h5>⚠️ State Clobber vs. Reducer Merge</h5><pre><code>from typing import Annotated
+import operator
+
+class MultiAgentState(TypedDict):
+    # Un-annotated key: LangGraph raises INVALID_CONCURRENT_GRAPH_UPDATE!
+    question: str
+    # Annotated with operator.add: Merges lists concurrently
+    findings: Annotated[list[str], operator.add]</code></pre></div>
+      <div class="panel"><h5>✅ Verified Production Output</h5><pre class="screen"><code>question annotation: &lt;class 'str'&gt;
+findings annotation: typing.Annotated[list[str], &lt;built-in function add&gt;]
+extracted reducer  : add
+
+no reducer (clobber): ['refunds up 30%']
+operator.add (merge): ['baseline', 'sales down 12%', 'refunds up 30%']
+^ Without the reducer one agent's work vanishes silently.</code></pre></div>
+    </div>
+    <div class="panel tint t-bal"><h5>🤖 AI/ML Pipeline Application</h5><p>Multi-agent collaboration where parallel researcher agents output findings that must be merged into a global memory buffer without race conditions.</p></div>
+    <div class="split"><div class="side bad"><h4>Without Reducer (Conflict)</h4><p>Agent A + Agent B write to 'findings' → Error or silent clobber</p></div><div class="side good"><h4>With operator.add (Reducer)</h4><p>Agent A list + Agent B list → Combined unified findings list</p></div></div>
+  </div>
+
+  <div class="term-card">
+    <div class="th"><span class="tag">2.7</span><h3>Pydantic `BaseModel` &amp; Type Coercion</h3></div>
+    <p class="def">Data validation and parsing library built on Rust (pydantic-core). Enforces types at instantiation, performing automatic safe type coercion (e.g. converting numeric string <code>"51000"</code> to float <code>51000.0</code>).</p>
+    <div class="panel tint t-info"><h5>💡 Production Mechanism</h5><p>An airport international customs checkpoint. Foreign currency is exchanged into local currency; travelers presenting fake documents are immediately turned away before entering the country.</p></div>
+    <div class="g2">
+      <div class="panel"><h5>⚠️ Model Definition</h5><pre><code>from pydantic import BaseModel
+
+class Invoice(BaseModel):
+    vendor: str
+    amount: float
+    status: str
+
+# Coerces string to float automatically:
+inv = Invoice(vendor="Acme", amount="51000", status="OPEN")
+print(type(inv.amount)) # float!</code></pre></div>
+      <div class="panel"><h5>✅ Verified Production Output</h5><pre class="screen"><code>valid   : vendor='Acme Ltd' amount=51000.0 status='OPEN' currency='INR'
+note    : vendor was auto-stripped by the validator -> 'Acme Ltd'
+as json : {"vendor":"Acme Ltd","amount":51000.0,"status":"OPEN","currency":"INR"}</code></pre></div>
+    </div>
+    <div class="panel tint t-bal"><h5>🤖 AI/ML Pipeline Application</h5><p>Validating LLM function-calling JSON outputs. Parses messy string representations into strictly-typed Python objects.</p></div>
+    <div class="rail"><div class="node stock"><b>LLM JSON Output</b><small>Untrusted string payload</small></div><div class="pipe flow"><span>parse</span></div><div class="node ctrl"><b>Pydantic BaseModel</b><small>Coercion &amp; validation</small></div><div class="pipe flow"><span>valid</span></div><div class="node bal"><b>Typed Domain Object</b><small>Safe for DB / execution</small></div></div>
+  </div>
+
+  <div class="term-card">
+    <div class="th"><span class="tag">2.8</span><h3>Pydantic `Field(...)` Constraints &amp; `Literal` Enums</h3></div>
+    <p class="def">Declarative constraint specifications applied to model attributes, enforcing value bounds (<code>gt</code>, <code>lt</code>), regex patterns, and discrete enumeration sets (<code>Literal</code>).</p>
+    <div class="panel tint t-info"><h5>💡 Production Mechanism</h5><p>A coin sorting machine with precision cut-out slots. Pennies, nickels, and quarters drop into their exact slots; slugs or washers of invalid dimension are routed to the reject tray.</p></div>
+    <div class="g2">
+      <div class="panel"><h5>⚠️ Constrained Model</h5><pre><code>from typing import Literal
+from pydantic import BaseModel, Field
+
+class ConstrainedInvoice(BaseModel):
+    amount: float = Field(gt=0, description="Positive amount")
+    status: Literal["OPEN", "PAID", "OVERDUE"]</code></pre></div>
+      <div class="panel"><h5>✅ Verified Production Output</h5><pre class="screen"><code>negative amount : rejected -> amount: Input should be greater than 0
+bad status      : rejected -> status: Input should be 'OPEN', 'PAID' or 'OVERDUE'
+amount as words : rejected -> amount: Input should be a valid number</code></pre></div>
+    </div>
+    <div class="panel tint t-bal"><h5>🤖 AI/ML Pipeline Application</h5><p>Generating OpenAI Structured Outputs schemas via <code>model_json_schema()</code>, restricting LLMs to valid categorical enum values.</p></div>
+    <div class="chain"><span class="cn">Field(gt=0)</span><span>+</span><span class="cn">Literal['A','B']</span><span>→</span><span class="cn">JSON Schema</span><span>→</span><span class="cn">LLM Constrained Decoding</span></div>
+  </div>
+
+  <div class="term-card">
+    <div class="th"><span class="tag">2.9</span><h3>Field Validators (`@field_validator`) &amp; Self-Healing</h3></div>
+    <p class="def">Custom validation logic executed during model construction. If an assertion fails, raises <code>ValueError</code> (wrapped in <code>ValidationError</code>), enabling reflection loops in agentic systems.</p>
+    <div class="panel tint t-info"><h5>💡 Production Mechanism</h5><p>A quality control inspector on an aircraft assembly line. When a fastener is detected loose, a rejection ticket is attached, instructing the technician to re-torque the bolt before proceeding.</p></div>
+    <div class="g2">
+      <div class="panel"><h5>⚠️ Validator Implementation</h5><pre><code>from pydantic import BaseModel, field_validator
+
+class StrictInvoice(BaseModel):
+    vendor: str
+
+    @field_validator("vendor")
+    @classmethod
+    def reject_placeholders(cls, v: str) -> str:
+        clean = v.strip()
+        if clean.lower() in ("placeholder", "unknown", "n/a"):
+            raise ValueError("vendor is a placeholder, not real value")
+        return clean</code></pre></div>
+      <div class="panel"><h5>✅ Verified Production Output</h5><pre class="screen"><code>placeholder     : rejected -> vendor: Value error, vendor is a placeholder, not a real value</code></pre></div>
+    </div>
+    <div class="panel tint t-bal"><h5>🤖 AI/ML Pipeline Application</h5><p>Self-Healing LLM Pipelines: catching <code>ValidationError</code>, formatting error messages into a follow-up prompt, and asking the model to fix its JSON output.</p></div>
+    <div class="rail"><div class="node stock"><b>LLM Output</b><small>Produces JSON</small></div><div class="pipe flow"><span>validates</span></div><div class="node rein"><b>ValidationError</b><small>Catches placeholder</small></div><div class="pipe flow"><span>re-prompt</span></div><div class="node bal"><b>Self-Healing Correction</b><small>Model regenerates valid JSON</small></div></div>
+  </div>
+</section>
+
+<section class="chapter wrap" id="skiptest">
+  <div class="ch-open"><div class="ch-num">03</div><div class="ch-body"><p class="eyebrow">Diagnostic Assessment</p><h2>Skip Test — Answered</h2><p class="ch-sub">Prerequisite gate before topic study. Verify these core tasks from memory.</p></div></div>
+
+  <div class="diag">
+    <div class="dh"><h4>Question 1: Concurrent Tool Dispatch with asyncio.gather</h4><span class="tag">Pass Criteria: asyncio.gather + Order Preservation</span></div>
+    <p><b>Prompt:</b> Write an async function that runs three coroutines concurrently and returns their results as a tuple.</p>
+    <pre><code>import asyncio
+
+async def fetch_all(tool1, tool2, tool3):
+    return await asyncio.gather(tool1(), tool2(), tool3())</code></pre>
+    <div class="panel tint t-bal">
+      <h5>Verification Mechanism</h5>
+      <p><code>asyncio.gather</code> executes all three awaitables concurrently. Total elapsed wall clock time equals the maximum latency among the three tasks, not their sum.</p>
+    </div>
+  </div>
+
+  <div class="diag">
+    <div class="dh"><h4>Question 2: Pydantic Validation &amp; Constraint Definition</h4><span class="tag">Pass Criteria: BaseModel + Field + Literal</span></div>
+    <p><b>Prompt:</b> Define a Pydantic model for an AI tool output with a required <code>status</code> enum ('SUCCESS' or 'FAILURE') and a positive float <code>latency</code>.</p>
+    <pre><code>from typing import Literal
+from pydantic import BaseModel, Field
+
+class ToolOutput(BaseModel):
+    status: Literal["SUCCESS", "FAILURE"]
+    latency: float = Field(gt=0.0, description="Latency in seconds")</code></pre>
+  </div>
+</section>
+
+<section class="chapter wrap" id="visuals">
+  <div class="ch-open"><div class="ch-num">04</div><div class="ch-body"><p class="eyebrow">Architectural Mechanisms</p><h2>Visual Concept Diagrams</h2><p class="ch-sub">Sequential vs gathered execution timings, state reducer collision avoidance, and self-healing LLM reflection loops.</p></div></div>
+
+  <h3>3.1 — Sequential vs. Gathered Execution: Where Wall-Clock Goes</h3>
+  <p>Sequential awaits force the caller to wait for each I/O handshake sequentially. Concurrent gather overlaps network delays, delivering a 2.98x speedup on 3 operations.</p>
+
+  <div class="scroll" style="--minw:600px"><div id="ch-speedup" class="ch-host"></div></div>
+
+  <h3>3.2 — Fan-Out / Fan-In Execution Flow</h3>
+  <p>An orchestrator agent fans out multiple sub-queries to independent tool workers concurrently, then gathers results at a synchronization barrier.</p>
+
+  <div class="scroll" style="--minw:680px"><div id="dg-fanout-fanin" class="dg-host"></div></div>
+
+  <h3>3.3 — The Reducer: Merge vs. Clobber</h3>
+  <p>How an Annotated reducer (<code>operator.add</code>) safely resolves concurrent agent state writes into a shared state buffer without race conditions.</p>
+
+  <div class="scroll" style="--minw:680px"><div id="dg-reducer" class="dg-host"></div></div>
+</section>
+
+<section class="chapter wrap" id="deepdive">
+  <div class="ch-open"><div class="ch-num">05</div><div class="ch-body"><p class="eyebrow">Runtime Architecture</p><h2>Core Technical Deep Dive</h2><p class="ch-sub">Event loop task queues, cooperative cancellation mechanics, and Pydantic-core Rust validation.</p></div></div>
+
+  <div class="tiers">
+    <div class="tier" style="--k:var(--stock);--kb:var(--stock-bg)">
+      <div class="th"><span class="lab">Level 1</span><b>Event Loop Mechanics: Task Ready Queue vs. I/O Polling</b></div>
+      <div class="tb">
+        <p>The CPython event loop (default <code>asyncio.SelectorEventLoop</code> or <code>uvloop</code>) operates as an infinite dispatch loop:</p>
+        <div class="rail">
+          <div class="node stock"><b>Ready Queue</b><small>Tasks ready to resume</small></div>
+          <div class="pipe info"><span>pop &amp; step</span></div>
+          <div class="node ctrl"><b>Task Execution</b><small>Runs until next await</small></div>
+          <div class="pipe info"><span>socket wait</span></div>
+          <div class="node bal"><b>OS Poller (epoll / kqueue / IOCP)</b><small>Sleeps until OS signals socket ready</small></div>
+        </div>
+        <p>A single Python thread can efficiently handle 10,000 idle websocket connections because idle tasks consume zero CPU cycles while waiting on the OS poller.</p>
+      </div>
+    </div>
+
+    <div class="tier" style="--k:var(--info);--kb:var(--info-bg)">
+      <div class="th"><span class="lab">Level 2</span><b>Cooperative Cancellation &amp; asyncio.wait_for</b></div>
+      <div class="tb">
+        <p>Cancellation in Python is cooperative, not preemptive. Calling <code>task.cancel()</code> injects an <code>asyncio.CancelledError</code> into the coroutine at its next <code>await</code> point:</p>
+        <pre><code>async def resilient_worker():
+    try:
+        await fetch_remote_resource()
+    except asyncio.CancelledError:
+        # Opportunity to flush logs or close connections
+        await cleanup_resources()
+        raise  # Must re-raise CancelledError to complete cancellation!</code></pre>
+      </div>
+    </div>
+
+    <div class="tier" style="--k:var(--bal);--kb:var(--bal-bg)">
+      <div class="th"><span class="lab">Level 3</span><b>Pydantic-Core: Rust Validation Architecture</b></div>
+      <div class="tb">
+        <p>Pydantic v2 compiles model schemas into a tree of C-compatible validators executed inside compiled Rust (<code>pydantic-core</code>). This eliminates Python interpreter bytecode dispatch during validation, delivering 5x to 20x speedups over pure-Python validation libraries.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="chapter wrap" id="handson">
+  <div class="ch-open"><div class="ch-num">06</div><div class="ch-body"><p class="eyebrow">Hands-On Proof</p><h2>Companion Script &amp; Verified Output</h2><p class="ch-sub">Actual execution output captured from running <code>03_async_typehints_pydantic.py</code> on Python 3.14.4 in an isolated test environment.</p></div></div>
+
+  <div class="call nte">
+    <span class="tag">Verified Local Run · 2026-10-28</span>
+    <p>Every line below was produced by running <code>03_async_typehints_pydantic.py</code>. Proves Pydantic construction rejection, Annotated reducer merging, asyncio.gather 2.98x speedup, and asyncio.wait_for timeout enforcement.</p>
+  </div>
+
+  <pre class="screen"><code>======================================================================
+DEMO 1 — Pydantic rejects bad data AT CONSTRUCTION
+======================================================================
+  valid   : vendor=&#x27;Acme Ltd&#x27; amount=51000.0 status=&#x27;OPEN&#x27; currency=&#x27;INR&#x27;
+  note    : vendor was auto-stripped by the validator -&gt; &#x27;Acme Ltd&#x27;
+  as json : {&quot;vendor&quot;:&quot;Acme Ltd&quot;,&quot;amount&quot;:51000.0,&quot;status&quot;:&quot;OPEN&quot;,&quot;currency&quot;:&quot;INR&quot;}
+  negative amount : rejected -&gt; amount: Input should be greater than 0
+  bad status      : rejected -&gt; status: Input should be &#x27;OPEN&#x27;, &#x27;PAID&#x27; or &#x27;OVERDUE&#x27;
+  placeholder     : rejected -&gt; vendor: Value error, vendor is a placeholder, not a real value
+  amount as words : rejected -&gt; amount: Input should be a valid number, unable to parse string as a 
+======================================================================
+DEMO 2 — Annotated reducer: merge vs clobber on concurrent writes
+======================================================================
+  question annotation: &lt;class &#x27;str&#x27;&gt;
+  findings annotation: typing.Annotated[list[str], &lt;built-in function add&gt;]
+  extracted reducer  : add
+
+  no reducer (clobber): [&#x27;refunds up 30%&#x27;]
+  operator.add (merge): [&#x27;baseline&#x27;, &#x27;sales down 12%&#x27;, &#x27;refunds up 30%&#x27;]
+  ^ Without the reducer one agent&#x27;s work vanishes silently —
+    no error, no warning. The single most common LangGraph bug.
+======================================================================
+DEMO 3 — asyncio.gather vs sequential awaits (3 x 0.5s tools)
+======================================================================
+  sequential : 1.53s  [&#x27;sql done&#x27;, &#x27;search done&#x27;, &#x27;email done&#x27;]
+  gather     : 0.51s  [&#x27;sql done&#x27;, &#x27;search done&#x27;, &#x27;email done&#x27;]
+  speedup    : 2.98x
+  same result: True
+  ^ sequential = SUM of delays. gather = MAX of delays.
+======================================================================
+DEMO 4 — asyncio.wait_for bounds a hung call
+======================================================================
+  called a 30s tool with timeout=1.0s
+  returned after 1.01s -&gt; TIMEOUT after 1.0s -&gt; return a typed error to the agent
+  ^ Without wait_for, this blocks a graph node until the process dies.
+======================================================================
+</code></pre>
+
+  <aside class="ed"><span class="tag">Analysis · Key Takeaways from Run</span>
+    <p>1. <b>Demo 1:</b> Pydantic successfully rejected negative amounts, invalid enum statuses, placeholder strings, and non-numeric word inputs directly during instantiation.</p>
+    <p>2. <b>Demo 2:</b> With <code>operator.add</code>, findings from concurrent writes merged into <code>['baseline', 'sales down 12%', 'refunds up 30%']</code> rather than clobbering to a single entry.</p>
+    <p>3. <b>Demo 3:</b> Sequential tool calls took 1.53s; <code>asyncio.gather</code> finished in 0.51s, achieving an exact 2.98x speedup.</p>
+    <p>4. <b>Demo 4:</b> A 30s hung tool was cancelled cleanly after 1.01s by <code>asyncio.wait_for</code>, preventing pipeline deadlock.</p>
+  </aside>
+</section>
+
+<section class="chapter wrap" id="checkpoint">
+  <div class="ch-open"><div class="ch-num">07</div><div class="ch-body"><p class="eyebrow">Active Recall</p><h2>Retrieval Checkpoint — Unanswered</h2><p class="ch-sub">Close all notes. Answer these questions from memory to confirm structural retention.</p></div></div>
+
+  <div class="laws" aria-label="Retrieval Questions">
+    <div><span class="ln-n">Q1</span><div><b>Latency Scaling</b><p>If three independent asynchronous tools have latencies of 400ms, 700ms, and 200ms, what is the theoretical execution time under sequential awaits versus <code>asyncio.gather</code>?</p></div></div>
+    <div><span class="ln-n">Q2</span><div><b>LangGraph Reducer Invariant</b><p>What happens in modern LangGraph if two concurrent nodes return updates to the same un-annotated state key in the same graph execution step?</p></div></div>
+    <div><span class="ln-n">Q3</span><div><b>Cancellation Mechanics</b><p>Why is task cancellation in Python described as cooperative, and what exception is raised inside a coroutine when <code>wait_for</code> reaches its timeout?</p></div></div>
+    <div><span class="ln-n">Q4</span><div><b>Validation Self-Healing</b><p>In an agent pipeline, what specific exception does Pydantic raise when input data violates field constraints, and how does the agent use this exception to self-heal?</p></div></div>
+  </div>
+
+  <div class="ch-open" id="rebuild"><div class="ch-num">08</div><div class="ch-body"><p class="eyebrow">Practical Mastery</p><h2>Closed-Book Rebuild Challenge</h2><p class="ch-sub">30-minute timed implementation exercise.</p></div></div>
+
+  <div class="diag">
+    <div class="dh"><h4>Challenge Specification</h4><span class="tag">Timed Drill · 30 Minutes</span></div>
+    <p>Build an asynchronous tool router with schema validation from memory:</p>
+    <div class="rail">
+      <div class="node stock"><b>1. Pydantic Tool Schema</b><small>Model with constrained Fields and @field_validator</small></div>
+      <div class="pipe flow"><span>fan-out</span></div>
+      <div class="node ctrl"><b>2. Concurrent Execution</b><small>Run 3 mock API tools concurrently via asyncio.gather</small></div>
+      <div class="pipe flow"><span>bound</span></div>
+      <div class="node bal"><b>3. Timeout Guard</b><small>Wrap slow calls in asyncio.wait_for with fallback</small></div>
+      <div class="pipe flow"><span>merge</span></div>
+      <div class="node rein"><b>4. Reducer State Merge</b><small>TypedDict with Annotated[list, operator.add]</small></div>
+    </div>
+    <p><b>Requirements:</b> Benchmark sequential vs concurrent runtime and prove that invalid payloads raise <code>ValidationError</code> before entering the tool runner.</p>
+  </div>
+</section>
+
+<footer class="foot wrap">
+  <div class="nav-siblings">
+    <a href="01_python_basics.html">← 0.1 · Python Basics</a>
+    <a href="02_oop_modules_virtualenvs.html">← 0.2 · OOP, Modules, venvs</a>
+    <span class="active">0.3 · Async, Type Hints, Pydantic</span>
+  </div>
+  <p><b>Course Path:</b> <a href="../README.md">AI &amp; ML Engineering Mastery</a> · Phase 0: Engineering Foundations.</p>
+  <p><b>⚑ Corrected</b> identifies audited runtime behavior; <b>+ Added</b> indicates production architectural context.</p>
+</footer>
+</main>
+
+<script>
+/* claude-artifact-creator engine: chart (plot/spark) + stock-and-flow schematic (dg) + nav scroll-spy.
+   Exposes window.AE. Every mark is placed through one scale per chart; all colors come from CSS tokens. */
+var AE=(function(){
+'use strict';
+var NS='http://www.w3.org/2000/svg', XL='http://www.w3.org/1999/xlink';
+function E(tag,attrs,parent){var e=document.createElementNS(NS,tag);if(attrs){for(var k in attrs){if(attrs[k]!==null&&attrs[k]!==undefined)e.setAttribute(k,attrs[k]);}}if(parent)parent.appendChild(e);return e;}
+function T(p,x,y,s,cls,anchor){var t=E('text',{x:x,y:y,'class':cls||'','text-anchor':anchor||'start'},p);t.textContent=s;return t;}
+function lines(p,x,y,s,cls,anchor,lh){String(s).split('\n').forEach(function(l,i){T(p,x,y+i*(lh||14),l,cls,anchor);});}
+function fn(f,a,b,n){n=n||160;var r=[];for(var i=0;i<=n;i++){var x=a+(b-a)*i/n;r.push([x,f(x)]);}return r;}
+function pth(pts,sx,sy){return 'M'+pts.map(function(p){return sx(p[0]).toFixed(1)+','+sy(p[1]).toFixed(1);}).join(' L');}
+function safe(f){try{f();}catch(err){if(window.console)console.error(err);}}
+
+/* ───────── chart engine: one scale per chart, every mark placed through it ───────── */
+function plot(id,o){
+  var host=document.getElementById(id); if(!host) return;
+  var W=o.w||640,H=o.h||260,m=Object.assign({l:52,r:18,t:22,b:34},o.m||{});
+  var x0=o.x[0],x1=o.x[1],y0=o.y[0],y1=o.y[1];
+  var sx=function(v){return m.l+(v-x0)/(x1-x0)*(W-m.l-m.r);};
+  var sy=function(v){return H-m.b-(v-y0)/(y1-y0)*(H-m.t-m.b);};
+  var svg=E('svg',{viewBox:'0 0 '+W+' '+H,role:'img','aria-label':o.label||''});
+  (o.bands||[]).forEach(function(b){E('rect',{x:sx(b.x0),y:m.t,width:sx(b.x1)-sx(b.x0),height:H-m.t-m.b,'class':'band '+(b.k||'k-mute')},svg);if(b.label)T(svg,(sx(b.x0)+sx(b.x1))/2,m.t+13,b.label,'sm t2','middle');});
+  (o.yt||[]).forEach(function(v){E('line',{x1:m.l,x2:W-m.r,y1:sy(v),y2:sy(v),'class':'grid'},svg);T(svg,m.l-7,sy(v)+4,(o.yf||String)(v),'t2 sm','end');});
+  if(o.frame!==false){E('line',{x1:m.l,x2:W-m.r,y1:H-m.b,y2:H-m.b,'class':'axis'},svg);E('line',{x1:m.l,x2:m.l,y1:m.t,y2:H-m.b,'class':'axis'},svg);}
+  (o.xt||[]).forEach(function(v){T(svg,sx(v),H-m.b+16,(o.xf||String)(v),'t2 sm','middle');});
+  if(o.xl)T(svg,W-m.r,H-3,o.xl,'t2 sm','end');
+  if(o.yl)T(svg,m.l+4,m.t-8,o.yl,'t2 sm','start');
+  (o.vlines||[]).forEach(function(v){var g=E('g',{'class':v.k||'k-ink'},svg);E('line',{x1:sx(v.x),x2:sx(v.x),y1:m.t,y2:H-m.b,'class':'ref'},g);if(v.label){var px=sx(v.x),a=v.anchor||(px>W-m.r-50?'end':(px<m.l+50?'start':'middle'));T(g,px+(a==='end'?-5:a==='start'?5:0),m.t+(v.dy||28),v.label,'sm kt tb halo',a);}});
+  (o.refs||[]).forEach(function(r){var g=E('g',{'class':r.k||'k-ink'},svg);E('line',{x1:m.l,x2:W-m.r,y1:sy(r.y),y2:sy(r.y),'class':'ref'},g);if(r.label){var left=r.at==='left';T(g,left?m.l+6:W-m.r-6,sy(r.y)+(r.below?15:-6),r.label,'sm kt tb halo',left?'start':'end');}});
+  var leg=[];
+  (o.series||[]).forEach(function(s){
+    var g=E('g',{'class':s.k||'k-ink'},svg);
+    if(s.label)leg.push(s);
+    if(s.type==='bar'){
+      var unit=(W-m.l-m.r)/(x1-x0),bw=s.bw||unit*0.7,n=s.n||1,i=s.i||0,w=bw/n,base=s.base!==undefined?s.base:Math.max(0,y0);
+      s.data.forEach(function(d){var cx=sx(d[0])-bw/2+i*w,ya=sy(d[1]),yb=sy(base);E('rect',{x:cx+0.5,y:Math.min(ya,yb),width:Math.max(1,w-1),height:Math.max(0.5,Math.abs(yb-ya)),'class':'bar'},g);if(s.values)T(g,cx+w/2,ya-5,(s.vf||String)(d[1]),'sm kt tb','middle');});
+      return;
+    }
+    if(s.type!=='dots'){
+      if(s.area){var b0=sy(Math.max(y0,0)),F=s.data[0],L=s.data[s.data.length-1];E('path',{d:pth(s.data,sx,sy)+' L'+sx(L[0]).toFixed(1)+','+b0.toFixed(1)+' L'+sx(F[0]).toFixed(1)+','+b0.toFixed(1)+' Z','class':'area'},g);}
+      E('path',{d:pth(s.data,sx,sy),'class':'ln'+(s.dash?' dash':'')+(s.thin?' thin':'')},g);
+    }
+    if(s.dots||s.type==='dots'){(s.pts||s.data).forEach(function(d){E('circle',{cx:sx(d[0]),cy:sy(d[1]),r:s.r||4,'class':'dot'},g);if(s.values)T(g,sx(d[0]),sy(d[1])+(s.vdy||-9),(s.vf||String)(d[1]),'sm kt tb halo','middle');});}
+    if(s.end){var Z=s.data[s.data.length-1];T(g,sx(Z[0])+(s.endx||6),sy(Z[1])+(s.endy||4),s.end,'sm kt tb halo',s.enda||'start');}
+  });
+  (o.notes||[]).forEach(function(n){var g=E('g',{'class':n.k||'k-ink'},svg);if(n.dot)E('circle',{cx:sx(n.x),cy:sy(n.y),r:4.5,'class':'dot'},g);lines(g,sx(n.x)+(n.dx||0),sy(n.y)+(n.dy===undefined?-10:n.dy),n.t,'sm kt halo'+(n.b===false?'':' tb'),n.a||'middle',13);});
+  host.appendChild(svg);
+  if(leg.length&&o.legend!==false){var lg=document.createElement('div');lg.className='legend';leg.forEach(function(s){var sp=document.createElement('span');sp.className=s.k||'k-ink';var i=document.createElement('i');if(s.type==='bar')i.className='bar';else if(s.dash)i.className='dash';sp.appendChild(i);sp.appendChild(document.createTextNode(s.label));lg.appendChild(sp);});host.parentNode.insertBefore(lg,host.nextSibling);}
+}
+function spark(id,series,o){o=o||{};plot(id,Object.assign({w:300,h:118,m:{l:12,r:12,t:12,b:14},x:[0,1],y:[0,1.05],series:series,legend:false},o));}
+
+/* ───────── schematic engine: stocks, pipes, valves, clouds, links ───────── */
+function midpt(pts){var best=-1,bi=0;for(var i=0;i<pts.length-1;i++){var d=Math.abs(pts[i+1][0]-pts[i][0])+Math.abs(pts[i+1][1]-pts[i][1]);if(d>best){best=d;bi=i;}}return [(pts[bi][0]+pts[bi+1][0])/2,(pts[bi][1]+pts[bi+1][1])/2-7];}
+function dg(id,o){
+  var host=document.getElementById(id); if(!host) return;
+  var svg=E('svg',{viewBox:'0 0 '+o.w+' '+o.h,role:'img','aria-label':o.label||'','class':'dg'});
+  var N=o.nodes||{};
+  (o.regions||[]).forEach(function(r){E('rect',{x:r.x,y:r.y,width:r.w,height:r.h,'class':'region'},svg);if(r.t)T(svg,r.x+10,r.y+18,r.t,'rlab');});
+  function anc(s){if(Array.isArray(s))return s;var mm=/^(\w+)\.([lrtb])(?:@([\d.]+))?$/.exec(s),n=N[mm[1]],f=mm[3]!==undefined?+mm[3]:0.5;
+    if(mm[2]==='l')return [n.x,n.y+n.h*f];if(mm[2]==='r')return [n.x+n.w,n.y+n.h*f];if(mm[2]==='t')return [n.x+n.w*f,n.y];return [n.x+n.w*f,n.y+n.h];}
+  var CLS={pipe:'e-pipe',info:'e-info',bal:'e-bal',rein:'e-rein',delay:'e-delay',ink:'e-ink',risk:'e-risk',empty:'e-empty',good:'e-good'};
+  var MK={pipe:'ah-flow',info:'ah-info',bal:'ah-bal',rein:'ah-rein',delay:'ah-delay',ink:'ah-ink',risk:'ah-risk',empty:'ah-info',good:'ah-bal'};
+  var eg=E('g',{},svg),labs=[];
+  (o.edges||[]).forEach(function(e){var k=e.kind||'ink',pts=[anc(e.a)].concat(e.via||[],[anc(e.b)]);
+    E('path',{d:'M'+pts.map(function(p){return p[0]+','+p[1];}).join(' L'),'class':CLS[k],'marker-end':e.noarrow?null:'url(#'+MK[k]+')'},eg);
+    if(e.label)labs.push([e.lp||midpt(pts),e.label,e.lk,e.anchor]);});
+  (o.valves||[]).forEach(function(v){var x=v[0],y=v[1],d=v[2]==='v'?'M'+(x-8)+','+(y-8)+' L'+(x+8)+','+(y-8)+' L'+(x-8)+','+(y+8)+' L'+(x+8)+','+(y+8)+' Z':'M'+(x-8)+','+(y-8)+' L'+(x+8)+','+(y+8)+' L'+(x+8)+','+(y-8)+' L'+(x-8)+','+(y+8)+' Z';E('path',{d:d,'class':'valve'},svg);});
+  Object.keys(N).forEach(function(key){var n=N[key],g=E('g',{'class':'n n-'+(n.kind||'box')},svg);
+    if(n.kind==='cloud'){var u=E('use',{href:'#cloud',x:n.x,y:n.y,width:n.w,height:n.h},g);u.setAttributeNS(XL,'xlink:href','#cloud');}
+    else if(n.kind!=='text'){E('rect',{x:n.x,y:n.y,width:n.w,height:n.h,'class':'nb'},g);if(n.kind==='stock'||n.kind==='stockd')E('rect',{x:n.x+4,y:n.y+4,width:n.w-8,height:n.h-8,'class':'nb2'},g);}
+    var L=[];if(n.k)L.push([n.k,'nk']);(n.t||[]).forEach(function(s,i){L.push([s,i===0?'nt':'ns']);});
+    var lh=16,yy=n.y+n.h/2-(L.length-1)*lh/2+4;
+    L.forEach(function(r,i){T(g,n.x+n.w/2,yy+i*lh,r[0],r[1],'middle');});});
+  (o.delays||[]).forEach(function(d){var x=d[0],y=d[1];E('path',{d:d[2]==='v'?'M'+(x-8)+','+(y-3)+' H'+(x+8)+' M'+(x-8)+','+(y+3)+' H'+(x+8):'M'+(x-3)+','+(y-8)+' V'+(y+8)+' M'+(x+3)+','+(y-8)+' V'+(y+8),'class':'dmark'},svg);});
+  (o.badges||[]).forEach(function(b){var g=E('g',{'class':'badge b-'+b.kind},svg);E('circle',{cx:b.x,cy:b.y,r:15},g);T(g,b.x,b.y+5,b.t,'bt','middle');});
+  labs.forEach(function(l){lines(svg,l[0][0],l[0][1],l[1],'lab halo '+(l[2]||''),l[3]||'middle',13);});
+  (o.texts||[]).forEach(function(t){lines(svg,t.x,t.y,t.t,t.c||'lab',t.a||'start',13);});
+  host.appendChild(svg);
+}
+
+/* ───────── nav scroll-spy: marks the header link of the section in view ───────── */
+function spy(){
+  if(!('IntersectionObserver' in window))return;
+  var links=[].slice.call(document.querySelectorAll('.tnav a[data-spy]'));
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.setAttribute('aria-current',a.getAttribute('data-spy')===e.target.id?'true':'false');});}});},{rootMargin:'-35% 0px -60% 0px'});
+  links.forEach(function(a){var s=document.getElementById(a.getAttribute('data-spy'));if(s)io.observe(s);});
+}
+
+return {E:E,T:T,lines:lines,fn:fn,pth:pth,safe:safe,plot:plot,spark:spark,dg:dg,spy:spy};
+})();
+
+(function(){
+'use strict';
+var plot = AE.plot, dg = AE.dg, safe = AE.safe;
+
+// 1. ch-speedup: Sequential vs Gathered Benchmark
+safe(function(){
+  plot('ch-speedup', {
+    w: 580, h: 250, m: {l: 55, r: 35, t: 25, b: 40},
+    x: [-0.5, 1.5], y: [0, 1.8],
+    xt: [0, 1], yt: [0, 0.5, 1.0, 1.5],
+    xf: function(i){ return ['Sequential Awaits', 'asyncio.gather'][i]; },
+    yl: 'wall clock · s (3 tools)',
+    label: 'Comparison of total wall-clock execution time for sequential vs gathered execution',
+    series: [{
+      type: 'bar',
+      data: [[0, 1.53], [1, 0.51]],
+      k: 'k-stock',
+      label: 'runtime (s)',
+      values: true
+    }],
+    notes: [{
+      x: 1, y: 0.51, t: '2.98× speedup\n0.51 s', k: 'k-bal', dot: true, dx: 15, dy: -20
+    }]
+  });
+});
+
+// 2. dg-fanout-fanin: Fan-Out / Fan-In Schematic
+safe(function(){
+  dg('dg-fanout-fanin', {
+    w: 720, h: 260, label: 'Fan-out concurrent tool execution and fan-in synchronization barrier',
+    nodes: {
+      orchestrator: {x: 20, y: 95, w: 160, h: 65, kind: 'stock', k: 'ORCHESTRATOR', t: ['Agent Runner', 'Dispatches tasks']},
+      tool1: {x: 250, y: 20, w: 170, h: 55, kind: 'ctrl', k: 'TOOL 1 (0.5s)', t: ['SQL Query', 'Database lookup']},
+      tool2: {x: 250, y: 100, w: 170, h: 55, kind: 'ctrl', k: 'TOOL 2 (0.5s)', t: ['Web Search', 'HTTP API request']},
+      tool3: {x: 250, y: 180, w: 170, h: 55, kind: 'ctrl', k: 'TOOL 3 (0.5s)', t: ['Vector Search', 'Embedding search']},
+      gather_barrier: {x: 500, y: 95, w: 190, h: 65, kind: 'bal', k: 'BARRIER', t: ['asyncio.gather', 'Sync at max(t)=0.51s']}
+    },
+    edges: [
+      {a: 'orchestrator.r@0.2', b: 'tool1.l', kind: 'pipe'},
+      {a: 'orchestrator.r@0.5', b: 'tool2.l', kind: 'pipe'},
+      {a: 'orchestrator.r@0.8', b: 'tool3.l', kind: 'pipe'},
+      {a: 'tool1.r', b: 'gather_barrier.l@0.2', kind: 'pipe'},
+      {a: 'tool2.r', b: 'gather_barrier.l@0.5', kind: 'pipe'},
+      {a: 'tool3.r', b: 'gather_barrier.l@0.8', kind: 'pipe'}
+    ]
+  });
+});
+
+// 3. dg-reducer: Reducer Conflict Resolution
+safe(function(){
+  dg('dg-reducer', {
+    w: 720, h: 240, label: 'State reducer merging concurrent writes versus unhandled state collision',
+    nodes: {
+      agent_a: {x: 20, y: 35, w: 170, h: 60, kind: 'stock', k: 'AGENT A', t: ['Finding A', '["sales down 12%"]']},
+      agent_b: {x: 20, y: 145, w: 170, h: 60, kind: 'stock', k: 'AGENT B', t: ['Finding B', '["refunds up 30%"]']},
+      reducer: {x: 260, y: 90, w: 190, h: 65, kind: 'i', k: 'REDUCER HOOK', t: ['operator.add', 'Combines lists in-place']},
+      merged: {x: 520, y: 90, w: 180, h: 65, kind: 'bal', k: 'MERGED STATE', t: ['Unified State', 'All findings retained']}
+    },
+    edges: [
+      {a: 'agent_a.r', b: 'reducer.l@0.3', kind: 'pipe'},
+      {a: 'agent_b.r', b: 'reducer.l@0.7', kind: 'pipe'},
+      {a: 'reducer.r', b: 'merged.l', kind: 'good'}
+    ]
+  });
+});
+
+AE.spy();
+})();
+</script>
+</body>
+</html>

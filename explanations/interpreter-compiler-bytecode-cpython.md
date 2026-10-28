@@ -1,6 +1,6 @@
 # 📌 Interpreter vs Compiler, Bytecode & CPython — How Python Actually Runs
 
-> **Reference / Context**: [01_python_basics.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/01_python_basics.md) | [what-is-the-os-kernel.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/what-is-the-os-kernel.md) | [10_linux_cli.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md) | [the-complete-story-of-linux-and-ai.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/the-complete-story-of-linux-and-ai.md)
+> **Reference / Context**: [01_python_basics.html](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/01_python_basics.html) | [what-is-the-os-kernel.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/what-is-the-os-kernel.md) | [10_linux_cli.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/10_linux_cli.md) | [the-complete-story-of-linux-and-ai.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/explanations/the-complete-story-of-linux-and-ai.md)
 
 ---
 
@@ -282,4 +282,4 @@ PyPy's **JIT (Just-In-Time) compiler** is worth understanding: it watches which 
 
 3. **`dis.dis()` is your X-ray machine.** Any time you wonder "what does Python actually do with this code?", run `dis.dis(your_function)` and read the bytecode. It reveals hidden operations like implicit `LOAD_GLOBAL` lookups that explain why local variables are faster than globals.
 
-4. **The GIL (Global Interpreter Lock) is a CPython implementation detail, not a Python language feature.** It means only one thread can execute Python bytecode at a time in CPython. But I/O operations release the GIL (they're waiting on the kernel, not executing bytecode), which is why `asyncio` and threading still help for I/O-bound work. See [03_async_typehints_pydantic.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/03_async_typehints_pydantic.md) for the async model.
+4. **The GIL (Global Interpreter Lock) is a CPython implementation detail, not a Python language feature.** It means only one thread can execute Python bytecode at a time in CPython. But I/O operations release the GIL (they're waiting on the kernel, not executing bytecode), which is why `asyncio` and threading still help for I/O-bound work. See [03_async_typehints_pydantic.html](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/03_async_typehints_pydantic.html) for the async model.

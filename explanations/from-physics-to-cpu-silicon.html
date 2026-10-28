@@ -1,0 +1,1061 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>From physics to CPU silicon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600;700&display=swap">
+<style>
+body{margin:0}
+:root{
+  /* Layout: ink-on-paper schematic notebook. Annotations sit in a <=70ch column; diagrams, tables and charts widen to 1120px. One continuous scroll, nothing hidden behind clicks. */
+  --bg:#FFFCF0;--bg-2:#F2F0E5;--ui:#E6E4D9;--ui-2:#DAD8CE;--ui-3:#CECDC3;
+  --tx:#100F0F;--tx-2:#6F6E69;--tx-3:#B7B5AC;
+  --stock:#205EA6;--stock-bg:#E1ECEB;
+  --flow:#24837B;--flow-bg:#DDF1E4;
+  --bal:#66800B;--bal-bg:#EDEECF;
+  --rein:#BC5215;--rein-bg:#FFE7CE;
+  --delay:#A02F6F;--delay-bg:#FEE4E5;
+  --risk:#AF3029;--risk-bg:#FFE1D5;
+  --note:#AD8301;--note-bg:#FAEEC6;
+  --info:#5E409D;--info-bg:#F0EAEC;
+  --f-body:"Atkinson Hyperlegible","Atkinson Hyperlegible Next",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"Atkinson Hyperlegible Mono",ui-monospace,"Cascadia Mono","SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#100F0F;--bg-2:#1C1B1A;--ui:#282726;--ui-2:#343331;--ui-3:#403E3C;
+  --tx:#CECDC3;--tx-2:#878580;--tx-3:#575653;
+  --stock:#4385BE;--stock-bg:#101A24;--flow:#3AA99F;--flow-bg:#101F1D;--bal:#879A39;--bal-bg:#1A1E0C;
+  --rein:#DA702C;--rein-bg:#27180E;--delay:#CE5D97;--delay-bg:#24131D;--risk:#D14D41;--risk-bg:#261312;
+  --note:#D0A215;--note-bg:#241E08;--info:#8B7EC8;--info-bg:#1A1623;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#100F0F;--bg-2:#1C1B1A;--ui:#282726;--ui-2:#343331;--ui-3:#403E3C;
+  --tx:#CECDC3;--tx-2:#878580;--tx-3:#575653;
+  --stock:#4385BE;--stock-bg:#101A24;--flow:#3AA99F;--flow-bg:#101F1D;--bal:#879A39;--bal-bg:#1A1E0C;
+  --rein:#DA702C;--rein-bg:#27180E;--delay:#CE5D97;--delay-bg:#24131D;--risk:#D14D41;--risk-bg:#261312;
+  --note:#D0A215;--note-bg:#241E08;--info:#8B7EC8;--info-bg:#1A1623;color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--tx);font-family:var(--f-body);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+h1,h2,h3,h4,h5{line-height:1.15;text-wrap:balance;margin:0;font-weight:700}
+p,ul,ol,dl,figure{margin:0}
+a{color:inherit}
+a:focus-visible,canvas:focus-visible{outline:2px solid var(--stock);outline-offset:3px}
+b,strong{font-weight:700}
+.mono{font-family:var(--f-mono)}
+.wrap{max-width:1120px;margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.col{max-width:70ch}
+
+/* ── header ── */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1.5px solid var(--tx)}
+.top-in{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px}
+.brand{font-weight:700;text-decoration:none;display:flex;align-items:baseline;gap:10px;white-space:nowrap}
+.brand span{font-family:var(--f-mono);font-size:12px;font-weight:400;color:var(--tx-2)}
+.tnav{display:flex;gap:4px;overflow-x:auto}
+.tnav a{font-family:var(--f-mono);font-size:12.5px;text-decoration:none;padding:4px 9px;border:1px solid transparent;white-space:nowrap}
+.tnav a b{color:var(--tx-2);margin-right:4px}
+.tnav a:hover{border-color:var(--ui-3)}
+.tnav a[aria-current="true"]{border-color:var(--tx);background:var(--bg-2)}
+@media (max-width:640px){.brand span{display:none}.tnav a span{display:none}}
+
+/* ── hero ── */
+.hero{display:grid;gap:24px;padding-block:48px 40px}
+.eyebrow{font-family:var(--f-mono);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-2)}
+.hero h1{font-size:clamp(36px,6.4vw,68px);letter-spacing:-.02em;line-height:1.02;max-width:16ch}
+.hero h1 em{font-style:normal;color:var(--stock)}
+.lede{font-size:19px;line-height:1.5;max-width:62ch}
+.key{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1.5px solid var(--tx)}
+.key>div{display:grid;grid-template-columns:62px 1fr;gap:10px;align-items:center;padding:10px 12px;border-right:1px solid var(--ui-2);border-bottom:1px solid var(--ui-2);min-width:0}
+.key svg{width:62px;height:34px}
+.key b{display:block;font-size:14px}
+.key span{font-size:13px;color:var(--tx-2);line-height:1.3;display:block}
+.key .kh{grid-column:1/-1;display:block;background:var(--tx);color:var(--bg);font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border:0}
+@media (max-width:900px){.key{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.key{grid-template-columns:1fr}}
+.map3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1.5px solid var(--tx)}
+.map3 a{display:grid;gap:6px;padding:14px 16px;text-decoration:none;border-right:1px solid var(--ui-2);align-content:start}
+.map3 a:last-child{border-right:0}
+.map3 a:hover{background:var(--bg-2)}
+.map3 .n{font-family:var(--f-mono);font-size:34px;font-weight:700;line-height:1}
+.map3 .p{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-2)}
+.map3 h3{font-size:19px}
+.map3 p{font-size:14.5px;color:var(--tx-2);line-height:1.45}
+@media (max-width:760px){.map3{grid-template-columns:1fr}.map3 a{border-right:0;border-bottom:1px solid var(--ui-2)}}
+.tags-legend{display:flex;flex-wrap:wrap;gap:10px 18px;font-size:14px;color:var(--tx-2);align-items:center}
+
+/* ── chapter opener ── */
+.chapter{padding-top:56px}
+.ch-open{display:grid;grid-template-columns:auto minmax(0,1fr);gap:28px;border-top:4px solid var(--tx);padding-top:22px}
+.ch-num{font-family:var(--f-mono);font-size:clamp(64px,11vw,132px);font-weight:700;line-height:.82;letter-spacing:-.05em}
+.ch-num small{display:block;font-size:12px;letter-spacing:.14em;font-weight:400;color:var(--tx-2);margin-bottom:8px}
+.ch-body{display:grid;gap:12px;align-content:start}
+.ch-body h2{font-size:clamp(30px,4.6vw,48px);letter-spacing:-.015em}
+.ch-sub{font-size:20px;color:var(--tx-2)}
+.goal{max-width:72ch;border:1.5px solid var(--tx);padding:12px 14px;background:var(--bg-2);font-size:15.5px;line-height:1.5}
+.goal b.l{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;margin-right:8px}
+.cmap{display:flex;flex-wrap:wrap;gap:6px}
+.cmap a{font-family:var(--f-mono);font-size:12.5px;border:1px solid var(--ui-3);padding:3px 8px;text-decoration:none;white-space:nowrap}
+.cmap a:hover{border-color:var(--tx);background:var(--bg-2)}
+.cmap a b{color:var(--tx-2);font-weight:400;margin-right:5px}
+@media (max-width:640px){.ch-open{grid-template-columns:1fr;gap:12px}}
+
+/* ── sections ── */
+.sec{display:grid;gap:22px;padding-block:44px;border-top:1px solid var(--ui-2)}
+.sec>*,.sub>*{min-width:0}
+.sec:first-of-type{border-top:0}
+.sh{display:grid;gap:8px;max-width:72ch}
+.sid{font-family:var(--f-mono);font-size:12.5px;letter-spacing:.1em;color:var(--tx-2);text-transform:uppercase}
+.sh h3{font-size:clamp(25px,3.2vw,32px);letter-spacing:-.01em}
+.sh p{font-size:17.5px;line-height:1.55}
+.sub{display:grid;gap:14px}
+.sub>h4{font-size:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sub>h4 .pill{font-size:11px}
+.sub>p,.p{max-width:70ch}
+.small{font-size:14.5px;color:var(--tx-2);line-height:1.5}
+.k{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-2)}
+
+/* grids */
+.g2,.g3,.g4,.g5{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g5{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:980px){.g5{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:900px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:1fr}}
+@media (max-width:640px){.g2,.g4{grid-template-columns:1fr}.g5{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* panels */
+.panel{border:1.5px solid var(--ui-3);background:var(--bg);padding:14px 16px;display:grid;gap:10px;align-content:start;min-width:0}
+.panel.ink{border-color:var(--tx)}
+.panel>.ph{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.panel h5{font-size:17px}
+.panel p{font-size:15.5px;line-height:1.5}
+.tint{--k:var(--tx);--kb:var(--bg);border-color:var(--k);background:var(--kb)}
+.t-stock{--k:var(--stock);--kb:var(--stock-bg)} .t-flow{--k:var(--flow);--kb:var(--flow-bg)}
+.t-bal{--k:var(--bal);--kb:var(--bal-bg)} .t-rein{--k:var(--rein);--kb:var(--rein-bg)}
+.t-delay{--k:var(--delay);--kb:var(--delay-bg)} .t-risk{--k:var(--risk);--kb:var(--risk-bg)}
+.t-note{--k:var(--note);--kb:var(--note-bg)} .t-info{--k:var(--info);--kb:var(--info-bg)}
+.lab{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--k,var(--tx-2));font-weight:700}
+
+/* pills, marks */
+.pill{display:inline-block;font-family:var(--f-mono);font-size:11px;font-weight:700;padding:2px 7px;border:1px solid var(--k,var(--tx-2));color:var(--k,var(--tx-2));background:var(--kb,transparent);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;line-height:1.5}
+.lb{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;border:2px solid var(--k);color:var(--k);font-family:var(--f-mono);font-weight:700;font-size:13px;flex:0 0 auto;background:var(--bg)}
+.m{display:inline-grid;place-items:center;width:20px;height:20px;font-family:var(--f-mono);font-weight:700;font-size:12px;border:1.5px solid var(--k);color:var(--k);background:var(--kb);margin-right:6px;vertical-align:-3px}
+.m.ok{--k:var(--bal);--kb:var(--bal-bg)} .m.no{--k:var(--risk);--kb:var(--risk-bg)}
+
+/* lists */
+ul.dl{list-style:none;padding:0;display:grid;gap:7px}
+ul.dl li{padding-left:18px;position:relative;font-size:15.5px;line-height:1.5}
+ul.dl li::before{content:"";position:absolute;left:1px;top:.7em;width:9px;height:2px;background:var(--k,var(--tx-2))}
+ol.steps{list-style:none;padding:0;display:grid;gap:8px;counter-reset:s}
+ol.steps li{display:grid;grid-template-columns:30px 1fr;gap:10px;font-size:15.5px;line-height:1.5;align-items:start}
+ol.steps li::before{counter-increment:s;content:counter(s);font-family:var(--f-mono);font-weight:700;width:26px;height:26px;display:grid;place-items:center;border:1.5px solid var(--k,var(--tx));color:var(--k,var(--tx));font-size:13px}
+dl.kv{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:5px 12px;font-size:15px;line-height:1.45}
+dl.kv dt{font-family:var(--f-mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--tx-2);padding-top:3px}
+dl.kv dd{margin:0}
+
+/* callouts & editor notes */
+.call{border:1.5px solid var(--k);background:var(--kb);padding:14px 16px;display:grid;gap:6px;max-width:80ch}
+.call .tag,.ed .tag{font-family:var(--f-mono);font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--k)}
+.call p{font-size:15.5px;line-height:1.5}
+.call.imp{--k:var(--stock);--kb:var(--stock-bg)} .call.cau{--k:var(--risk);--kb:var(--risk-bg)}
+.call.nte{--k:var(--flow);--kb:var(--flow-bg)} .call.wrn{--k:var(--rein);--kb:var(--rein-bg)} .call.tip{--k:var(--bal);--kb:var(--bal-bg)}
+.ed{--k:var(--note);border:1.5px dashed var(--note);background:var(--note-bg);padding:12px 14px;display:grid;gap:6px;max-width:80ch}
+.ed p{font-size:15px;line-height:1.5}
+.ed.fix .tag::before{content:"⚑ "}
+.ed .tag::before{content:"+ "}
+
+/* quotes & equations */
+.quote{font-size:clamp(20px,2.5vw,27px);line-height:1.32;font-weight:700;max-width:46ch;border-top:3px solid var(--tx);padding-top:14px;margin:0}
+.quote cite{display:block;font-family:var(--f-mono);font-size:12.5px;font-weight:400;color:var(--tx-2);font-style:normal;margin-top:10px;letter-spacing:.04em}
+.eq{font-family:var(--f-mono);font-size:clamp(14px,1.9vw,18px);border:1.5px solid var(--tx);padding:12px 16px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:center;background:var(--bg-2);text-align:center}
+.eq .s{color:var(--stock);font-weight:700} .eq .fi{color:var(--flow);font-weight:700} .eq .fo{color:var(--risk);font-weight:700}
+.eq .b{color:var(--bal);font-weight:700} .eq .r{color:var(--rein);font-weight:700} .eq .d{color:var(--delay);font-weight:700}
+.eq small{flex-basis:100%;font-size:12px;color:var(--tx-2)}
+
+/* tables */
+.tbl{overflow-x:auto;border:1.5px solid var(--tx);background:var(--bg)}
+.tbl table{border-collapse:collapse;width:100%;font-size:14.5px;line-height:1.4;font-variant-numeric:tabular-nums}
+.tbl th{font-family:var(--f-mono);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;text-align:left;background:var(--bg-2);color:var(--tx-2);padding:8px 10px;border-bottom:1.5px solid var(--tx);vertical-align:bottom}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--ui-2);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td.n,.tbl th.n{text-align:right;font-family:var(--f-mono);white-space:nowrap}
+.tbl td.c,.tbl th.c{text-align:center}
+.tbl tr.hl td{background:var(--kb)}
+.tbl td.pos{color:var(--bal);font-weight:700} .tbl td.neg{color:var(--risk);font-weight:700}
+.tbl caption{caption-side:top;text-align:left;font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:8px 10px;background:var(--tx);color:var(--bg)}
+.tbl .wide{min-width:720px}
+
+/* comparison split */
+.split{display:grid;grid-template-columns:minmax(0,1fr) 46px minmax(0,1fr);align-items:stretch}
+.side{--k:var(--tx);--kb:var(--bg);border:1.5px solid var(--k);background:var(--kb);padding:14px 16px;display:grid;gap:9px;align-content:start;min-width:0}
+.side.bad{--k:var(--risk);--kb:var(--risk-bg)} .side.good{--k:var(--bal);--kb:var(--bal-bg)}
+.side.r{--k:var(--rein);--kb:var(--rein-bg)} .side.s{--k:var(--stock);--kb:var(--stock-bg)}
+.side h4,.side h5{font-size:18px}
+.side p{font-size:15.5px;line-height:1.5}
+.vs{position:relative;display:grid;place-items:center}
+.vs::before{content:"";position:absolute;top:0;bottom:0;left:50%;border-left:1.5px dashed var(--ui-3)}
+.vs span{position:relative;background:var(--bg);font-family:var(--f-mono);font-size:12px;color:var(--tx-2);padding:6px 0;text-transform:uppercase;letter-spacing:.08em}
+@media (max-width:720px){.split{grid-template-columns:1fr}.vs{height:34px}.vs::before{top:50%;bottom:auto;left:0;right:0;border-left:0;border-top:1.5px dashed var(--ui-3)}.vs span{padding:0 10px}}
+
+/* box-and-pipe rails */
+.rail{display:flex;align-items:stretch;min-width:0}
+.rail>.node{flex:1 1 0;min-width:0}
+.rail>.pipe{flex:0 0 84px;position:relative;display:flex;align-items:center;justify-content:center;--pc:var(--tx)}
+.pipe::before{content:"";position:absolute;left:3px;right:11px;top:50%;border-top:3px solid var(--pc);transform:translateY(-50%)}
+.pipe::after{content:"";position:absolute;right:2px;top:50%;transform:translateY(-50%);border-left:10px solid var(--pc);border-top:6px solid transparent;border-bottom:6px solid transparent}
+.pipe>span{position:relative;z-index:1;font-family:var(--f-mono);font-size:11px;line-height:1.25;color:var(--pc);background:var(--bg);padding:2px 4px;text-align:center;max-width:78px;font-weight:600}
+.pipe.flow{--pc:var(--flow)} .pipe.flow::before{border-top-width:5px}
+.pipe.info{--pc:var(--tx-2)} .pipe.info::before{border-top:2px dashed var(--pc)}
+.pipe.bal{--pc:var(--bal)} .pipe.rein{--pc:var(--rein)} .pipe.risk{--pc:var(--risk)}
+.pipe.delay{--pc:var(--delay)} .pipe.delay>span::before{content:"‖ ";font-weight:700}
+.node{border:1.5px solid var(--tx);background:var(--bg);padding:10px 12px;display:flex;flex-direction:column;gap:3px;justify-content:center;--kc:var(--tx-2)}
+.node .nk{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--kc);font-weight:700}
+.node b{font-size:15.5px;line-height:1.25}
+.node small{font-size:13.5px;color:var(--tx-2);line-height:1.35}
+.node.stock{border:4px double var(--stock);background:var(--stock-bg);--kc:var(--stock)}
+.node.stockd{border:4px double var(--delay);background:var(--delay-bg);--kc:var(--delay)}
+.node.flow{border-color:var(--flow);background:var(--flow-bg);--kc:var(--flow)}
+.node.goal{border:1.8px dashed var(--bal);--kc:var(--bal)}
+.node.ctrl{border-color:var(--info);background:var(--info-bg);--kc:var(--info)}
+.node.bal{border-color:var(--bal);background:var(--bal-bg);--kc:var(--bal)}
+.node.rein{border-color:var(--rein);background:var(--rein-bg);--kc:var(--rein)}
+.node.delay{border-color:var(--delay);background:var(--delay-bg);--kc:var(--delay)}
+.node.risk{border-color:var(--risk);background:var(--risk-bg);--kc:var(--risk)}
+.node.cloud{flex:0 0 auto;border:1.5px dashed var(--tx-3);border-radius:999px;background:var(--bg-2);text-align:center;min-width:76px;align-items:center}
+.ret{position:relative;height:30px;margin:0 9%;border:2px dashed var(--rc,var(--tx-2));border-top:0;--rc:var(--tx-2)}
+.ret::before{content:"";position:absolute;left:-7px;top:-3px;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid var(--rc)}
+.ret>span{position:absolute;left:50%;bottom:-11px;transform:translateX(-50%);background:var(--bg);padding:0 8px;font-family:var(--f-mono);font-size:12px;color:var(--rc);white-space:nowrap;font-weight:600}
+.ret.b{--rc:var(--bal)} .ret.r{--rc:var(--rein)} .ret.d{--rc:var(--delay)}
+.loop{display:grid;gap:0;padding-bottom:14px}
+@media (max-width:760px){
+  .rail{flex-direction:column}
+  .rail>.node{flex:0 0 auto}
+  .rail>.pipe{flex:0 0 auto;min-height:46px}
+  .pipe::before{left:50%;right:auto;top:2px;bottom:11px;border-top:0;border-left:3px solid var(--pc);transform:translateX(-50%)}
+  .pipe.flow::before{border-left-width:5px}
+  .pipe.info::before{border-left:2px dashed var(--pc);border-top:0}
+  .pipe::after{right:auto;left:50%;top:auto;bottom:2px;transform:translateX(-50%);border-left:6px solid transparent;border-right:6px solid transparent;border-top:10px solid var(--pc);border-bottom:0}
+  .pipe>span{max-width:none}
+  .ret{height:auto;margin:6px 0 0;border:2px dashed var(--rc);padding:6px 10px;text-align:center}
+  .ret::before{display:none}
+  .ret>span{position:static;transform:none;white-space:normal;padding:0}
+  .ret>span::before{content:"↺ "}
+  .loop{padding-bottom:0}
+}
+
+/* causal chains */
+.chain{display:flex;flex-wrap:wrap;gap:6px 4px;align-items:center;--k:var(--tx);--kb:var(--bg)}
+.chain span{border:1.2px solid var(--k);background:var(--kb);padding:3px 9px;font-size:14px;line-height:1.35}
+.chain i{font-style:normal;color:var(--k);font-family:var(--f-mono);font-weight:700;padding:0 2px}
+.chain.r{--k:var(--rein);--kb:var(--rein-bg)} .chain.b{--k:var(--bal);--kb:var(--bal-bg)} .chain.x{--k:var(--risk);--kb:var(--risk-bg)} .chain.s{--k:var(--stock);--kb:var(--stock-bg)}
+
+/* figures & charts */
+.fig{border:1.5px solid var(--ui-3);background:var(--bg);padding:12px;display:grid;gap:8px;min-width:0}
+.fig.ink{border-color:var(--tx)}
+.fig .scroll{overflow-x:auto;min-width:0}
+.fig svg{display:block;width:100%;height:auto}
+.fig .scroll>svg{min-width:var(--minw,0px)}
+.fig figcaption{font-size:14px;color:var(--tx-2);line-height:1.45}
+.fig .ft{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-2);font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-family:var(--f-mono);font-size:12px;color:var(--tx-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:16px;height:3px;background:var(--k)}
+.legend i.bar{height:10px;width:10px}
+.legend i.dash{background:repeating-linear-gradient(90deg,var(--k) 0 4px,transparent 4px 7px)}
+svg text{font-family:var(--f-mono);font-size:12px;fill:var(--tx)}
+svg .t2{fill:var(--tx-2)} svg .t3{fill:var(--tx-3)} svg .tb{font-weight:700}
+svg .sm{font-size:11px}
+svg .axis{stroke:var(--tx);stroke-width:1.2}
+svg .grid{stroke:var(--ui-2);stroke-width:1}
+svg .ln{fill:none;stroke:var(--k);stroke-width:2.6;stroke-linejoin:round;stroke-linecap:round}
+svg .ln.dash{stroke-dasharray:6 5}
+svg .ln.thin{stroke-width:1.8}
+svg .bar{fill:var(--k)}
+svg .area{fill:var(--k);opacity:.13}
+svg .dot{fill:var(--k);stroke:var(--bg);stroke-width:2}
+svg .band{fill:var(--k);opacity:.09}
+svg .ref{stroke:var(--k);stroke-width:1.5;stroke-dasharray:4 4;fill:none}
+svg .kt{fill:var(--k)}
+svg .halo{paint-order:stroke;stroke:var(--bg);stroke-width:5px;stroke-linejoin:round}
+.k-stock{--k:var(--stock)} .k-flow{--k:var(--flow)} .k-bal{--k:var(--bal)} .k-rein{--k:var(--rein)}
+.k-delay{--k:var(--delay)} .k-risk{--k:var(--risk)} .k-note{--k:var(--note)} .k-info{--k:var(--info)}
+.k-ink{--k:var(--tx)} .k-mute{--k:var(--tx-2)}
+
+/* schematic diagrams (dg) */
+.dg text{font-family:var(--f-mono)}
+.dg .nk{font-size:10.5px;letter-spacing:.06em;fill:var(--kc,var(--tx-2));font-weight:700}
+.dg .nt{font-size:13px;font-weight:700;fill:var(--tx)}
+.dg .ns{font-size:11.5px;fill:var(--tx-2)}
+.dg .lab{font-size:11px;fill:var(--tx-2);text-transform:none;letter-spacing:0;font-weight:400}
+.dg .lab.tb{font-weight:700;fill:var(--tx)}
+.dg .lab.c-bal{fill:var(--bal);font-weight:700} .dg .lab.c-rein{fill:var(--rein);font-weight:700}
+.dg .lab.c-flow{fill:var(--flow);font-weight:700} .dg .lab.c-delay{fill:var(--delay);font-weight:700}
+.dg .lab.c-risk{fill:var(--risk);font-weight:700} .dg .lab.c-stock{fill:var(--stock);font-weight:700}
+.dg .lab.big{font-size:13px}
+.dg .nb{fill:var(--bg);stroke:var(--tx);stroke-width:1.5}
+.dg .n-stock{--kc:var(--stock)} .dg .n-stock .nb{fill:var(--stock-bg);stroke:var(--stock);stroke-width:2.5} .dg .n-stock .nb2{fill:none;stroke:var(--stock);stroke-width:1}
+.dg .n-stockd{--kc:var(--delay)} .dg .n-stockd .nb{fill:var(--delay-bg);stroke:var(--delay);stroke-width:2.5} .dg .n-stockd .nb2{fill:none;stroke:var(--delay);stroke-width:1}
+.dg .n-b{--kc:var(--bal)} .dg .n-b .nb{fill:var(--bal-bg);stroke:var(--bal)}
+.dg .n-r{--kc:var(--rein)} .dg .n-r .nb{fill:var(--rein-bg);stroke:var(--rein)}
+.dg .n-i{--kc:var(--info)} .dg .n-i .nb{fill:var(--info-bg);stroke:var(--info)}
+.dg .n-d{--kc:var(--delay)} .dg .n-d .nb{fill:var(--delay-bg);stroke:var(--delay)}
+.dg .n-x{--kc:var(--risk)} .dg .n-x .nb{fill:var(--risk-bg);stroke:var(--risk)}
+.dg .n-f{--kc:var(--flow)} .dg .n-f .nb{fill:var(--flow-bg);stroke:var(--flow)}
+.dg .n-goal{--kc:var(--bal)} .dg .n-goal .nb{fill:var(--bg);stroke:var(--bal);stroke-dasharray:5 4;stroke-width:1.8}
+.dg .n-mute .nb{fill:var(--bg-2);stroke:var(--ui-3)}
+.dg .e-pipe{stroke:var(--flow);stroke-width:7;fill:none;stroke-linejoin:round}
+.dg .e-empty{stroke:var(--tx-3);stroke-width:3;fill:none;stroke-dasharray:6 6}
+.dg .e-info{stroke:var(--tx-2);stroke-width:1.6;fill:none;stroke-dasharray:5 4}
+.dg .e-bal{stroke:var(--bal);stroke-width:2;fill:none}
+.dg .e-rein{stroke:var(--rein);stroke-width:2;fill:none}
+.dg .e-delay{stroke:var(--delay);stroke-width:2;fill:none}
+.dg .e-ink{stroke:var(--tx);stroke-width:1.6;fill:none}
+.dg .e-risk{stroke:var(--risk);stroke-width:2;fill:none;stroke-dasharray:6 4}
+.dg .e-good{stroke:var(--bal);stroke-width:2;fill:none}
+.dg .valve{fill:var(--bg);stroke:var(--flow);stroke-width:2;stroke-linejoin:round}
+.dg .badge circle{fill:var(--bg);stroke-width:2.2}
+.dg .bt{font-size:13px;font-weight:700}
+.dg .b-bal circle{stroke:var(--bal)} .dg .b-bal .bt{fill:var(--bal)}
+.dg .b-rein circle{stroke:var(--rein)} .dg .b-rein .bt{fill:var(--rein)}
+.dg .dmark{stroke:var(--delay);stroke-width:2.6}
+.dg .region{fill:none;stroke:var(--ui-3);stroke-width:1.3;stroke-dasharray:3 4}
+.dg .rlab{font-size:10.5px;letter-spacing:.1em;fill:var(--tx-2);font-weight:700}
+.mk-ink{fill:var(--tx)} .mk-flow{fill:var(--flow)} .mk-info{fill:var(--tx-2)} .mk-bal{fill:var(--bal)}
+.mk-rein{fill:var(--rein)} .mk-delay{fill:var(--delay)} .mk-risk{fill:var(--risk)}
+
+/* hand-drawn illustration classes */
+.il .ink{stroke:var(--tx);fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.il .thin{stroke-width:1.2}
+.il .paper{fill:var(--bg)}
+.il .paper2{fill:var(--bg-2)}
+.il .water{fill:var(--stock);opacity:.28}
+.il .waterl{stroke:var(--stock);stroke-width:2;fill:none}
+.il .rock{fill:var(--ui-3);stroke:var(--tx-2);stroke-width:1.2}
+.il .rockx{fill:var(--risk-bg);stroke:var(--risk);stroke-width:1.6}
+.il .fl{stroke:var(--flow);stroke-width:7;fill:none;stroke-linejoin:round}
+.il .flt{stroke:var(--flow);stroke-width:3;fill:none}
+.il .valve{fill:var(--bg);stroke:var(--flow);stroke-width:2}
+.il .risk{stroke:var(--risk);fill:none;stroke-width:2.2}
+.il .good{stroke:var(--bal);fill:none;stroke-width:2.2}
+.il .fillg{fill:var(--bal)} .il .fillr{fill:var(--risk)} .il .fills{fill:var(--stock)}
+
+/* diagnostic card */
+.diag{border:2px solid var(--tx);background:var(--bg);max-width:900px}
+.diag-h{background:var(--tx);color:var(--bg);font-family:var(--f-mono);padding:9px 14px;letter-spacing:.08em;text-transform:uppercase;font-size:12.5px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.diag ol{list-style:none;margin:0;padding:0;counter-reset:q}
+.diag li{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;padding:14px 16px;border-top:1px solid var(--ui-2)}
+.diag li:first-child{border-top:0}
+.diag li::before{counter-increment:q;content:counter(q,decimal-leading-zero);font-family:var(--f-mono);font-size:24px;font-weight:700;line-height:1;color:var(--tx-2)}
+.diag li b{display:block;font-size:17px;margin-bottom:3px}
+.diag li p{font-size:15.5px;line-height:1.5;color:var(--tx)}
+.diag li .chk{display:inline-block;width:16px;height:16px;border:1.5px solid var(--tx);margin-right:8px;vertical-align:-2px}
+
+/* laws grid */
+.laws{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:1.5px solid var(--tx)}
+.laws>div{padding:14px 16px;border-bottom:1px solid var(--ui-2);border-right:1px solid var(--ui-2);display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;align-items:start}
+.laws>div:nth-child(2n){border-right:0}
+.laws .ln-n{font-family:var(--f-mono);font-size:22px;font-weight:700;color:var(--tx-2);line-height:1}
+.laws b{display:block;font-size:15.5px;letter-spacing:.01em;text-transform:uppercase;font-family:var(--f-mono);font-size:13px;margin-bottom:4px}
+.laws p{font-size:15px;line-height:1.45}
+.laws>div.span{grid-column:1/-1;border-right:0}
+@media (max-width:720px){.laws{grid-template-columns:1fr}.laws>div{border-right:0}}
+
+/* low vs high leverage rows */
+.lev{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);border:1.5px solid var(--tx)}
+.lev>div{padding:12px 14px;display:grid;gap:6px;align-content:start}
+.lev .lo{background:var(--risk-bg);border-right:1px solid var(--ui-3)}
+.lev .hi{background:var(--bal-bg)}
+.lev .lab{--k:var(--risk)} .lev .hi .lab{--k:var(--bal)}
+.lev p,.lev li{font-size:15px;line-height:1.5}
+.lev h5{grid-column:1/-1;background:var(--tx);color:var(--bg);padding:8px 14px;font-family:var(--f-mono);font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+@media (max-width:720px){.lev{grid-template-columns:1fr}.lev .lo{border-right:0;border-bottom:1px solid var(--ui-3)}}
+
+/* iceberg (events vs stocks) */
+.berg{border:1.5px solid var(--tx);display:grid}
+.berg .above,.berg .below{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0}
+.berg .above>div,.berg .below>div{padding:12px 14px;font-size:14.5px;line-height:1.4;border-right:1px solid var(--ui-2)}
+.berg .above>div:last-child,.berg .below>div:last-child{border-right:0}
+.berg .above{background:var(--bg)}
+.berg .below{background:var(--stock-bg)}
+.berg .wl{display:flex;align-items:center;gap:10px;padding:6px 14px;background:var(--stock);color:var(--bg);font-family:var(--f-mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.berg .ev{font-weight:700}
+.berg .st{color:var(--stock);font-weight:700}
+@media (max-width:760px){.berg .above,.berg .below{grid-template-columns:1fr 1fr}.berg .above>div:nth-child(2),.berg .below>div:nth-child(2){border-right:0}.berg .above>div:nth-child(-n+2),.berg .below>div:nth-child(-n+2){border-bottom:1px solid var(--ui-2)}}
+
+/* tiers */
+.tiers{display:grid;gap:0;border:1.5px solid var(--tx)}
+.tier{display:grid;grid-template-columns:160px minmax(0,1fr);border-bottom:1px solid var(--ui-3)}
+.tier:last-child{border-bottom:0}
+.tier>.th{padding:12px 14px;display:grid;gap:4px;align-content:start;background:var(--kb);border-right:1.5px solid var(--k)}
+.tier>.th b{font-size:15px}
+.tier>.th .lab{font-size:11px}
+.tier>.tb{padding:12px 14px;display:grid;gap:10px;min-width:0}
+@media (max-width:720px){.tier{grid-template-columns:1fr}.tier>.th{border-right:0;border-bottom:1.5px solid var(--k)}}
+
+/* bars (log comparisons) */
+.hbars{display:grid;gap:10px}
+.hbar{display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px;align-items:center}
+.hbar .nm{font-family:var(--f-mono);font-size:12.5px;font-weight:700}
+.hbar .tr{position:relative;height:30px;background:var(--bg-2);border:1px solid var(--ui-3)}
+.hbar .fl{position:absolute;inset:0 auto 0 0;background:var(--k)}
+.hbar .vl{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-family:var(--f-mono);font-size:12.5px;font-weight:700;color:var(--tx);background:var(--bg);padding:0 6px;white-space:nowrap}
+.scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--tx-2);margin-left:120px}
+
+/* gauge */
+.gauge{display:grid;grid-template-columns:3fr 3fr 1.2fr;border:1.5px solid var(--tx);font-size:13.5px}
+.gauge>div{padding:10px 12px;display:grid;gap:2px;background:var(--kb);border-right:1px solid var(--ui-3)}
+.gauge>div:last-child{border-right:0}
+.gauge b{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--k)}
+@media (max-width:640px){.gauge{grid-template-columns:1fr}.gauge>div{border-right:0;border-bottom:1px solid var(--ui-3)}}
+
+/* nested containment (hierarchy) */
+.nest{border:2px solid var(--tx);padding:12px;display:grid;gap:10px;background:var(--bg)}
+.nest .lab{--k:var(--tx)}
+.nest .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.nest .sub2{border:1.5px solid var(--stock);background:var(--stock-bg);padding:10px;display:grid;gap:8px}
+.nest .sub2 .lab{--k:var(--stock)}
+.nest .mods{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.nest .mods span{border:1.2px dashed var(--tx-2);background:var(--bg);padding:8px;text-align:center;font-family:var(--f-mono);font-size:13px}
+@media (max-width:520px){.nest .row{grid-template-columns:1fr}}
+
+/* balance beam */
+.beam{display:grid;gap:10px;justify-items:center}
+.beam .bar{display:grid;grid-template-columns:1fr auto 1fr;width:100%;max-width:820px;align-items:center;gap:10px}
+.beam .bar>span{border:1.5px solid var(--tx);padding:8px 10px;text-align:center;font-weight:700;font-size:15px}
+.beam .bar>span small{display:block;font-weight:400;color:var(--tx-2);font-size:13px}
+.beam .bar>i{font-style:normal;font-family:var(--f-mono);font-size:20px}
+.beam .fulcrum{width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:22px solid var(--tx)}
+
+/* GoL & boids */
+.gol{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}
+.gol figure{display:grid;gap:4px;justify-items:center}
+.gol figcaption{font-family:var(--f-mono);font-size:11.5px;color:var(--tx-2);text-align:center}
+.gol svg{width:auto;height:auto}
+.gol .on{fill:var(--tx)} .gol .off{fill:var(--bg-2);stroke:var(--ui-2);stroke-width:1}
+.gol .grp{display:grid;gap:6px;border:1px solid var(--ui-3);padding:10px}
+.gol .grp>.row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.boids{position:relative;border:1.5px solid var(--tx);background:var(--bg-2);height:260px}
+.boids canvas{display:block;width:100%;height:100%}
+.boids .cap{position:absolute;left:10px;top:8px;font-family:var(--f-mono);font-size:11.5px;color:var(--tx-2);background:var(--bg-2);padding:2px 6px;letter-spacing:.06em;text-transform:uppercase}
+
+/* generic chart hosts */
+.scroll{overflow-x:auto;min-width:0}
+.scroll>svg{min-width:var(--minw,0px)}
+[id^="sp-"] svg,[id^="ch-"] svg,[id^="dg-"] svg{display:block;width:100%;height:auto}
+.wm{display:block;width:100%;height:auto;max-width:460px;min-width:240px}
+.wm .wm-lost{fill:var(--risk)} .wm .wm-ok{fill:var(--bal)} .wm .wm-empty{fill:var(--bg-2);stroke:var(--ui-3);stroke-width:.6}
+
+/* next-chapter + footer */
+.next{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border:1.5px solid var(--tx);padding:14px 16px;text-decoration:none;background:var(--bg-2)}
+.next:hover{background:var(--ui)}
+.next b{font-size:18px}
+.next span{font-family:var(--f-mono);font-size:12px;color:var(--tx-2);letter-spacing:.08em;text-transform:uppercase}
+footer.foot{border-top:4px solid var(--tx);margin-top:56px;padding-block:24px 48px;font-size:14px;color:var(--tx-2);display:grid;gap:8px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id="ah-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-ink"/></marker>
+    <marker id="ah-info" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-info"/></marker>
+    <marker id="ah-bal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-bal"/></marker>
+    <marker id="ah-rein" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-rein"/></marker>
+    <marker id="ah-delay" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-delay"/></marker>
+    <marker id="ah-risk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-risk"/></marker>
+    <marker id="ah-flow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="20" markerHeight="20" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-flow"/></marker>
+    <symbol id="cloud" viewBox="0 0 64 40"><path d="M16 35 C6 35 3 25 10 21 C8 11 19 6 26 11 C30 2 45 3 47 13 C56 11 62 21 56 28 C59 33 53 37 48 35 Z" style="fill:var(--bg-2);stroke:var(--tx-2);stroke-width:1.6"/></symbol>
+  </defs>
+</svg>
+
+<header class="top"><div class="wrap top-in">
+  <a class="brand" href="#top">Physics to silicon<span>A discovery chain</span></a>
+  <nav class="tnav" aria-label="Page sections">
+    <a href="#mechanics"><b>01</b><span>Motion</span></a>
+    <a href="#energy"><b>02</b><span>Energy</span></a>
+    <a href="#electrostatics"><b>03</b><span>Charge</span></a>
+    <a href="#circuits"><b>04</b><span>Circuits</span></a>
+    <a href="#atoms"><b>05</b><span>Atoms</span></a>
+    <a href="#quantum"><b>06</b><span>Quantum</span></a>
+    <a href="#junction"><b>07</b><span>Junction</span></a>
+    <a href="#switch"><b>08</b><span>Switch</span></a>
+    <a href="#integration"><b>09</b><span>Integration</span></a>
+    <a href="#memory"><b>10</b><span>Memory</span></a>
+    <a href="#design"><b>11</b><span>Design</span></a>
+    <a href="#fabrication"><b>12</b><span>Fabrication</span></a>
+    <a href="#landmarks"><b>∑</b><span>Landmarks</span></a>
+  </nav>
+</div></header>
+<main id="top">
+<section class="hero wrap">
+  <p class="eyebrow">From classical physics to modern CPU silicon</p>
+  <h1>A voltage becomes <em>a computation.</em></h1>
+  <p class="lede">Follow the physical mechanisms that let an electric field control a silicon channel, store a bit, and build a processor.</p>
+  <div class="call wrn"><span class="tag">Audited &amp; verified</span><p>This visual explainer covers the physical discovery chain from classical mechanics to modern CPU silicon, with corrections and primary citations inline.</p></div>
+  <div class="rail">
+    <div class="node stock"><span class="nk">01 · physics</span><b>Fields &amp; charge</b><small>Energy and current</small></div>
+    <div class="pipe flow"><span>control</span></div>
+    <div class="node ctrl"><span class="nk">02 · device</span><b>Silicon switch</b><small>Gate changes channel</small></div>
+    <div class="pipe flow"><span>combine</span></div>
+    <div class="node stock"><span class="nk">03 · circuit</span><b>Logic &amp; state</b><small>Inverters and memory</small></div>
+    <div class="pipe flow"><span>fabricate</span></div>
+    <div class="node bal"><span class="nk">04 · system</span><b>Processor</b><small>Connected layers</small></div>
+  </div>
+  <aside class="ed"><span class="tag">Added · Reading map</span><p>The sequence groups related discoveries. It does not claim that history followed one inevitable path.</p></aside>
+  <div class="laws" aria-label="Twelve concept groups">
+    <div><span class="ln-n">01</span><div><b>Motion</b><p>1638–1687 · Galileo and Newton</p></div></div>
+    <div><span class="ln-n">02</span><div><b>Energy</b><p>1720s–1850 · Impact and heat</p></div></div>
+    <div><span class="ln-n">03</span><div><b>Charge</b><p>1745–1800 · Capacitors and fields</p></div></div>
+    <div><span class="ln-n">04</span><div><b>Circuits</b><p>1800–1831 · Current and induction</p></div></div>
+    <div><span class="ln-n">05</span><div><b>Atoms</b><p>1803–1913 · Electrons and nuclei</p></div></div>
+    <div><span class="ln-n">06</span><div><b>Quantum states</b><p>1900–1931 · Waves and bands</p></div></div>
+    <div><span class="ln-n">07</span><div><b>Junctions</b><p>1940 · Doping and rectification</p></div></div>
+    <div><span class="ln-n">08</span><div><b>Switches</b><p>1947–1963 · BJT, MOSFET, CMOS</p></div></div>
+    <div><span class="ln-n">09</span><div><b>Integration</b><p>1958 onward · Planar circuits</p></div></div>
+    <div><span class="ln-n">10</span><div><b>Memory</b><p>1960s onward · Feedback and charge</p></div></div>
+    <div><span class="ln-n">11</span><div><b>Chip design</b><p>1970s onward · VLSI and tools</p></div></div>
+    <div><span class="ln-n">12</span><div><b>Fabrication</b><p>Modern nodes · Gates and wiring</p></div></div>
+  </div>
+</section>
+
+<section class="chapter wrap" id="mechanics">
+<div class="ch-open"><div class="ch-num"><small>EPOCH</small>I</div><div class="ch-body">
+<p class="eyebrow">1638–1687 · Mechanics</p><h2>Motion needs a cause only when it changes.</h2>
+<p class="ch-sub">Mass, velocity, acceleration and force provide a language for physical motion.</p>
+<p class="goal"><b class="l">Goal</b>Trace a measurement from position to acceleration, then connect force to momentum.</p></div></div>
+<section class="sec"><header class="sh"><span class="sid">01.1 · The mechanism</span><h3>Track position, then its change.</h3><p>Mass measures inertia. The kilogram is its SI unit.</p></header>
+<div class="call nte"><span class="tag">Matter and mass</span><p>Matter occupies space and has mass in the source’s everyday definition. Mass is a scalar; position, velocity, acceleration and force also carry direction.</p></div>
+<div class="split"><div class="side"><span class="lab">Inertial mass</span><h4>Resistance to acceleration</h4><p>For the same net force, greater inertial mass gives less acceleration.</p></div><div class="vs"><span>and</span></div><div class="side good"><span class="lab">Gravitational mass</span><h4>Gravity’s coupling</h4><p>Gravitational mass determines the strength of the gravitational interaction. Both measurements use kilograms.</p></div></div>
+<div class="rail">
+<div class="node stock"><span class="nk">position</span><b>r(t)</b><small>Relative to an origin</small></div><div class="pipe flow"><span>time derivative</span></div>
+<div class="node flow"><span class="nk">velocity</span><b>v = dr/dt</b><small>Direction and rate</small></div><div class="pipe flow"><span>time derivative</span></div>
+<div class="node ctrl"><span class="nk">acceleration</span><b>a = dv/dt</b><small>Velocity change</small></div><div class="pipe flow"><span>constant mass</span></div>
+<div class="node bal"><span class="nk">net force</span><b>F = ma</b><small>More generally F = dp/dt</small></div>
+</div>
+<div class="call nte"><span class="tag">Momentum</span><p>For constant mass, p = mv. Force changes momentum; zero net force preserves velocity in an inertial frame.</p></div>
+</section>
+<section class="sec"><header class="sh"><span class="sid">01.2 · Galileo · 1638</span><h3>A longer measurement reveals acceleration.</h3><p>An inclined plane slows motion enough for a water clock to measure it.</p></header>
+<div class="rail"><div class="node stock"><span class="nk">apparatus</span><b>Bronze sphere</b><small>Polished groove in a wooden beam</small></div><div class="pipe flow"><span>release</span></div><div class="node flow"><span class="nk">motion</span><b>Roll downhill</b><small>Mark equal time intervals</small></div><div class="pipe flow"><span>time</span></div><div class="node stock"><span class="nk">measurement</span><b>Collect water</b><small>Weigh water from the spout</small></div><div class="pipe flow"><span>compare</span></div><div class="node bal"><span class="nk">pattern</span><b>Distance ∝ t²</b><small>For constant acceleration from rest</small></div></div>
+<div class="g2"><div class="panel tint t-flow"><div class="ph"><span class="lab">Time units</span></div><h5>1 → 2 → 3</h5><p>Distance grows as 1 → 4 → 9. Successive equal intervals add 1, 3, 5, … units.</p></div><div class="panel tint t-info"><div class="ph"><span class="lab">Equation</span></div><h5>s = ½at²</h5><p>This form assumes constant acceleration, zero initial velocity, and displacement measured from the starting point.</p></div></div>
+<figure class="fig ink"><p class="ft">Distance increases with the square of time · normalized units</p><div class="scroll" id="ch-ramp" style="--minw:420px"></div><figcaption>The plotted values illustrate the ideal relation; they are not a claimed transcript of Galileo’s individual measurements.</figcaption></figure>
+<div class="g2"><div class="panel"><h5>The ramp</h5><p>A wooden beam about 12 cubits long and half a cubit wide holds a straight, polished groove. Parchment lines the groove; a smooth bronze sphere rolls down it.</p></div><div class="panel"><h5>The clock</h5><p>A raised water vessel feeds a thin spout. An operator opens and closes the outlet during each run, then weighs the collected water on a balance.</p></div></div>
+<div class="call nte"><span class="tag">Dimensions in the source</span><p>The original note approximates the 12-cubit beam as 5.5 m and illustrates a 1–5° incline. Cubit conversions and historical apparatus details require a stated convention.</p></div>
+<div class="call nte"><span class="tag">Why slow the fall?</span><p>A freely falling object moves too quickly for Galileo’s timing method to measure short intervals accurately. A shallow incline stretches the elapsed time while preserving a measurable acceleration.</p></div>
+<div class="g2"><div class="panel"><h5>Galileo’s challenge</h5><p>Aristotelian accounts associated faster falling with heavier bodies and maintained that continued motion required a mover. Galileo tested and analysed motion instead.</p></div><div class="panel"><h5>The reported pattern</h5><p>Distance from rest grows with the square of elapsed time. The original note compares heavier and lighter spheres; actual rolling depends on shape and experimental conditions.</p></div></div>
+<div class="call nte"><span class="tag">The 1638 account</span><p>Galileo described these studies in <em>Discourses and Mathematical Demonstrations Relating to Two New Sciences</em>.</p></div>
+<div class="call nte"><span class="tag">Mass and free fall</span><p>In the ideal near-Earth model without air resistance, gravitational acceleration is independent of the falling object’s mass. Rolling down a ramp adds rotational dynamics.</p></div>
+<div class="call imp"><span class="tag">Inertia · a thought experiment</span><p>In an ideal double ramp, a rolling sphere approaches its release height on the opposite ramp. Flatten that ramp and the limiting motion continues without a sustained push.</p></div>
+<div class="rail"><div class="node stock"><span class="nk">release</span><b>Height h</b><small>Ball starts on the first ramp</small></div><div class="pipe flow"><span>roll down and up</span></div><div class="node flow"><span class="nk">second ramp</span><b>Approach height h</b><small>A gentler slope takes more distance</small></div><div class="pipe flow"><span>ideal limit</span></div><div class="node bal"><span class="nk">flat surface</span><b>Constant velocity</b><small>When the net force is zero</small></div></div>
+<div class="eq">v = dr/dt <small>Velocity is the rate of change of position.</small></div><div class="eq">a = dv/dt = d²r/dt² <small>Acceleration is the rate of change of velocity.</small></div>
+<aside class="ed fix"><span class="tag">Corrected · Measurement limits</span><p>The source calls the measured travel times identical and friction near zero. Real measurements have uncertainty; rolling and friction affect a real experiment.</p></aside>
+</section>
+<section class="sec"><header class="sh"><span class="sid">01.3 · Newton · 1687</span><h3>One inverse-square law links Earth and Moon.</h3><p>Compare gravity at the Moon’s distance with the acceleration required for its orbit.</p></header>
+<div class="call nte"><span class="tag">From falling bodies to orbits</span><p>Galileo studied terrestrial motion; Kepler described planetary orbits. Newton’s inverse-square model connected gravity at Earth with the inward acceleration of orbiting bodies.</p></div>
+<div class="split"><div class="side"><span class="lab">Gravity prediction</span><h4>g ÷ 60²</h4><p>9.81 ÷ 3,600 = 0.002725 m/s², using a distance of 60 Earth radii.</p></div><div class="vs"><span>≈</span></div><div class="side good"><span class="lab">Orbital estimate</span><h4>v² ÷ r</h4><p>A 3.84 × 10⁸ m radius and 2.36 × 10⁶ s period give v ≈ 1,022 m/s and a ≈ 0.002722 m/s².</p></div></div>
+<div class="laws"><div><span class="ln-n">1</span><div><b>Inertia</b><p>With no net force, velocity stays constant in an inertial frame.</p></div></div><div><span class="ln-n">2</span><div><b>Momentum</b><p>Net force equals the rate of change of momentum.</p></div></div><div><span class="ln-n">3</span><div><b>Interaction</b><p>Two bodies exert equal and opposite forces on one another.</p></div></div><div><span class="ln-n">4</span><div><b>Gravitation</b><p>Two masses attract with magnitude Gm₁m₂/r².</p></div></div></div>
+<div class="call nte"><span class="tag">Units and constants</span><p>Momentum has units kg·m/s. Force uses newtons: 1 N = 1 kg·m/s². The gravitational constant G is approximately 6.674 × 10⁻¹¹ N·m²/kg².</p></div>
+<div class="g2"><div class="panel"><h5>Input to the comparison</h5><p>Earth’s radius is about 6,371 km. The Moon’s mean orbital distance is about 60 Earth radii, and its sidereal orbital period is about 27.32 days.</p></div><div class="panel"><h5>Calculation</h5><p>Use v = 2πr/T and a = v²/r for a circular-orbit approximation. The resulting inward acceleration is close to g/60².</p></div></div>
+<aside class="ed"><span class="tag">Added · historical precision</span><p>This modern numerical comparison illustrates the reasoning. It is not a claim that Newton measured each rounded value in precisely this form. <a href="https://pwg.gsfc.nasa.gov/stargaze/Sgravity.htm">NASA calculation</a>.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Silicon bridge</span><p>The source ties carrier velocity saturation to clock frequencies above 5 GHz. Saturation depends on electric field and scattering, not a universal clock-frequency threshold.</p></aside>
+<div class="call tip"><span class="tag">Bridge to the chip</span><p>Electric fields influence carriers in a crystal. Device transport also requires band structure and scattering, which this page introduces later.</p></div>
+<div class="call nte"><span class="tag">Effective mass</span><p>In a crystal, the curvature of an energy band controls a carrier’s response to an applied force. The resulting effective mass is a band property, not the free-electron mass in every direction.</p></div>
+<div class="eq">F = qE <small>Electric component of force on charge q; magnetic effects and scattering require additional terms or models.</small></div>
+</section></section>
+
+<section class="chapter wrap" id="energy"><div class="ch-open"><div class="ch-num"><small>EPOCH</small>II</div><div class="ch-body"><p class="eyebrow">1686–1850 · Energy</p><h2>Work moves energy between forms.</h2><p class="ch-sub">A force acting through a displacement can change kinetic energy or stored potential energy.</p><p class="goal"><b class="l">Goal</b>Distinguish momentum, energy and heat before using the same accounting for circuits.</p></div></div>
+<section class="sec"><header class="sh"><span class="sid">02.1 · Work and motion</span><h3>A speed change has an energy cost.</h3><p>The work–energy theorem relates the integral of force over displacement to the change in kinetic energy.</p></header>
+<div class="rail"><div class="node ctrl"><span class="nk">force</span><b>F</b><small>Acts along a path</small></div><div class="pipe flow"><span>integrate F·dr</span></div><div class="node flow"><span class="nk">work</span><b>W = ΔK</b><small>For net work</small></div><div class="pipe flow"><span>constant mass</span></div><div class="node stock"><span class="nk">kinetic energy</span><b>K = ½mv²</b><small>Measured in joules</small></div></div>
+<div class="eq">W = ∫F dx = ∫ma dx = ∫mv dv = ½m(v₂² − v₁²) <small>One-dimensional motion with constant mass; F is the net force.</small></div>
+<div class="split"><div class="side"><span class="lab">Momentum</span><h4>p = mv</h4><p>Vector quantity. Its conservation depends on the net external force.</p></div><div class="vs"><span>and</span></div><div class="side good"><span class="lab">Kinetic energy</span><h4>K = ½mv²</h4><p>Scalar quantity. Twice the speed gives four times the kinetic energy for the same mass.</p></div></div>
+<div class="call nte"><span class="tag">Clay impact · 1720s–1740s</span><p>'s Gravesande dropped brass spheres into clay; du Châtelet used such evidence in the vis viva debate. Greater release height increases impact speed and available energy.</p></div>
+<div class="call nte"><span class="tag">The debate</span><p>Leibniz argued for a quantity proportional to mv², called vis viva. Du Châtelet discussed the impact evidence in her 1740 work.</p></div>
+<div class="rail"><div class="node stock"><span class="nk">release</span><b>Height h</b><small>Speed v at impact</small></div><div class="pipe flow"><span>four times height</span></div><div class="node flow"><span class="nk">free-fall model</span><b>Speed 2v</b><small>v = √(2gh)</small></div><div class="pipe flow"><span>same mass</span></div><div class="node bal"><span class="nk">impact energy</span><b>Four times K</b><small>Before deformation losses</small></div></div>
+<div class="call nte"><span class="tag">Compare release heights</span><p>In an ideal fall, heights h, 4h, 9h and 16h give speeds in the ratio 1:2:3:4. The corresponding kinetic-energy ratio is 1:4:9:16.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Clay depth</span><p>The source states exact penetration ratios. Actual penetration also depends on the clay’s resistance and deformation; the ratios are an idealized illustration.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Momentum versus energy</span><p>Momentum and energy describe different conserved quantities. An impact experiment does not show that momentum conservation is false.</p></aside>
+</section>
+<section class="sec"><header class="sh"><span class="sid">02.2 · Joule · 1843–1850</span><h3>Falling weights warm water.</h3><p>Mechanical work enters the water through rotating paddles and fluid friction.</p></header>
+<div class="rail"><div class="node stock"><span class="nk">starting state</span><b>Raised weights</b><small>Gravitational potential energy</small></div><div class="pipe flow"><span>fall</span></div><div class="node flow"><span class="nk">mechanical work</span><b>Turn paddles</b><small>Repeated measured drops</small></div><div class="pipe flow"><span>fluid friction</span></div><div class="node stock"><span class="nk">result</span><b>Warmer water</b><small>Temperature measured</small></div></div>
+<div class="call nte"><span class="tag">The caloric problem</span><p>The source contrasts caloric theory with heat produced by friction. Rumford’s cannon-boring observations in 1798 raised questions about heat as an indestructible fluid.</p></div>
+<div class="g2"><div class="panel"><h5>Inside the vessel</h5><p>A brass wheel with eight sets of revolving arms passes between four sets of fixed vanes. The vanes increase shearing of the water.</p></div><div class="panel"><h5>The repeated drop</h5><p>The source describes two lead weights, about 29 lb each, falling roughly 63 inches. The weights were raised and dropped repeatedly, about 20 times.</p></div></div>
+<div class="call nte"><span class="tag">Thermometry</span><p>Joule described a thermometer readable to 1/200 °F under his measurement method. The experiment linked a small temperature rise to measured mechanical work.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Experimental losses</span><p>Real pulleys and cords have friction, and the vessel can exchange heat with its surroundings. A quantitative energy balance must account for these effects. <a href="https://www2.lawrence.edu/fast/STONEKIM/COURSES/Joule_1850.pdf">Joule’s 1850 paper</a>.</p></aside>
+<div class="eq"><span class="fi">Mechanical work</span> ≈ mgh <small>The conversion 1 calorie = 4.184 joules is a defined modern value.</small></div>
+<div class="g2"><div class="panel"><h5>Potential energy</h5><p>Near Earth’s surface, U = mgh relative to a selected height. In a radial field, U = −GMm/r when zero is at infinity.</p></div><div class="panel"><h5>Potential per mass</h5><p>Gravitational potential is U/m = −GM/r. Electric potential later uses energy per unit charge.</p></div></div>
+<div class="eq">F = −∇U <small>A conservative force points in the direction of decreasing potential energy.</small></div>
+<div class="call tip"><span class="tag">Bridge to the chip</span><p>A capacitor at voltage V stores ½CV². Circuit switching transfers energy, and resistive paths dissipate some of it as heat.</p></div>
+<div class="call nte"><span class="tag">Power density</span><p>The source uses a 350 W server processor as a heat-dissipation example. Actual power and heat flux depend on the chip and operating conditions.</p></div>
+<aside class="ed"><span class="tag">Added · distinct V² relationships</span><p>The squared speed in kinetic energy and the squared voltage in capacitor energy are separate physical relationships. Both support energy accounting; neither formula derives directly from the other.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Solar comparison</span><p>The source compares 100 W/cm² with the Sun’s surface. NASA reports roughly 6,294 W/cm² of solar surface emission, about 63 times higher. <a href="https://nssdc.gsfc.nasa.gov/planetary/factsheet/sunfact.html?level=1">NASA Sun fact sheet</a>.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Heat</span><p>Heat is energy transferred because of a temperature difference. The water’s internal energy rises when the paddles do work.</p></aside>
+</section></section>
+
+<section class="chapter wrap" id="electrostatics"><div class="ch-open"><div class="ch-num"><small>EPOCH</small>III</div><div class="ch-body"><p class="eyebrow">1745–1800 · Electrostatics</p><h2>Separate charge. Store energy in a field.</h2><p class="ch-sub">Electric fields exert force; voltage measures electric potential difference per unit charge.</p></div></div>
+<section class="sec"><header class="sh"><span class="sid">03.1 · Leyden jar</span><h3>A dielectric separates two conductors.</h3><p>Charge separation produces an electric field across the insulating glass.</p></header>
+<div class="rail"><div class="node stock"><span class="nk">conductor</span><b>Inner electrode</b><small>Charge accumulates</small></div><div class="pipe info"><span>electric field</span></div><div class="node ctrl"><span class="nk">insulator</span><b>Glass dielectric</b><small>Separates conductors</small></div><div class="pipe info"><span>field coupling</span></div><div class="node stock"><span class="nk">conductor</span><b>Outer electrode</b><small>Opposite charge</small></div></div>
+<div class="eq"><span class="s">Q</span> = C × V <small>For ideal parallel plates: C ≈ εA/d. Edge effects are neglected.</small></div>
+<div class="call cau"><span class="tag">1745 · Musschenbroek</span><p>The Leyden jar demonstrated charge storage and produced a violent discharge. It is an early capacitor, not a safe experiment to reproduce.</p></div>
+<div class="g2"><div class="panel"><h5>Apparatus</h5><p>A wire enters water in a glass jar and connects to an electrostatic generator. A hand on the outside supplies a conducting surface across the glass.</p></div><div class="panel"><h5>Discharge</h5><p>Contact between the charged electrode and the outside conductor completes a path. The rapid discharge can cause a severe shock.</p></div></div>
+<aside class="ed fix"><span class="tag">Corrected · Charge duration</span><p>The source describes months of accumulated charge. The cited experiment does not establish that duration; the important mechanism is charge separation across the dielectric.</p></aside>
+</section><section class="sec"><header class="sh"><span class="sid">03.2 · Fields and voltage</span><h3>Force and energy measure different things.</h3><p>Coulomb’s torsion balance measured the force between charged bodies.</p></header>
+<div class="rail"><div class="node ctrl"><span class="nk">Franklin · 1752</span><b>Thundercloud</b><small>Atmospheric electric field</small></div><div class="pipe info"><span>charge collection</span></div><div class="node flow"><span class="nk">apparatus</span><b>Kite and wet string</b><small>Conducts to a metal key</small></div><div class="pipe flow"><span>observation</span></div><div class="node bal"><span class="nk">evidence</span><b>Electric sparks</b><small>Charge can fill a Leyden jar</small></div></div>
+<div class="call nte"><span class="tag">Historical account</span><p>Accounts describe a silk kite, hemp string, metal key and a dry silk ribbon held under shelter. Loose fibers stood apart as charge accumulated.</p></div>
+<div class="call nte"><span class="tag">Historical model</span><p>Franklin described positive and negative states using a single-fluid model. Modern physics describes electric charge through particles and fields rather than a literal electrical fluid.</p></div>
+<div class="g3"><div class="panel tint t-info"><h5>Force</h5><p>F = kq₁q₂/r² for point charges in vacuum. Like charges repel and opposite charges attract.</p></div><div class="panel tint t-flow"><h5>Electric field</h5><p>E = F/q. Field strength describes force per unit test charge.</p></div><div class="panel tint t-stock"><h5>Potential difference</h5><p>ΔV = −∫ E·dl. One volt equals one joule per coulomb.</p></div></div>
+<div class="rail"><div class="node stock"><span class="nk">Coulomb · 1785</span><b>Charged spheres</b><small>Repel across a separation r</small></div><div class="pipe flow"><span>force turns needle</span></div><div class="node ctrl"><span class="nk">suspension</span><b>Twisted wire</b><small>Restoring torque increases with twist</small></div><div class="pipe flow"><span>measure</span></div><div class="node bal"><span class="nk">result</span><b>Inverse-square force</b><small>F varies with 1/r²</small></div></div>
+<div class="g2"><div class="panel"><h5>Measuring a small force</h5><p>A suspended needle carries a gilded pith ball. A second charged ball deflects it; a fine wire resists the rotation.</p></div><div class="panel"><h5>Relating twist to force</h5><p>A calibrated wire gives restoring torque approximately κθ in its linear range. A paper vane helps damp oscillations while the balance settles.</p></div></div>
+<div class="eq">k ≈ 8.987 × 10⁹ N·m²/C² = 1/(4πε₀) <small>Vacuum permittivity ε₀ is approximately 8.854 × 10⁻¹² F/m.</small></div>
+<div class="eq">U = kq₁q₂/r <small>Two point charges in vacuum, with zero potential energy at infinite separation.</small></div>
+<div class="eq">V = U/q <small>Electric potential is potential energy per unit test charge, for the stated reference configuration.</small></div>
+<div class="call nte"><span class="tag">Units</span><p>Electric field can be expressed in newtons per coulomb or volts per metre. Potential difference uses volts; energy uses joules.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Franklin’s kite</span><p>Dry silk did not make a lightning strike safe. The kite collected atmospheric charge; a direct strike could have killed Franklin. <a href="https://fi.edu/en/science-and-education/benjamin-franklin/kite-key-experiment">Franklin Institute</a>.</p></aside>
+<div class="call tip"><span class="tag">Bridge to the chip</span><p>A MOS gate and silicon channel couple through a thin dielectric. Gate voltage changes the channel’s charge distribution.</p></div>
+<div class="call nte"><span class="tag">An illustrative gate stack</span><p>The source uses a 0.8 V supply and a 1.5 nm high-κ dielectric as examples. Real gate stacks and operating voltages vary by process and device.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Channel charge</span><p>The source states that 0.8 V pulls billions of electrons into a channel. The actual charge depends on device geometry, capacitance, bias and carrier distribution.</p></aside>
+</section></section>
+
+<section class="chapter wrap" id="circuits"><div class="ch-open"><div class="ch-num"><small>EPOCH</small>IV</div><div class="ch-body"><p class="eyebrow">1800–1831 · Circuits</p><h2>Charge flow needs a closed path.</h2><p class="ch-sub">Sources establish voltage, while conductors and loads determine current.</p></div></div>
+<section class="sec"><header class="sh"><span class="sid">04.1 · Volta and Ohm</span><h3>A source drives current through resistance.</h3><p>Volta’s pile used chemical reactions to provide a sustained voltage. Ohm measured how circuit current responds.</p></header>
+<div class="rail"><div class="node ctrl"><span class="nk">source</span><b>Voltaic cell</b><small>Chemical energy</small></div><div class="pipe flow"><span>closed path</span></div><div class="node flow"><span class="nk">current</span><b>I = dq/dt</b><small>Charge per second</small></div><div class="pipe flow"><span>through material</span></div><div class="node risk"><span class="nk">resistance</span><b>R = ρL/A</b><small>Material and geometry</small></div><div class="pipe flow"><span>dissipates</span></div><div class="node delay"><span class="nk">heat</span><b>P = I²R</b><small>Power in watts</small></div></div>
+<div class="eq"><span class="s">V</span> = <span class="fi">I</span> × R <small>Ohm’s law applies to an ohmic element under the stated conditions.</small></div>
+<div class="g2"><div class="panel"><h5>Galvani and Volta</h5><p>Galvani observed muscle responses to electrical stimulation. Volta investigated different metals and electrolytes, then built a pile of electrochemical cells.</p></div><div class="panel"><h5>Ohm’s experiment</h5><p>Ohm used a thermoelectric source to improve repeatability while investigating resistance. Wire length, cross-sectional area and material affect resistance.</p></div></div>
+<div class="rail"><div class="node stock"><span class="nk">Voltaic cell</span><b>Zinc electrode</b><small>Zinc is oxidized</small></div><div class="pipe flow"><span>electrolyte</span></div><div class="node stock"><span class="nk">chemical circuit</span><b>Brine separator</b><small>Ions move inside the cell</small></div><div class="pipe flow"><span>reaction</span></div><div class="node stock"><span class="nk">other electrode</span><b>Copper</b><small>External circuit carries electrons</small></div></div>
+<div class="call nte"><span class="tag">Historical observations</span><p>Galvani saw frog muscle respond to electrical stimulation. Volta also described a metallic taste when different metals contacted the tongue and an external conductor.</p></div>
+<div class="call nte"><span class="tag">Milestones</span><p>The source places Galvani’s observations around 1780, Volta’s tongue test in 1792 and the pile in 1800. Ohm’s thermocouple measurements followed in 1826–1827.</p></div>
+<div class="call nte"><span class="tag">The pile</span><p>Alternating zinc and copper electrodes, separated by electrolyte-soaked material, create cells in series. Zinc can oxidize as Zn → Zn²⁺ + 2e⁻.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Source of energy</span><p>A complete voltaic cell derives electrical energy from electrochemical reactions. Contact between dissimilar metals alone does not explain the sustained output.</p></aside>
+<div class="g2"><div class="panel"><h5>Stable heat difference</h5><p>Ohm used a thermocouple with hot and cold junctions. The source describes boiling water and melting ice as reference temperatures.</p></div><div class="panel"><h5>Measure the current</h5><p>A magnetic needle responds to current. Comparing test wires links material resistivity and geometry to resistance.</p></div></div>
+<div class="call nte"><span class="tag">Why use a thermocouple?</span><p>Early chemical batteries could vary under load. A temperature difference offered Ohm a more repeatable source for comparing conductors.</p></div>
+<div class="eq">R = ρL/A <small>For a uniform conductor: ρ is resistivity, L is length and A is cross-sectional area.</small></div>
+<div class="eq">P = VI = I²R = V²/R <small>For a resistor described by Ohm’s law at the operating conditions.</small></div>
+<aside class="ed fix"><span class="tag">Corrected · Battery output</span><p>A real voltaic pile is not a non-decaying source. Polarization and chemical depletion can change its output.</p></aside>
+</section><section class="sec"><header class="sh"><span class="sid">04.2 · Faraday · 1831</span><h3>Changing magnetic flux induces voltage.</h3><p>A transformer couples circuits through a changing magnetic field.</p></header>
+<div class="rail"><div class="node ctrl"><span class="nk">switch</span><b>Change current</b><small>Primary coil</small></div><div class="pipe info"><span>changes flux</span></div><div class="node stock"><span class="nk">field</span><b>Magnetic flux Φ</b><small>Through the iron ring</small></div><div class="pipe info"><span>induces EMF</span></div><div class="node bal"><span class="nk">secondary</span><b>Voltage pulse</b><small>Opposite sign on opening</small></div></div>
+<div class="eq">ε = −dΦ/dt <small>For a single loop; for N turns, ε = −N dΦ/dt when each turn links the same flux.</small></div>
+<div class="eq">Φ<sub>B</sub> = ∫ B·dA <small>Magnetic flux through the chosen surface. Changing flux induces electromotive force around the loop.</small></div>
+<div class="call nte"><span class="tag">Lenz’s law</span><p>The sign indicates that the induced effect opposes the change in flux. Opening and closing the primary circuit produced opposite deflections.</p></div>
+<div class="call nte"><span class="tag">Dates</span><p>Ørsted observed current’s magnetic effect in 1820. Faraday investigated induction in 1831; Lenz stated the direction rule in 1834.</p></div>
+<div class="g2"><div class="panel"><h5>Faraday’s iron ring</h5><p>A switched battery drives the primary coil. A separate secondary coil connects to a galvanometer.</p></div><div class="panel"><h5>What the needle does</h5><p>Closing the primary circuit produces a transient deflection. Opening it produces a transient in the opposite direction; steady current gives no sustained induced voltage.</p></div></div>
+<div class="call nte"><span class="tag">The question behind induction</span><p>Ørsted observed that electric current influences a compass. Faraday investigated the converse: when can a magnetic field induce electrical effects?</p></div>
+<div class="split"><div class="side"><span class="lab">Alternating current</span><h4>Changing direction</h4><p>A transformer changes AC voltage using magnetic coupling. Higher transmission voltage can reduce current for a given power.</p></div><div class="vs"><span>→</span></div><div class="side good"><span class="lab">Processor supply</span><h4>Regulated DC rail</h4><p>Power conversion creates a low-voltage DC rail for logic. Real rails retain some ripple and transient variation.</p></div></div>
+<div class="eq">V<sub>p</sub>/V<sub>s</sub> ≈ N<sub>p</sub>/N<sub>s</sub> <small>Ideal transformer at compatible AC operating conditions; real devices have losses.</small></div>
+<div class="eq">V(t) = V<sub>peak</sub> sin(ωt) <small>Example of a sinusoidal alternating voltage; not every AC waveform is sinusoidal.</small></div>
+<aside class="ed fix"><span class="tag">Corrected · Power delivery</span><p>CPU rails require regulated voltage within tolerance. Real supplies have ripple; transmission current is reduced by higher voltage, not made zero.</p></aside>
+</section></section>
+
+<section class="chapter wrap" id="atoms"><div class="ch-open"><div class="ch-num"><small>EPOCH</small>V</div><div class="ch-body"><p class="eyebrow">1803–1913 · Atomic structure</p><h2>Charge belongs to particles inside atoms.</h2><p class="ch-sub">Experiments moved the model from chemical proportions to electrons, nuclei and discrete atomic energies.</p></div></div>
+<section class="sec"><header class="sh"><span class="sid">05.1 · Evidence</span><h3>Each experiment constrained the model.</h3></header>
+<div class="rail"><div class="node stock"><span class="nk">Dalton · 1803</span><b>Atoms</b><small>Elements combine in mass ratios</small></div><div class="pipe flow"><span>1897</span></div><div class="node flow"><span class="nk">Thomson</span><b>Electron</b><small>Cathode-ray deflection</small></div><div class="pipe flow"><span>1911</span></div><div class="node stock"><span class="nk">Rutherford</span><b>Nucleus</b><small>Rare large-angle scattering</small></div><div class="pipe flow"><span>1913</span></div><div class="node ctrl"><span class="nk">Bohr</span><b>Energy levels</b><small>Hydrogen spectral lines</small></div></div>
+<div class="g2"><div class="panel"><h5>Crossed fields</h5><p>When electric and magnetic deflections balance, E = vB. Thomson used beam deflection to estimate the electron’s charge-to-mass ratio.</p></div><div class="panel"><h5>Gold foil</h5><p>Most alpha particles pass through thin foil. Rare large-angle deflections imply a concentrated positive nucleus.</p></div></div>
+<div class="call nte"><span class="tag">The atomic question</span><p>John Dalton used chemical mass relationships to argue that matter combines in discrete atomic proportions. The later electron and nucleus experiments showed atoms have internal structure.</p></div>
+<div class="g2"><div class="panel"><h5>Multiple proportions</h5><p>For the same mass of carbon, carbon dioxide contains approximately twice the oxygen mass of carbon monoxide. This supports discrete atomic combinations.</p></div><div class="panel"><h5>Hydrogen light</h5><p>The visible Balmer series includes wavelengths near 656.3, 486.1, 434.0 and 410.2 nm. Different transitions produce distinct spectral lines.</p></div></div>
+<div class="rail"><div class="node stock"><span class="nk">chemical comparison</span><b>100 g carbon</b><small>Keep carbon mass fixed</small></div><div class="pipe flow"><span>CO</span></div><div class="node flow"><span class="nk">oxygen</span><b>About 133 g</b><small>One oxygen per carbon</small></div><div class="pipe flow"><span>CO₂</span></div><div class="node bal"><span class="nk">oxygen</span><b>About 266 g</b><small>Two oxygen per carbon</small></div></div>
+<aside class="ed fix"><span class="tag">Corrected · Mass ratios</span><p>The 133 g and 266 g values are rounded illustrative ratios, not exact measured masses. Carbon and oxygen have non-integer atomic weights.</p></aside>
+<div class="eq">|e|/m<sub>e</sub> ≈ 1.76 × 10¹¹ C/kg <small>Modern accepted magnitude; experimental estimates depend on measurement.</small></div>
+<div class="rail"><div class="node flow"><span class="nk">Thomson</span><b>Cathode rays</b><small>Beam in an evacuated tube</small></div><div class="pipe info"><span>electric and magnetic fields</span></div><div class="node ctrl"><span class="nk">balance forces</span><b>v = E/B</b><small>When perpendicular forces cancel</small></div><div class="pipe flow"><span>measure deflection</span></div><div class="node bal"><span class="nk">inference</span><b>Charge / mass</b><small>Evidence for the electron</small></div></div>
+<div class="eq">y = ½(qE/m)(L/v)² <small>Ideal deflection within uniform field plates of length L, using transverse acceleration qE/m.</small></div>
+<aside class="ed fix"><span class="tag">Corrected · Beam geometry</span><p>The source applies this plate-deflection formula directly to a distant screen. Drift after the plates also contributes to screen displacement and must be included.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Historical precision</span><p>The source presents modern charge-to-mass and mass-ratio values as Thomson’s exact result. Thomson’s lecture gave an approximate comparison of 1,700 times hydrogen’s ratio. <a href="https://www.nobelprize.org/uploads/2018/06/thomson-lecture.pdf">Thomson’s Nobel lecture</a>.</p></aside>
+<div class="call nte"><span class="tag">Rutherford · alpha scattering</span><p>Geiger and Marsden directed alpha particles at thin gold foil. A fluorescent screen revealed occasional large deflections, supporting a compact positive nucleus.</p></div>
+<div class="split"><div class="side"><span class="lab">Thomson’s earlier model</span><h4>Diffuse positive charge</h4><p>Electrons were described within a spread-out positive region. This model did not account for the observed large-angle scattering.</p></div><div class="vs"><span>→</span></div><div class="side good"><span class="lab">Rutherford’s model</span><h4>Concentrated nucleus</h4><p>A small, dense positive region creates a much stronger local electric field and can turn an incoming alpha particle sharply.</p></div></div>
+<div class="rail"><div class="node flow"><span class="nk">source</span><b>Alpha particles</b><small>Helium nuclei from a radioactive source</small></div><div class="pipe flow"><span>incident beam</span></div><div class="node stock"><span class="nk">target</span><b>Thin gold foil</b><small>Most particles pass through</small></div><div class="pipe flow"><span>scatter</span></div><div class="node ctrl"><span class="nk">detector</span><b>Fluorescent screen</b><small>Counts flashes at different angles</small></div></div>
+<aside class="ed fix"><span class="tag">Corrected · Scattering frequency</span><p>For the cited 400 nm foil, Rutherford’s 1911 paper describes roughly one particle in 20,000 deflected by an average angle of 90°. The source gives one in 8,000 without that context. <a href="https://www.damtp.cam.ac.uk/user/tong/pp/rutherford.pdf">Rutherford’s paper</a>.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Scattering distribution</span><p>The source also asserts that 99.99% deflected by less than one degree. A large-angle count alone does not establish that small-angle percentage.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Atomic space</span><p>A nucleus occupies a small region relative to atomic dimensions. A numerical claim that an atom is a fixed percentage of empty space is not a complete quantum description.</p></aside>
+<div class="eq">ΔE = hν = hc/λ <small>A photon’s energy corresponds to the gap between two allowed states.</small></div>
+<div class="call nte"><span class="tag">Bohr’s model · 1913</span><p>The model assigns discrete energy states to hydrogen. A transition between states corresponds to absorption or emission of a photon.</p></div>
+<div class="call nte"><span class="tag">Balmer spectrum</span><p>An excited low-pressure hydrogen discharge emits light. A prism or grating separates it into discrete visible spectral lines.</p></div>
+<div class="eq">1/λ = R<sub>H</sub>(1/2² − 1/n²) <small>Balmer series: transitions to n = 2 from n = 3, 4, 5, … .</small></div>
+<aside class="ed fix"><span class="tag">Corrected · Bohr model</span><p>The Bohr orbit model explains hydrogen approximately. Silicon’s electronic structure requires quantum mechanics and many-electron approximations.</p></aside>
+<div class="call tip"><span class="tag">Bridge to the chip</span><p>Silicon has four valence electrons per atom. Their interactions in a crystal form the electronic states used in semiconductor devices.</p></div>
+<div class="eq">Si: 1s² 2s² 2p⁶ 3s² 3p² <small>Ground-state electron configuration of an isolated neutral silicon atom; a crystal needs a band description.</small></div>
+</section></section>
+
+<section class="chapter wrap" id="quantum"><div class="ch-open"><div class="ch-num"><small>EPOCH</small>VI</div><div class="ch-body"><p class="eyebrow">1900–1931 · Quantum physics</p><h2>Electron states depend on the crystal.</h2><p class="ch-sub">Quantum states and periodic atomic structure explain allowed energy bands and gaps.</p></div></div>
+<section class="sec"><header class="sh"><span class="sid">06.1 · Waves and states</span><h3>Experiments reveal quantum constraints.</h3></header>
+<div class="rail"><div class="node flow"><span class="nk">photoelectric effect</span><b>Photon energy</b><small>E = hν</small></div><div class="pipe flow"><span>matter waves</span></div><div class="node flow"><span class="nk">diffraction</span><b>Electron wavelength</b><small>λ = h/p</small></div><div class="pipe flow"><span>periodic lattice</span></div><div class="node stock"><span class="nk">crystal states</span><b>Energy bands</b><small>Allowed and forbidden energies</small></div></div>
+<div class="g2"><div class="panel"><h5>Photoelectric threshold</h5><p>In the simple single-photon model, maximum electron energy is Kmax = hν − Φ. Φ is the material’s work function.</p></div><div class="panel"><h5>Electron diffraction</h5><p>Davisson and Germer observed a diffraction pattern from nickel. The pattern supported de Broglie’s electron wavelength relation.</p></div></div>
+<div class="call nte"><span class="tag">Lenard and Einstein</span><p>Philipp Lenard studied electrons emitted from illuminated metals. Einstein’s 1905 explanation relates the light frequency to photon energy and the maximum electron energy.</p></div>
+<div class="rail"><div class="node flow"><span class="nk">incident light</span><b>Photon · hν</b><small>Frequency sets energy</small></div><div class="pipe info"><span>absorbed by electron</span></div><div class="node ctrl"><span class="nk">escape condition</span><b>Work function Φ</b><small>Energy needed to leave material</small></div><div class="pipe flow"><span>remaining energy</span></div><div class="node bal"><span class="nk">measurement</span><b>Stopping voltage</b><small>Kmax = eVstop</small></div></div>
+<aside class="ed fix"><span class="tag">Corrected · Light intensity</span><p>The source presents exact emission counts and zero delay as universal facts. The standard threshold explanation is a single-photon model; measurements have limits, and intense fields can produce multiphoton effects.</p></aside>
+<div class="call nte"><span class="tag">Stern–Gerlach and Pauli</span><p>A nonuniform magnetic field split a beam of silver atoms into distinct outcomes. The Pauli exclusion principle limits which identical fermions can occupy the same quantum state.</p></div>
+<div class="rail"><div class="node flow"><span class="nk">1922</span><b>Silver atom beam</b><small>Collimated from a heated source</small></div><div class="pipe info"><span>field gradient</span></div><div class="node ctrl"><span class="nk">magnetic field</span><b>Different forces</b><small>Depend on magnetic moment</small></div><div class="pipe flow"><span>detector</span></div><div class="node bal"><span class="nk">observation</span><b>Two beam traces</b><small>Discrete measurement outcomes</small></div></div>
+<aside class="ed fix"><span class="tag">Corrected · Historical interpretation</span><p>The original experiment measured the magnetic moment of whole silver atoms. Electron spin was developed as a later interpretation of the two-state result.</p></aside>
+<div class="eq">λ = h / √(2mE) <small>Nonrelativistic electron wavelength for kinetic energy E. A 54 eV electron gives approximately 0.167 nm.</small></div>
+<div class="call nte"><span class="tag">54 eV example</span><p>For a nonrelativistic electron at 54 eV, the calculated speed is about 4,358 km/s. The corresponding de Broglie wavelength is about 0.167 nm.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Diffraction angle</span><p>With d = 0.091 nm, inserting 50° directly into 2d sin θ gives 0.139 nm, not 0.165 nm. Scattering and Bragg angles must be distinguished.</p></aside>
+<div class="call nte"><span class="tag">Periodic crystal · Bloch and Wilson</span><p>Electron wavefunctions respond to the lattice’s periodic potential. The resulting allowed energies form bands, separated in some materials by forbidden ranges.</p></div>
+<div class="eq">[−ħ²∇²/(2m) + V(r)]ψ(r) = Eψ(r) <small>Time-independent Schrödinger equation for the stated single-particle model.</small></div>
+<div class="eq">V(r + R) = V(r) <small>R is a lattice translation in the ideal periodic crystal.</small></div>
+<div class="eq">ψ<sub>k</sub>(r) = e<sup>ik·r</sup>u<sub>k</sub>(r) <small>Bloch form: u has the periodicity of the crystal lattice.</small></div>
+<div class="split"><div class="side"><span class="lab">Valence band</span><h4>Mostly occupied states</h4><p>Electrons can contribute when there are available states and suitable excitations.</p></div><div class="vs"><span>gap</span></div><div class="side good"><span class="lab">Conduction band</span><h4>Mobile electron states</h4><p>Silicon’s room-temperature bandgap is about 1.12 eV; temperature and material conditions matter.</p></div></div>
+<div class="g3"><div class="panel"><h5>Conductor</h5><p>Available states near occupied states allow charge carriers to respond to an electric field.</p></div><div class="panel"><h5>Semiconductor</h5><p>A bandgap separates valence and conduction bands. Temperature, light and doping affect carrier populations.</p></div><div class="panel"><h5>Insulator</h5><p>A larger gap generally limits thermal excitation at ordinary temperatures. Breakdown and defects can still permit current.</p></div></div>
+<figure class="fig ink"><p class="ft">Representative energy gaps · electronvolts</p><div class="scroll" id="ch-gaps" style="--minw:420px"></div><figcaption>Approximate values from the source: Ge 0.66, Si 1.12, diamond 5.47 and silicon dioxide 9 eV. Values depend on material conditions and definition.</figcaption></figure>
+<aside class="ed"><span class="tag">Added · comparison chart</span><p>The chart places the source’s representative energy gaps on a common scale. A material’s conductivity also depends on available carriers and their mobility.</p></aside>
+<div class="call nte"><span class="tag">Silicon lattice</span><p>Crystalline silicon has a diamond-cubic structure. Each atom has four nearest neighbours in a tetrahedral arrangement.</p></div>
+<div class="call nte"><span class="tag">Bonding model</span><p>The source describes sp³ hybridization as a model for four tetrahedral covalent bonds. Band theory describes the extended states of the crystal.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Material classes</span><p>The source gives fixed bandgap cutoffs for conductors, semiconductors and insulators. Those ranges are illustrative, not universal classification boundaries.</p></aside>
+<div class="call tip"><span class="tag">Bridge to the chip</span><p>Doping changes carrier concentrations. Electric fields then control where mobile carriers can travel.</p></div>
+</section></section>
+
+<section class="chapter wrap" id="junction"><div class="ch-open"><div class="ch-num"><small>EPOCH</small>VII</div><div class="ch-body"><p class="eyebrow">1939–1940 · Semiconductor engineering</p><h2>Doping changes which carriers are available.</h2><p class="ch-sub">A junction forms when differently doped regions meet in the same crystal.</p></div></div>
+<section class="sec"><header class="sh"><span class="sid">07.1 · Doping</span><h3>Add controlled impurities to silicon.</h3><p>At ordinary operating conditions, donor and acceptor atoms shift the balance of mobile electrons and holes.</p></header>
+<div class="split"><div class="side"><span class="lab">N-type</span><h4>Donors</h4><p>Phosphorus donors contribute electrons. Electrons are the majority carriers.</p></div><div class="vs"><span>+</span></div><div class="side good"><span class="lab">P-type</span><h4>Acceptors</h4><p>Boron acceptors create available hole states. Holes are the majority carriers.</p></div></div>
+<div class="call nte"><span class="tag">A hole is a mobile vacancy</span><p>An electron can fill an unoccupied valence state, leaving a vacancy elsewhere. The vacancy behaves as a positive charge carrier.</p></div>
+<div class="eq">n × p = n<sub>i</sub>² <small>Thermal equilibrium, under the usual nondegenerate semiconductor assumptions.</small></div>
+<div class="call nte"><span class="tag">Russell Ohl · February 23, 1940</span><p>Ohl investigated a silicon specimen whose junction produced a voltage under illumination. That observation connected junction physics to photovoltaic devices.</p></div>
+<div class="rail"><div class="node stock"><span class="nk">prepared sample</span><b>Silicon ingot</b><small>Regions contain different impurities</small></div><div class="pipe info"><span>shine light</span></div><div class="node flow"><span class="nk">junction</span><b>Carrier separation</b><small>Internal electric field</small></div><div class="pipe flow"><span>measure</span></div><div class="node bal"><span class="nk">observation</span><b>Voltage appears</b><small>A reported example is about 0.5 V</small></div></div>
+<div class="call nte"><span class="tag">A first-hand account</span><p>Walter Brattain described Ohl illuminating a narrow region near a sample’s middle and measuring about 0.5 V. <a href="https://bitsavers.computerhistory.org/magazines/Datamation/197906.pdf">Brattain’s account</a>.</p></div>
+<div class="call nte"><span class="tag">Impurity segregation</span><p>Jack Scaff and Henry Theuerer worked on purifying silicon. Different impurities can segregate during growth, producing adjacent regions with different electrical behavior.</p></div>
+<div class="g2"><div class="panel"><h5>Donor example</h5><p>Phosphorus has five valence electrons. In silicon, one electron is comparatively weakly bound; ionized donors remain positively charged.</p></div><div class="panel"><h5>Acceptor example</h5><p>Boron has three valence electrons. An ionized acceptor is negatively charged while a hole can move through the valence band.</p></div></div>
+<div class="call nte"><span class="tag">Carrier concentration example</span><p>The source uses approximately 1.5 × 10¹⁰ intrinsic carriers per cm³ for silicon at 300 K. Reported values vary with temperature and the model or measurement used.</p></div>
+</section><section class="sec"><header class="sh"><span class="sid">07.2 · P–N junction</span><h3>Diffusion creates an electric barrier.</h3></header>
+<div class="rail"><div class="node stock"><span class="nk">initial state</span><b>P meets N</b><small>Different carrier concentrations</small></div><div class="pipe flow"><span>diffusion</span></div><div class="node flow"><span class="nk">carriers move</span><b>Electrons &amp; holes</b><small>Cross the boundary</small></div><div class="pipe flow"><span>leave ionized dopants</span></div><div class="node ctrl"><span class="nk">space charge</span><b>Depletion region</b><small>Field opposes further diffusion</small></div></div>
+<div class="g2"><div class="panel tint t-bal"><h5>Forward bias</h5><p>Applied voltage reduces the barrier and increases current. The change is gradual, not a hard 0.7 V switch.</p></div><div class="panel tint t-risk"><h5>Reverse bias</h5><p>The barrier increases. A small leakage current remains, and sufficiently high reverse voltage can cause breakdown.</p></div></div>
+<div class="call nte"><span class="tag">Equilibrium</span><p>Fixed donor and acceptor ions create the depletion field. At equilibrium, carrier drift and diffusion currents balance.</p></div>
+<div class="eq">V<sub>bi</sub> = (k<sub>B</sub>T/q) ln(N<sub>A</sub>N<sub>D</sub>/n<sub>i</sub>²) <small>Ideal abrupt, nondegenerate junction at thermal equilibrium; doping and temperature determine its value.</small></div>
+<div class="eq">I = I<sub>s</sub> (e<sup>qV/(ηkT)</sup> − 1) <small>Ideal diode model; actual devices have additional limits and parasitics.</small></div>
+</section></section>
+
+<section class="chapter wrap" id="switch"><div class="ch-open"><div class="ch-num"><small>EPOCH</small>VIII</div><div class="ch-body"><p class="eyebrow">1947–1963 · Transistors</p><h2>A small signal controls a larger current.</h2><p class="ch-sub">Solid-state transistors replaced many functions of vacuum tubes and enabled dense logic.</p></div></div>
+<section class="sec"><header class="sh"><span class="sid">08.1 · Two mechanisms</span><h3>A BJT injects carriers. A MOSFET controls a channel.</h3></header>
+<div class="call nte"><span class="tag">Before semiconductor switches</span><p>Vacuum tubes use a heated cathode and a control grid to regulate electron flow in an evacuated envelope. They consume heater power and occupy more space than solid-state devices.</p></div>
+<div class="call nte"><span class="tag">ENIAC · 1946</span><p>ENIAC used approximately 18,000 vacuum tubes. Tube reliability and heat made maintenance a significant engineering task. <a href="https://www.computerhistory.org/timeline/1946/">Computer History Museum</a>.</p></div>
+<div class="split"><div class="side"><span class="lab">Bipolar junction transistor</span><h4>Emitter → base → collector</h4><p>Carrier injection across a forward-biased junction controls collector current. A thin base allows many injected carriers to reach the collector.</p></div><div class="vs"><span>vs</span></div><div class="side good"><span class="lab">MOSFET</span><h4>Gate → electric field → channel</h4><p>Gate voltage changes the channel charge beneath a dielectric. The channel controls source-to-drain current.</p></div></div>
+<figure class="fig ink"><p class="ft">MOSFET · field control and current path</p><div class="scroll" id="dg-mos" style="--minw:580px"></div><figcaption>The gate’s field crosses an insulating dielectric. The source-to-drain path conducts when channel conditions permit.</figcaption></figure>
+<aside class="ed"><span class="tag">Added · device schematic</span><p>This diagram separates the gate’s control path from the source-to-drain current path.</p></aside>
+<div class="rail"><div class="node stock"><span class="nk">1947</span><b>Point contact</b><small>Bardeen and Brattain</small></div><div class="pipe flow"><span>bulk junction</span></div><div class="node flow"><span class="nk">1948</span><b>BJT</b><small>Shockley’s model</small></div><div class="pipe flow"><span>surface control</span></div><div class="node ctrl"><span class="nk">1959</span><b>MOSFET</b><small>Atalla and Kahng</small></div></div>
+<div class="call imp"><span class="tag">Surface passivation</span><p>Thermal silicon dioxide reduces interface defects and insulates the gate. It made practical silicon field-effect control possible.</p></div>
+<div class="call nte"><span class="tag">Field-effect idea</span><p>Julius Edgar Lilienfeld patented field-effect concepts in the 1920s. Surface states complicated early attempts to control semiconductor conduction with an external field.</p></div>
+<div class="rail"><div class="node risk"><span class="nk">early devices</span><b>Surface states</b><small>Trapped charge impedes control</small></div><div class="pipe flow"><span>grow oxide</span></div><div class="node ctrl"><span class="nk">passivation</span><b>Silicon dioxide</b><small>Reduces interface defects</small></div><div class="pipe info"><span>apply gate voltage</span></div><div class="node bal"><span class="nk">MOSFET</span><b>Control channel</b><small>Connect source and drain</small></div></div>
+<div class="g2"><div class="panel"><h5>Point contact · 1947</h5><p>Bardeen and Brattain pressed closely spaced contacts onto germanium. A small input signal controlled a larger output signal.</p></div><div class="panel"><h5>Junction BJT · 1948</h5><p>Shockley proposed emitter, thin base and collector regions. Collector current is often approximated as β times base current within a specified operating range.</p></div></div>
+<div class="rail"><div class="node stock"><span class="nk">fabrication</span><b>Gold foil</b><small>Bonded around a plastic wedge</small></div><div class="pipe flow"><span>cut tip</span></div><div class="node ctrl"><span class="nk">contacts</span><b>Two close points</b><small>Gap about 0.05 mm</small></div><div class="pipe flow"><span>press onto</span></div><div class="node stock"><span class="nk">semiconductor</span><b>Germanium</b><small>Input affects output current</small></div></div>
+<div class="call nte"><span class="tag">December 1947</span><p>The group observed amplification by December 16 and demonstrated the device to Bell Labs management on December 23. A microphone and speaker made the amplification audible.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Amplification</span><p>The source states an 18-fold increase in volume without defining the measured gain. Report gain with its quantity, operating conditions and measurement method.</p></aside>
+<div class="rail"><div class="node stock"><span class="nk">NPN transistor</span><b>Emitter</b><small>Injects electrons into base</small></div><div class="pipe flow"><span>forward-biased junction</span></div><div class="node flow"><span class="nk">thin region</span><b>Base</b><small>Some carriers recombine</small></div><div class="pipe flow"><span>collector field</span></div><div class="node bal"><span class="nk">output</span><b>Collector</b><small>Collects surviving carriers</small></div></div>
+<div class="eq">I<sub>C</sub> ≈ βI<sub>B</sub> <small>Forward-active current-gain approximation; β varies with device and operating conditions.</small></div>
+<div class="call nte"><span class="tag">BJT development</span><p>Morgan Sparks fabricated a grown-junction transistor in 1951. Bardeen, Brattain and Shockley shared the 1956 Nobel Prize in Physics.</p></div>
+<div class="call nte"><span class="tag">Shockley’s 1948 junction design</span><p>Shockley proposed a junction transistor after the point-contact device. The junction design used bulk carrier transport instead of relying on closely spaced surface contacts.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Transistor currents</span><p>The source calls normal BJT collector current an avalanche current. Ordinary forward-active BJT operation relies on injection and collection; avalanche is a distinct high-field effect.</p></aside>
+<div class="call nte"><span class="tag">MOSFET regions · long-channel model</span><p>Below threshold the device is nominally off, with leakage. Above threshold, low drain voltage gives the linear region; higher drain voltage produces saturation.</p></div>
+<div class="eq">I<sub>D,sat</sub> ≈ ½ μC<sub>ox</sub>(W/L)(V<sub>GS</sub> − V<sub>th</sub>)² <small>Simplified long-channel saturation model; modern devices require more detailed models.</small></div>
+<div class="eq">I<sub>D,linear</sub> ≈ μC<sub>ox</sub>(W/L)[(V<sub>GS</sub> − V<sub>th</sub>)V<sub>DS</sub> − ½V<sub>DS</sub>²] <small>Simple long-channel model: VGS &gt; Vth and small VDS. μ is mobility; W/L is channel width divided by length.</small></div>
+<div class="eq">C<sub>ox</sub> ≈ ε<sub>ox</sub>/t<sub>ox</sub> <small>Gate dielectric capacitance per unit area in the ideal parallel-plate approximation.</small></div>
+<div class="call nte"><span class="tag">The regions of the model</span><p>Below threshold, current is small but not necessarily zero. Above threshold, the simple model distinguishes linear and saturation regions by VDS relative to VGS − Vth.</p></div>
+<div class="g3"><div class="panel"><h5>JFET</h5><p>A reverse-biased junction changes the width of a conducting channel.</p></div><div class="panel"><h5>Enhancement MOSFET</h5><p>A suitable gate voltage induces a conducting channel.</p></div><div class="panel"><h5>Depletion MOSFET</h5><p>An existing channel conducts at zero gate bias and can be depleted by gate voltage.</p></div></div>
+<div class="split"><div class="side"><span class="lab">NMOS</span><h4>Electron channel</h4><p>A suitable gate voltage creates an electron-rich channel in the conventional enhancement-mode example.</p></div><div class="vs"><span>vs</span></div><div class="side good"><span class="lab">PMOS</span><h4>Hole channel</h4><p>Opposite voltage polarity controls a hole-rich channel. CMOS combines NMOS and PMOS devices.</p></div></div>
+<aside class="ed fix"><span class="tag">Corrected · Gate current</span><p>Insulated gates suppress steady gate current but do not eliminate tunnelling or other leakage in real devices.</p></aside>
+</section><section class="sec"><header class="sh"><span class="sid">08.2 · CMOS inverter</span><h3>Complementary devices drive opposite outputs.</h3></header>
+<div class="split"><div class="side"><span class="lab">Input low</span><h4>PMOS on · NMOS off</h4><p>The pull-up connects the output toward the supply. The output becomes high.</p></div><div class="vs"><span>or</span></div><div class="side good"><span class="lab">Input high</span><h4>PMOS off · NMOS on</h4><p>The pull-down connects the output toward ground. The output becomes low.</p></div></div>
+<div class="call nte"><span class="tag">Wanlass and Sah · 1963</span><p>Complementary MOS logic combines N-channel and P-channel devices. Their switching reduces steady-state current in the ideal inverter.</p></div>
+<div class="eq">P<sub>dynamic</sub> ≈ αCV²f <small>Activity factor α counts effective charging transitions.</small></div>
+<aside class="ed fix"><span class="tag">Corrected · Idle power</span><p>Ideal CMOS has no direct steady-state current path. Real CMOS still leaks, and switching can also create short-circuit current. <a href="https://research.ibm.com/publications/leakage-power-analysis-of-25-nm-double-gate-cmos-devices-and-circuits">IBM Research</a>.</p></aside>
+</section></section>
+
+<section class="chapter wrap" id="integration"><div class="ch-open"><div class="ch-num"><small>EPOCH</small>IX</div><div class="ch-body"><p class="eyebrow">1958–1968 · Integrated circuits</p><h2>Build devices and connections on one chip.</h2><p class="ch-sub">Integration replaces assemblies of separate components with patterned structures.</p></div></div>
+<section class="sec"><header class="sh"><span class="sid">09.1 · Planar manufacturing</span><h3>Protect the surface, then pattern the wiring.</h3></header>
+<div class="call nte"><span class="tag">The tyranny of numbers</span><p>Large systems built from discrete components required many separate connections. Assembly effort and connection reliability became major engineering constraints.</p></div>
+<div class="call nte"><span class="tag">Source example</span><p>The source uses 200,000 components and 500,000 soldered joints to illustrate the scale of manual assembly.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Connection reliability</span><p>For 500,000 joints, a 0.01% per-joint failure probability implies an expected 50 failures. It does not by itself establish hundreds of failures per week.</p></aside>
+<div class="rail"><div class="node stock"><span class="nk">wafer</span><b>Silicon crystal</b><small>Shared substrate</small></div><div class="pipe flow"><span>oxidize</span></div><div class="node ctrl"><span class="nk">passivation</span><b>Silicon dioxide</b><small>Protects the surface</small></div><div class="pipe flow"><span>pattern &amp; dope</span></div><div class="node flow"><span class="nk">devices</span><b>Junctions</b><small>Transistors in the wafer</small></div><div class="pipe flow"><span>deposit &amp; pattern</span></div><div class="node bal"><span class="nk">connections</span><b>Metal interconnect</b><small>Links devices</small></div></div>
+<div class="g2"><div class="panel"><h5>Kilby · 1958</h5><p>Demonstrated an integrated circuit using semiconductor components and external wire connections.</p></div><div class="panel"><h5>Hoerni and Noyce · 1959</h5><p>Planar processing and patterned interconnect made practical monolithic integrated circuits possible.</p></div></div>
+<div class="call nte"><span class="tag">Kilby’s summer</span><p>Kilby joined Texas Instruments in 1958. During a company vacation period he continued work on combining circuit components in semiconductor material.</p></div>
+<div class="rail"><div class="node ctrl"><span class="nk">Kilby · 1958</span><b>Germanium bar</b><small>Devices and resistive regions</small></div><div class="pipe flow"><span>fine wires</span></div><div class="node flow"><span class="nk">circuit</span><b>Phase-shift oscillator</b><small>Multiple elements connected</small></div><div class="pipe flow"><span>apply power</span></div><div class="node bal"><span class="nk">measurement</span><b>≈ 1.3 MHz</b><small>Oscillation observed</small></div></div>
+<aside class="ed fix"><span class="tag">Corrected · Kilby prototype</span><p>Kilby described a distributed resistor–capacitor network in the first oscillator. He described junction capacitors in a later flip-flop built from scratch. <a href="https://www.nobelprize.org/uploads/2018/06/kilby-lecture.pdf">Kilby’s Nobel lecture</a>.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Kilby dimensions</span><p>The source describes the first bar as 1.6 × 11 mm. Kilby’s lecture describes bars about 0.12 × 0.4 inches, approximately 3.05 × 10.16 mm.</p></aside>
+<div class="call nte"><span class="tag">Why planar processing mattered</span><p>Oxide protects the silicon surface while openings define regions for fabrication and contacts. Patterned metal then connects devices across the wafer surface.</p></div>
+<div class="g2"><div class="panel"><h5>Hoerni’s process</h5><p>Grow an oxide layer, open patterned windows and diffuse dopants into the silicon. The remaining oxide protects the surface around the junctions.</p></div><div class="panel"><h5>Noyce’s interconnect</h5><p>Deposit metal on the insulating oxide. Pattern the metal and use contact openings to connect the semiconductor regions below.</p></div></div>
+</section></section>
+
+<section class="chapter wrap" id="memory"><div class="ch-open"><div class="ch-num"><small>EPOCH</small>X</div><div class="ch-body"><p class="eyebrow">1966 onward · Memory</p><h2>A bit needs a physical state.</h2><p class="ch-sub">Feedback, capacitor charge and trapped charge preserve state in different ways.</p></div></div>
+<div class="call nte"><span class="tag">Before semiconductor memory</span><p>Earlier computers used technologies including vacuum-tube circuits, acoustic delay lines and magnetic cores. Semiconductor memory offered a path toward higher integration.</p></div>
+<div class="call nte"><span class="tag">Dennard’s DRAM cell</span><p>Robert Dennard’s one-transistor memory cell was patented in 1968 as U.S. Patent 3,387,286. It separates dense charge storage from the circuits that sense and restore it.</p></div>
+<section class="sec"><header class="sh"><span class="sid">10.0 · A physical bit</span><h3>Voltage ranges make digital signals tolerant of noise.</h3><p>A receiver recognizes ranges of input voltage. The region between them is not a valid steady logic level.</p></header>
+<div class="rail"><div class="node bal"><span class="nk">low input</span><b>V ≤ VIL</b><small>Recognized as logic 0</small></div><div class="pipe risk"><span>undefined interval</span></div><div class="node bal"><span class="nk">high input</span><b>V ≥ VIH</b><small>Recognized as logic 1</small></div></div>
+<div class="g2"><div class="panel"><h5>Low noise margin</h5><p>NML = VIL(max) − VOL(max). It measures how much unwanted voltage a low signal can tolerate.</p></div><div class="panel"><h5>High noise margin</h5><p>NMH = VOH(min) − VIH(min). It measures the corresponding high-signal margin.</p></div></div>
+<div class="call nte"><span class="tag">Regeneration</span><p>An inverter maps an accepted input range toward a valid output level. Cascaded gates can restore degraded logic levels within their noise margins.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Noise and validity</span><p>kBT/q is a thermal-voltage scale, not the measured noise amplitude of every wire. Noise margins do not guarantee correct operation under every timing or voltage condition.</p></aside>
+</section>
+<section class="sec"><header class="sh"><span class="sid">10.1 · Three storage mechanisms</span><h3>Speed, density and retention trade off.</h3></header>
+<div class="g3"><div class="panel tint t-stock"><h5>SRAM</h5><p>Two cross-coupled inverters reinforce one of two voltage states. A typical 6T cell needs power but no periodic refresh.</p></div><div class="panel tint t-flow"><h5>DRAM</h5><p>One access transistor connects a storage capacitor to a bitline. Charge leaks, so the cell needs refresh.</p></div><div class="panel tint t-info"><h5>Flash</h5><p>Trapped charge shifts a transistor’s threshold voltage. A read compares cell conduction with a reference.</p></div></div>
+<div class="call nte"><span class="tag">SRAM read and write</span><p>Precharged bitlines connect to the two storage nodes when the wordline opens. A sense amplifier detects their difference. A write driver forces the desired state through the access transistors.</p></div>
+<div class="rail"><div class="node stock"><span class="nk">storage node</span><b>Q high</b><small>First inverter input</small></div><div class="pipe rein"><span>inverts</span></div><div class="node stock"><span class="nk">complement</span><b>Q̅ low</b><small>Second inverter input</small></div><div class="pipe rein"><span>inverts again</span></div><div class="node bal"><span class="nk">feedback</span><b>Q stays high</b><small>The opposite state is also stable</small></div></div>
+<div class="g2"><div class="panel"><h5>6T cell components</h5><p>Two inverters use four transistors. Two access transistors connect storage nodes to complementary bitlines when the wordline is asserted.</p></div><div class="panel"><h5>Write a bit</h5><p>Drivers place opposite values on the bitlines. The wordline connects the drivers to the cell, allowing feedback to settle to the new state.</p></div></div>
+<div class="g2"><div class="panel"><h5>Write sizing</h5><p>For a write-zero, the access path must pull the node past the opposing inverter’s switching point. Access and pull-up strengths influence write ability.</p><p>For the source’s example, β<sub>access</sub> exceeds β<sub>pullup</sub>. Actual margins also depend on bitline voltage and device variation.</p></div><div class="panel"><h5>Storage cost</h5><p>A 6T SRAM cell uses six transistors per bit. Registers can use flip-flops with more transistors per bit.</p><p>The source cites roughly 20–30 transistors for an edge-triggered flip-flop. Implementations vary.</p></div></div>
+<aside class="ed fix"><span class="tag">Corrected · Sizing is not a complete proof</span><p>A simple β ratio alone does not guarantee a successful write. Supply, device variation, timing, parasitics and the rest of the cell matter.</p></aside>
+<div class="rail"><div class="node stock"><span class="nk">read preparation</span><b>Precharge bitlines</b><small>BL and complementary BL</small></div><div class="pipe flow"><span>select row</span></div><div class="node ctrl"><span class="nk">access</span><b>Assert wordline</b><small>Connect the storage nodes</small></div><div class="pipe flow"><span>differential develops</span></div><div class="node bal"><span class="nk">output</span><b>Sense difference</b><small>Amplifier resolves the bit</small></div></div>
+<aside class="ed fix"><span class="tag">Corrected · SRAM read</span><p>A normal read preserves the stored bit, but it can disturb internal node voltages. Insufficient read stability can flip a cell.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Feedback dynamics</span><p>The source presents one exponential growth formula as universal. Latch dynamics depend on transistor gains, parasitic capacitances and operating conditions.</p></aside>
+<div class="call nte"><span class="tag">Flash programming</span><p>High electric fields move charge through a thin dielectric by tunnelling or injection. The stored charge changes the gate voltage needed to conduct.</p></div>
+<div class="rail"><div class="node ctrl"><span class="nk">program</span><b>Apply electric field</b><small>Gate and device bias</small></div><div class="pipe flow"><span>tunnel or inject</span></div><div class="node stock"><span class="nk">storage</span><b>Trapped charge</b><small>Floating gate or charge trap</small></div><div class="pipe info"><span>changes threshold</span></div><div class="node bal"><span class="nk">read</span><b>Measure conduction</b><small>Compare with a reference</small></div></div>
+<div class="eq">ΔV<sub>th</sub> ≈ −Q<sub>stored</sub>/C<sub>control</sub> <small>Simplified floating-gate capacitive model; coupling and device geometry matter.</small></div>
+<div class="g2"><div class="panel"><h5>Fowler–Nordheim tunnelling</h5><p>A strong oxide field changes the effective barrier shape. The tunnelling current depends strongly on that field and the barrier properties.</p></div><div class="panel"><h5>Hot-carrier injection</h5><p>In suitable devices, energetic carriers can cross into the storage dielectric or floating gate. The required bias depends on the technology.</p></div></div>
+<div class="tiers"><div class="tier" style="--k:var(--info);--kb:var(--info-bg)"><div class="th"><span class="lab">Example stack</span><b>Floating-gate cell</b></div><div class="tb"><div class="rail"><div class="node ctrl"><b>Control gate</b><small>Applied gate voltage</small></div><div class="pipe info"><span>coupling</span></div><div class="node stock"><b>Floating gate</b><small>Isolated by dielectric</small></div><div class="pipe info"><span>tunnel oxide</span></div><div class="node flow"><b>Silicon channel</b><small>Between source and drain</small></div></div></div></div></div>
+<div class="g2"><div class="panel"><h5>Source’s tunnelling example</h5><p>A control-gate voltage of about 18–20 V and an oxide field above 10 MV/cm illustrate a possible programming condition. The source uses an 8–10 nm tunnel oxide.</p></div><div class="panel"><h5>Source’s injection example</h5><p>A drain voltage near 5 V and gate voltage near 10 V illustrate hot-carrier injection. The source cites a silicon–silicon dioxide conduction-band offset near 3.15 eV.</p></div></div>
+<aside class="ed"><span class="tag">Added · Example conditions</span><p>These figures are examples from the original note. Programming voltages, layers and mechanisms vary across devices and generations.</p></aside>
+<div class="call nte"><span class="tag">Example parameters from the source</span><p>The source illustrates a tunnel oxide about 8–10 nm thick and a high programming voltage. These values describe an example, not every flash technology.</p></div>
+<div class="eq">J<sub>FN</sub> ≈ A E² e<sup>−B/E</sup> <small>Illustrative field-dependent tunnelling model; A and B depend on the barrier and material.</small></div>
+<div class="split"><div class="side"><span class="lab">Illustrative erased cell</span><h4>Threshold 1.5 V</h4><p>At a 2.5 V read voltage, the modeled cell conducts because the read voltage exceeds its threshold.</p></div><div class="vs"><span>vs</span></div><div class="side good"><span class="lab">Illustrative programmed cell</span><h4>Threshold 4.5 V</h4><p>At the same 2.5 V read voltage, the modeled cell has low current because the threshold is higher.</p></div></div>
+<aside class="ed fix"><span class="tag">Corrected · Flash read current</span><p>The source describes a programmed cell as having exactly zero current. An off-state device can leak; practical reads use a sensing margin.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Retention and bit labels</span><p>Retention depends on temperature, wear and device design. The electrical encoding of a cell state is technology-specific; do not assume one polarity for every flash device.</p></aside>
+<div class="call nte"><span class="tag">Multiple bits per cell</span><p>A QLC cell distinguishes 16 threshold-voltage ranges to encode four bits. Narrower sensing margins require careful programming and error correction.</p></div>
+<div class="rail"><div class="node ctrl"><span class="nk">programming</span><b>Apply a pulse</b><small>Increment the gate bias</small></div><div class="pipe info"><span>measure</span></div><div class="node flow"><span class="nk">verify</span><b>Read threshold</b><small>Compare with target range</small></div><div class="pipe bal"><span>repeat as needed</span></div><div class="node stock"><span class="nk">stored state</span><b>Target distribution</b><small>Multiple ranges encode multiple bits</small></div></div>
+<div class="g2"><div class="panel"><h5>3D NAND</h5><p>Vertical channels pass through stacked gate and dielectric layers. Many cells occupy different heights along each channel.</p><p>The source describes devices with 200 to 300 or more layers. Layer counts depend on the product and generation.</p></div><div class="panel"><h5>Retention</h5><p>Stored charge can persist without power. Temperature, cycling, charge leakage and error correction determine usable retention.</p></div></div>
+<aside class="ed fix"><span class="tag">Corrected · Retention calculation</span><p>The source uses a thermal activation estimate to claim 10–100 years. That estimate alone does not establish actual device retention.</p></aside>
+<div class="rail"><div class="node stock"><span class="nk">CPU</span><b>Registers</b><small>State near execution units</small></div><div class="pipe flow"><span>next level</span></div><div class="node stock"><span class="nk">on chip</span><b>SRAM caches</b><small>Small and fast</small></div><div class="pipe flow"><span>next level</span></div><div class="node stock"><span class="nk">main memory</span><b>DRAM</b><small>Denser, refreshed</small></div><div class="pipe flow"><span>persistent storage</span></div><div class="node stock"><span class="nk">SSD</span><b>NAND flash</b><small>Retains charge without power</small></div></div>
+<figure class="fig ink"><p class="ft">Memory hierarchy · source’s illustrative latency ranges</p><div class="hbars">
+<div class="hbar"><span class="nm">Registers</span><div class="tr"><div class="fl" style="--k:var(--bal);width:2.8%"></div><span class="vl">0.25–0.5 ns</span></div></div>
+<div class="hbar"><span class="nm">L1 / L2</span><div class="tr"><div class="fl" style="--k:var(--flow);width:14.9%"></div><span class="vl">0.8–3 ns</span></div></div>
+<div class="hbar"><span class="nm">L3</span><div class="tr"><div class="fl" style="--k:var(--stock);width:33.1%"></div><span class="vl">10–20 ns</span></div></div>
+<div class="hbar"><span class="nm">DRAM</span><div class="tr"><div class="fl" style="--k:var(--delay);width:45.3%"></div><span class="vl">50–80 ns</span></div></div>
+<div class="hbar"><span class="nm">Flash</span><div class="tr"><div class="fl" style="--k:var(--rein);width:93.4%"></div><span class="vl">10–50 µs</span></div></div>
+</div><div class="scale"><span>0.25 ns</span><span>50 µs</span></div><figcaption>The bar endpoint represents the geometric midpoint of each range on a logarithmic scale. These are source examples, not measured or universal latencies.</figcaption></figure>
+<aside class="ed fix"><span class="tag">Corrected · Latency ranges</span><p>Actual latency varies with architecture, access type, cache state, controller and workload. NAND device latency is not the same as end-to-end SSD request latency.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Flash history</span><p>Kahng and Sze proposed floating-gate memory in 1967. Flash was developed later by Fujio Masuoka and colleagues at Toshiba. <a href="https://www.computerhistory.org/storageengine/reusable-semiconductor-rom-introduced/">Computer History Museum</a>.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Early DRAM</span><p>The 1970 Intel 1103 used a three-transistor cell. Dennard’s one-transistor cell became the foundation for later DRAM designs. <a href="https://www.ibm.com/history/dram">IBM</a>.</p></aside>
+<div class="call nte"><span class="tag">Intel 1103</span><p>The source cites the 1970 Intel 1103 as a 1,024-bit commercial DRAM. Its three-transistor cell differed from the one-transistor cell discussed below.</p></div>
+</section><section class="sec"><header class="sh"><span class="sid">10.2 · DRAM read</span><h3>Share a small charge, sense it, restore it.</h3></header>
+<div class="rail"><div class="node stock"><span class="nk">precharge</span><b>Bitline at VDD/2</b><small>Cell holds a stored voltage</small></div><div class="pipe flow"><span>wordline opens</span></div><div class="node flow"><span class="nk">charge sharing</span><b>Small voltage shift</b><small>Cell and bitline equilibrate</small></div><div class="pipe flow"><span>sense</span></div><div class="node bal"><span class="nk">restore</span><b>Amplify &amp; write back</b><small>Then close the wordline</small></div></div>
+<div class="g2"><div class="panel"><h5>Example cell capacitance</h5><p>The source uses a cell capacitor around 25–35 fF. The access transistor connects it to a longer bitline.</p></div><div class="panel"><h5>Example bitline capacitance</h5><p>The source uses a bitline around 200–400 fF. Its greater capacitance makes the shared voltage shift small.</p></div></div>
+<div class="eq">C<sub>BL</sub> × V<sub>pre</sub> + C<sub>s</sub> × V<sub>cell</sub> = (C<sub>BL</sub> + C<sub>s</sub>) × V<sub>final</sub><small>Ideal charge conservation. V<sub>pre</sub> = VDD/2 in this example.</small></div>
+<div class="eq">ΔV = C<sub>s</sub> / (C<sub>BL</sub> + C<sub>s</sub>) × (V<sub>cell</sub> − VDD/2) <small>Ideal charge-sharing model.</small></div>
+<figure class="fig ink"><p class="ft">Bitline shift falls as bitline capacitance rises · ideal 1 V example</p><div class="scroll" id="ch-sharing" style="--minw:420px"></div><figcaption>For a 30 fF cell at 1 V and a bitline precharged to 0.5 V, a 300 fF bitline shifts by approximately 45.45 mV.</figcaption></figure>
+<aside class="ed"><span class="tag">Added · chart assumptions</span><p>The curve holds the cell capacitance, initial cell voltage and supply constant. It shows an ideal charge-sharing calculation.</p></aside>
+<div class="call nte"><span class="tag">Stored charge</span><p>A 30 fF capacitor across 1 V holds 30 fC of charge. That magnitude corresponds to approximately 187,245 elementary charges.</p></div>
+<div class="call nte"><span class="tag">Worked charge example · 0.8 V</span><p>A 30 fF capacitor across 0.8 V holds 24 fC, equivalent to about 149,796 elementary charges. This calculation assumes the full 0.8 V is across the capacitor.</p></div>
+<aside class="ed"><span class="tag">Added · calculation assumptions</span><p>The exact charge depends on the voltage across the cell capacitor. Some DRAM designs bias the opposite capacitor plate away from ground.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Worked example</span><p>For Cₛ = 30 fF, CBL = 300 fF and VDD = 1 V, the shift is ±45.45 mV. The source’s 100–200 mV estimate needs different voltage or capacitance assumptions.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Retention</span><p>Refresh requirements vary by device and conditions. Interrupting refresh for 100 ms does not guarantee every cell reaches zero.</p></aside>
+<div class="call nte"><span class="tag">Refresh window</span><p>The source discusses windows of 32–64 ms. Consult the specific device’s refresh and temperature requirements; these values are not a universal retention guarantee.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Leakage model</span><p>An exponential RC decay is one ideal model. Real DRAM retention can involve junction, subthreshold and dielectric leakage with device- and temperature-dependent behavior.</p></aside>
+<div class="g3"><div class="panel"><h5>Junction leakage</h5><p>Carrier generation and diffusion can leak charge through a reverse-biased junction. The source gives 10<sup>−15</sup> A as an illustrative value.</p></div><div class="panel"><h5>Subthreshold leakage</h5><p>A nominally off access transistor can conduct some current between the cell and bitline.</p></div><div class="panel"><h5>Dielectric leakage</h5><p>Charge can pass through a capacitor dielectric by mechanisms that depend on the material and electric field.</p></div></div>
+</section></section>
+
+<section class="chapter wrap" id="design"><div class="ch-open"><div class="ch-num"><small>EPOCH</small>XI</div><div class="ch-body"><p class="eyebrow">1970 onward · Chip design</p><h2>Turn behaviour into manufacturable geometry.</h2><p class="ch-sub">Abstraction and automated tools connect a hardware description to physical masks.</p></div></div>
+<section class="sec"><header class="sh"><span class="sid">11.1 · Mead–Conway</span><h3>Shared design rules let more people design chips.</h3></header>
+<div class="call nte"><span class="tag">Gordon Moore · 1965</span><p>Moore observed and projected growth in integrated-circuit complexity. This observation became a guide for the industry rather than a physical law.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Moore’s original projection</span><p>The source assigns an 18–24 month doubling period to the entire 1965–1975 period. Moore’s 1965 projection was annual; he revised it to two years in 1975. <a href="https://www.intel.com/content/www/us/en/newsroom/resources/moores-law.htm">Intel</a>.</p></aside>
+<div class="rail"><div class="node ctrl"><span class="nk">1979 · MPC79</span><b>Multiple teams</b><small>University chip designs</small></div><div class="pipe flow"><span>network</span></div><div class="node flow"><span class="nk">combine</span><b>Shared masks</b><small>Multi-project fabrication</small></div><div class="pipe flow"><span>fabricate</span></div><div class="node bal"><span class="nk">return</span><b>Packaged chips</b><small>Designers can test silicon</small></div></div>
+<div class="call nte"><span class="tag">MPC79 by the numbers</span><p>The project collected 82 designs from 124 designers across courses at 12 universities. Packaged chips shipped 29 days after the deadline.</p></div>
+<div class="call nte"><span class="tag">Mead and Conway</span><p>Their textbook <em>Introduction to VLSI Systems</em> and teaching materials helped spread a shared approach to digital chip design.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Mask sets</span><p>The source says one mask set. Conway’s account describes 12 die types across two mask sets. <a href="https://ai.eecs.umich.edu/people/conway/VLSI/MPCAdv/MPCAdv.html">Lynn Conway’s account</a>.</p></aside>
+<div class="call nte"><span class="tag">Design rules</span><p>Geometric rules constrain layout for a fabrication process. Modern libraries and process design kits still require foundry-specific validation.</p></div>
+<div class="eq">physical dimension = rule value × λ <small>Lambda-based rules express dimensions as multiples of a process-specific length scale.</small></div>
+<div class="call nte"><span class="tag">Legacy rule examples</span><p>The source describes λ as half a minimum feature and gives dimensions of 2λ and 3λ. Actual design rules depend on the process and the layers involved.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Lambda units</span><p>The source calls λ dimensionless. The multipliers are dimensionless; λ itself represents a length.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Design abstraction</span><p>Design rules support abstraction, but do not completely decouple a chip from its fabrication process. Libraries and rule decks remain process-specific.</p></aside>
+</section><section class="sec"><header class="sh"><span class="sid">11.2 · Design flow</span><h3>Each stage checks a different kind of correctness.</h3></header>
+<div class="rail"><div class="node ctrl"><span class="nk">specification</span><b>Architecture</b><small>ISA and microarchitecture</small></div><div class="pipe flow"><span>describe</span></div><div class="node stock"><span class="nk">register-transfer</span><b>RTL</b><small>SystemVerilog or VHDL</small></div><div class="pipe flow"><span>synthesize</span></div><div class="node flow"><span class="nk">logic</span><b>Gate netlist</b><small>Mapped standard cells</small></div><div class="pipe flow"><span>place &amp; route</span></div><div class="node bal"><span class="nk">physical</span><b>Layout</b><small>Manufacturing geometry</small></div></div>
+<div class="call nte"><span class="tag">Synthesis</span><p>RTL describes hardware behaviour and timing relationships. Synthesis maps that description into cells from a target library under design constraints.</p></div>
+<div class="call nte"><span class="tag">Aart de Geus and Synopsys</span><p>De Geus and colleagues founded the company that became Synopsys in 1986. Commercial tools helped make logic synthesis practical for chip designers.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Design Compiler chronology</span><p>The source associates the company’s founding and Design Compiler’s release with 1986. A Berkeley history places Design Compiler’s emergence in 1988. <a href="https://www2.eecs.berkeley.edu/Pubs/TechRpts/1998/ERL-98-45.pdf">Berkeley report</a>.</p></aside>
+<div class="call nte"><span class="tag">Verification examples</span><p>Teams can use simulation testbenches, constrained-random tests, formal checks and coverage. UVM is one methodology for organizing SystemVerilog verification environments.</p></div>
+<div class="laws"><div><span class="ln-n">1</span><div><b>Specification</b><p>Define the ISA, microarchitecture, performance and power targets.</p></div></div><div><span class="ln-n">2</span><div><b>RTL</b><p>Describe registers, combinational logic and clocked behaviour.</p></div></div><div><span class="ln-n">3</span><div><b>Functional verification</b><p>Test the RTL against requirements before fabrication.</p></div></div><div><span class="ln-n">4</span><div><b>Logic synthesis</b><p>Map logic into cells from a target library.</p></div></div><div><span class="ln-n">5</span><div><b>Timing analysis</b><p>Evaluate setup, hold and path delays across timing corners.</p></div></div><div><span class="ln-n">6</span><div><b>Physical design</b><p>Floorplan, place cells, build the clock tree and route connections.</p></div></div><div><span class="ln-n">7</span><div><b>Physical verification</b><p>Check manufacturing rules and extracted connectivity.</p></div></div><div><span class="ln-n">8</span><div><b>Tape-out</b><p>Deliver the approved geometry to the fabrication process.</p></div></div></div>
+<div class="g2"><div class="panel"><h5>Architecture choices</h5><p>The ISA defines the software-visible instruction interface. The microarchitecture chooses execution units, pipelines, prediction, caches and memory interfaces.</p></div><div class="panel"><h5>ISA examples</h5><p>The source names x86-64, Arm and RISC-V. Different implementations can share an ISA while using different microarchitectures.</p></div></div>
+<div class="panel"><h5>RTL example · 4-bit accumulator</h5><div class="scroll"><pre><code>module accumulator (
+    input  logic       clk,
+    input  logic       rst_n,
+    input  logic [3:0] data_in,
+    output logic [3:0] data_out
+);
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            data_out &lt;= 4'b0000;
+        else
+            data_out &lt;= data_out + data_in;
+    end
+endmodule</code></pre></div></div>
+<aside class="ed fix"><span class="tag">Corrected · Reset semantics</span><p>The source calls the accumulator synchronous. Its update is clocked, but negedge rst_n makes reset asynchronous and active low.</p></aside>
+<div class="diag"><div class="diag-h"><span>Before tape-out</span><span>separate checks</span></div><ol><li><div><b><span class="chk"></span>Does the design implement the specification?</b><p>Simulation and formal methods check behaviour against stated properties.</p></div></li><li><div><b><span class="chk"></span>Can signals meet timing?</b><p>Static timing analysis checks setup and hold constraints across modelled paths and corners.</p></div></li><li><div><b><span class="chk"></span>Can the layout be manufactured?</b><p>DRC checks geometric rules; LVS compares extracted connectivity with the intended circuit.</p></div></li></ol></div>
+<div class="g2"><div class="panel"><h5>Setup</h5><p>Data must arrive before the capture edge with enough setup margin. Long paths can fail at high clock frequencies.</p></div><div class="panel"><h5>Hold</h5><p>Data must remain stable after the capture edge. Short paths can violate hold even at a slower clock.</p></div></div>
+<div class="eq">Slack = required time − arrival time <small>For setup analysis; hold slack uses the corresponding early-arrival constraint.</small></div>
+<div class="eq">T<sub>clk</sub> ≥ T<sub>cq,max</sub> + T<sub>comb,max</sub> + T<sub>setup</sub> − T<sub>skew</sub> <small>Setup example; skew is capture-clock arrival minus launch-clock arrival.</small></div>
+<div class="eq">T<sub>cq,min</sub> + T<sub>comb,min</sub> ≥ T<sub>hold</sub> + T<sub>skew</sub> <small>Hold example using the same skew convention.</small></div>
+<div class="call nte"><span class="tag">Physical implementation</span><p>Floorplanning locates major blocks. Power planning supplies the die; placement locates cells. Clock-tree synthesis distributes timing, and routing connects the cells.</p></div>
+<div class="call nte"><span class="tag">Tool examples</span><p>The source names Synopsys Design Compiler and Cadence Genus for synthesis, PrimeTime for timing, and Innovus and ICC2 for physical design.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Clock distribution</span><p>The source claims a clock reaches 50 billion flip-flops at exactly the same picosecond. Clock networks target bounded skew; transistor count is not flip-flop count.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Tape-out size</span><p>GDSII or OASIS layout file size depends on the design and representation. It is not necessarily multiple terabytes.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Design automation</span><p>Synthesis and verification do not guarantee a bug-free chip or automatically satisfy every timing constraint. Layout and sign-off remain iterative.</p></aside>
+</section></section>
+
+<section class="chapter wrap" id="fabrication"><div class="ch-open"><div class="ch-num"><small>EPOCH</small>XII</div><div class="ch-body"><p class="eyebrow">Modern fabrication · materials to interconnect</p><h2>Shape the channel. Pattern the layers. Connect the gates.</h2><p class="ch-sub">Modern processes use multiple device geometries and lithography tools.</p></div></div>
+<section class="sec"><header class="sh"><span class="sid">12.0 · Scaling limits</span><h3>Smaller transistors need stronger electrostatic control.</h3><p>Classical constant-field scaling connects dimensions, voltages, speed and power density under specific assumptions.</p></header>
+<div class="g2"><div class="panel tint t-risk"><h5>Gate leakage</h5><p>A very thin dielectric allows quantum tunnelling. This adds unwanted current through the gate stack.</p></div><div class="panel tint t-risk"><h5>Drain-induced barrier lowering</h5><p>At short channel lengths, the drain field can lower the source barrier. The gate then has less control over off-state current.</p></div></div>
+<div class="call nte"><span class="tag">Historical oxide example</span><p>The source cites a silicon-dioxide gate layer about 1.2 nm thick. Thin barriers can increase tunnelling; the exact leakage depends on the stack and bias.</p></div>
+<div class="call nte"><span class="tag">Dennard scaling</span><p>Constant-field scaling relates transistor dimensions, supply voltage and electric field. Leakage and voltage-scaling limits made the original power-density trend harder to sustain.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Scaling</span><p>Scaling limits emerged gradually and depend on device design. A process-node name is not itself the channel length or an exact leakage threshold.</p></aside>
+</section>
+<section class="sec"><header class="sh"><span class="sid">12.1 · Silicon crystal</span><h3>Grow a crystal, then prepare wafers.</h3></header>
+<div class="rail"><div class="node stock"><span class="nk">feedstock</span><b>Purified silicon</b><small>Melt in a crucible</small></div><div class="pipe flow"><span>seed &amp; pull</span></div><div class="node stock"><span class="nk">Czochralski</span><b>Single-crystal boule</b><small>Controlled growth</small></div><div class="pipe flow"><span>slice &amp; polish</span></div><div class="node bal"><span class="nk">substrate</span><b>Silicon wafers</b><small>Ready for processing</small></div></div>
+<div class="call nte"><span class="tag">Growing the boule</span><p>A seed crystal contacts the melt and is pulled upward under controlled conditions. The growing solid inherits the crystal orientation; the boule is sliced and polished into wafers.</p></div>
+<div class="call nte"><span class="tag">Czochralski · 1916</span><p>A familiar account describes Czochralski dipping a pen into molten tin and drawing out a thin thread. Treat the pen incident as an anecdote; the documented method studied crystal growth from a melt.</p></div>
+<div class="g2"><div class="panel"><h5>Materials and motion</h5><p>High-purity silicon is melted in a crucible. The seed and crucible can rotate while the seed is pulled to control growth.</p></div><div class="panel"><h5>Wafer preparation</h5><p>The solid boule is sliced and polished. A 300 mm wafer is one common example; diameter, thickness and surface specifications depend on use.</p></div></div>
+<div class="call nte"><span class="tag">Illustrative process values</span><p>The source lists 99.9999999% silicon purity, a 1–2 mm/min pull rate and a 775 µm wafer thickness. These are examples, not universal process settings.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Crystal quality</span><p>The source describes every boule as perfectly defect-free. Crystal growth controls defects, but real materials and production processes have measurable limits.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Crystal growth</span><p>Not every silicon wafer uses Czochralski growth. Other methods, including float-zone growth, also exist.</p></aside>
+</section><section class="sec"><header class="sh"><span class="sid">12.2 · Transistor geometry</span><h3>More gate coverage improves electrostatic control.</h3></header>
+<div class="rail"><div class="node stock"><span class="nk">planar</span><b>Top gate</b><small>Channel beneath one surface</small></div><div class="pipe flow"><span>raise channel</span></div><div class="node ctrl"><span class="nk">FinFET</span><b>Three-side gate</b><small>Gate surrounds a fin</small></div><div class="pipe flow"><span>surround channel</span></div><div class="node bal"><span class="nk">GAAFET</span><b>Gate all around</b><small>Nanosheet channels</small></div></div>
+<div class="call nte"><span class="tag">FinFET development</span><p>Chenming Hu, Tsu-Jae King Liu, Jeffrey Bokor and collaborators developed FinFET structures at Berkeley. The gate surrounds more of the channel than in a conventional planar device.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Tri-gate production date</span><p>The source assigns Ivy Bridge’s commercial deployment to 2011. Intel announced the technology in 2011; 22 nm tri-gate high-volume production followed in 2012. <a href="https://www.intel.com/content/www/us/en/history/history-moores-law-fun-facts-factsheet.html">Intel</a>.</p></aside>
+<div class="call nte"><span class="tag">Nanosheets</span><p>A gate-all-around device can use several suspended silicon channels. The gate stack surrounds each sheet, improving control over the channel.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Limits</span><p>FinFETs and GAAFETs improve control; neither eliminates all leakage. A process node name is not a direct measurement of gate length. <a href="https://www.intel.com/content/www/us/en/newsroom/tech101/explaining-common-chip-terms.html">Intel</a>.</p></aside>
+</section><section class="sec"><header class="sh"><span class="sid">12.3 · Lithography</span><h3>Light transfers patterns onto a wafer.</h3></header>
+<div class="split"><div class="side"><span class="lab">Immersion DUV</span><h4>193 nm light + water</h4><p>Water between lens and wafer increases numerical aperture. A wavelength of 193 nm in vacuum becomes about 134 nm in water with n = 1.44.</p></div><div class="vs"><span>and</span></div><div class="side good"><span class="lab">EUV</span><h4>13.5 nm light + mirrors</h4><p>Laser pulses strike tin droplets to generate plasma. Multilayer mirrors guide EUV light through a vacuum optical path.</p></div></div>
+<div class="call nte"><span class="tag">Burn J. Lin and immersion</span><p>The source identifies Burn J. Lin’s work at TSMC in advancing immersion lithography. A water layer changes numerical aperture without changing the source’s vacuum wavelength.</p></div>
+<div class="call nte"><span class="tag">Optical alternatives</span><p>The source describes difficulties developing 157 nm lithography. Immersion improved 193 nm optical systems by placing water between the lens and wafer.</p></div>
+<div class="rail"><div class="node stock"><span class="nk">source</span><b>Tin droplet</b><small>Travels through vacuum</small></div><div class="pipe flow"><span>laser pulses</span></div><div class="node flow"><span class="nk">emitter</span><b>Hot plasma</b><small>Emits EUV light</small></div><div class="pipe flow"><span>multilayer mirrors</span></div><div class="node ctrl"><span class="nk">pattern</span><b>Reflective mask</b><small>Projects onto resist</small></div><div class="pipe flow"><span>expose</span></div><div class="node bal"><span class="nk">target</span><b>Wafer</b><small>Pattern used in later processing</small></div></div>
+<div class="call nte"><span class="tag">Two pulses per droplet</span><p>A first laser pulse shapes a tin droplet. A second pulse creates plasma that emits EUV radiation; the process repeats thousands of times each second.</p></div>
+<div class="call nte"><span class="tag">EUV source rate</span><p>ASML described 50,000 tin droplets per second in its 2022 account. Source rates depend on the particular tool generation. <a href="https://www.asml.com/en/company/stories/2022/making-euv-lab-to-fab">ASML</a>.</p></div>
+<aside class="ed fix"><span class="tag">Corrected · Immersion history</span><p>The source presents immersion lithography as a 2002 invention. ASML reports the optical principle was proposed for lithography at IBM in the 1980s. <a href="https://www.asml.com/en/company/stories/2023/how-immersion-lithography-saved-moores-law">ASML</a>.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Plasma temperature</span><p>The source says 200,000 °C is hotter than the Sun’s core. NASA estimates the core at about 15.7 million K. <a href="https://nssdc.gsfc.nasa.gov/planetary/factsheet/sunfact.html?level=1">NASA Sun fact sheet</a>.</p></aside>
+<aside class="ed fix"><span class="tag">Corrected · Manufacturing</span><p>EUV did not replace all DUV tools. Advanced chips use EUV for some layers and DUV for other layers. <a href="https://www.asml.com/en/products/euv-lithography-systems">ASML</a>.</p></aside>
+</section><section class="sec"><header class="sh"><span class="sid">12.4 · Interconnect</span><h3>Metal layers turn isolated devices into a circuit.</h3></header>
+<div class="tiers"><div class="tier" style="--k:var(--stock);--kb:var(--stock-bg)"><div class="th"><span class="lab">FEOL</span><b>Devices</b><span class="small">transistors and isolation</span></div><div class="tb"><p>Fabrication forms the active device structures in and on silicon.</p></div></div><div class="tier" style="--k:var(--flow);--kb:var(--flow-bg)"><div class="th"><span class="lab">BEOL</span><b>Interconnect</b><span class="small">wires and vias</span></div><div class="tb"><p>Patterned conductors connect devices through multiple insulated layers.</p></div></div></div>
+<div class="call imp"><span class="tag">Physical cost</span><p>Resistance and capacitance add delay and energy cost to every signal path. Layout, wire geometry and materials matter.</p></div>
+<div class="g2"><div class="panel"><h5>Local connections</h5><p>Lower metal layers connect nearby devices. Materials can include copper, cobalt or ruthenium, depending on the process.</p></div><div class="panel"><h5>Global connections</h5><p>Upper layers distribute signals, clocks and power. Vertical vias connect layers without merging every crossing.</p></div></div>
+<aside class="ed fix"><span class="tag">Corrected · Wiring totals</span><p>The source states a fixed 100 km of copper wiring per desktop CPU. Total wire length, metals and layer counts depend on the design and process.</p></aside>
+</section></section>
+
+<section class="chapter wrap" id="landmarks"><div class="ch-open"><div class="ch-num"><small>MAP</small>∑</div><div class="ch-body"><p class="eyebrow">Comparative synthesis</p><h2>The discoveries fit together.</h2><p class="ch-sub">The dates overlap. These are conceptual dependencies, not a claim that every discovery happened in one sequence.</p></div></div>
+<div class="g3"><div class="panel tint t-stock"><h5>Motion and energy</h5><p>Galileo: acceleration. Newton: motion and gravity. ’s Gravesande and du Châtelet: impact and vis viva. Joule: work and internal energy.</p></div><div class="panel tint t-info"><h5>Charge and circuits</h5><p>Musschenbroek: capacitor. Franklin: atmospheric electricity. Coulomb: force. Volta: battery. Ohm: resistance. Faraday: induction.</p></div><div class="panel tint t-flow"><h5>Atoms and quantum states</h5><p>Dalton: atomic combinations. Thomson: electron. Geiger, Marsden and Rutherford: nucleus. Bohr: hydrogen levels. Einstein: photoelectric effect.</p></div><div class="panel tint t-flow"><h5>Waves and crystals</h5><p>De Broglie: matter waves. Davisson and Germer: diffraction. Stern and Gerlach: discrete outcomes. Pauli: exclusion. Bloch and Wilson: bands.</p></div><div class="panel tint t-bal"><h5>Devices and integration</h5><p>Ohl: junctions. Bardeen and Brattain: point contact. Shockley: BJT. Atalla and Kahng: MOSFET. Wanlass and Sah: CMOS. Kilby, Hoerni and Noyce: integration.</p></div><div class="panel tint t-rein"><h5>Memory and manufacturing</h5><p>Dennard: DRAM. Kahng and Sze: floating-gate memory. Mead and Conway: VLSI methods. Czochralski: crystal growth. Hu and colleagues: FinFET. Lithography patterns each layer.</p></div></div>
+</section>
+<footer class="foot wrap"><p><b>Source.</b> From Classical Physics to Modern CPU Silicon. <b>⚑ Corrected</b> marks changes to source claims; <b>+ Added</b> identifies editorial context.</p></footer>
+</main>
+
+<script>
+/* claude-artifact-creator engine: chart (plot/spark) + stock-and-flow schematic (dg) + nav scroll-spy.
+   Exposes window.AE. Every mark is placed through one scale per chart; all colors come from CSS tokens. */
+var AE=(function(){
+'use strict';
+var NS='http://www.w3.org/2000/svg', XL='http://www.w3.org/1999/xlink';
+function E(tag,attrs,parent){var e=document.createElementNS(NS,tag);if(attrs){for(var k in attrs){if(attrs[k]!==null&&attrs[k]!==undefined)e.setAttribute(k,attrs[k]);}}if(parent)parent.appendChild(e);return e;}
+function T(p,x,y,s,cls,anchor){var t=E('text',{x:x,y:y,'class':cls||'','text-anchor':anchor||'start'},p);t.textContent=s;return t;}
+function lines(p,x,y,s,cls,anchor,lh){String(s).split('\n').forEach(function(l,i){T(p,x,y+i*(lh||14),l,cls,anchor);});}
+function fn(f,a,b,n){n=n||160;var r=[];for(var i=0;i<=n;i++){var x=a+(b-a)*i/n;r.push([x,f(x)]);}return r;}
+function pth(pts,sx,sy){return 'M'+pts.map(function(p){return sx(p[0]).toFixed(1)+','+sy(p[1]).toFixed(1);}).join(' L');}
+function safe(f){try{f();}catch(err){if(window.console)console.error(err);}}
+
+/* ───────── chart engine: one scale per chart, every mark placed through it ───────── */
+function plot(id,o){
+  var host=document.getElementById(id); if(!host) return;
+  var W=o.w||640,H=o.h||260,m=Object.assign({l:52,r:18,t:22,b:34},o.m||{});
+  var x0=o.x[0],x1=o.x[1],y0=o.y[0],y1=o.y[1];
+  var sx=function(v){return m.l+(v-x0)/(x1-x0)*(W-m.l-m.r);};
+  var sy=function(v){return H-m.b-(v-y0)/(y1-y0)*(H-m.t-m.b);};
+  var svg=E('svg',{viewBox:'0 0 '+W+' '+H,role:'img','aria-label':o.label||''});
+  (o.bands||[]).forEach(function(b){E('rect',{x:sx(b.x0),y:m.t,width:sx(b.x1)-sx(b.x0),height:H-m.t-m.b,'class':'band '+(b.k||'k-mute')},svg);if(b.label)T(svg,(sx(b.x0)+sx(b.x1))/2,m.t+13,b.label,'sm t2','middle');});
+  (o.yt||[]).forEach(function(v){E('line',{x1:m.l,x2:W-m.r,y1:sy(v),y2:sy(v),'class':'grid'},svg);T(svg,m.l-7,sy(v)+4,(o.yf||String)(v),'t2 sm','end');});
+  if(o.frame!==false){E('line',{x1:m.l,x2:W-m.r,y1:H-m.b,y2:H-m.b,'class':'axis'},svg);E('line',{x1:m.l,x2:m.l,y1:m.t,y2:H-m.b,'class':'axis'},svg);}
+  (o.xt||[]).forEach(function(v){T(svg,sx(v),H-m.b+16,(o.xf||String)(v),'t2 sm','middle');});
+  if(o.xl)T(svg,W-m.r,H-3,o.xl,'t2 sm','end');
+  if(o.yl)T(svg,m.l+4,m.t-8,o.yl,'t2 sm','start');
+  (o.vlines||[]).forEach(function(v){var g=E('g',{'class':v.k||'k-ink'},svg);E('line',{x1:sx(v.x),x2:sx(v.x),y1:m.t,y2:H-m.b,'class':'ref'},g);if(v.label){var px=sx(v.x),a=v.anchor||(px>W-m.r-50?'end':(px<m.l+50?'start':'middle'));T(g,px+(a==='end'?-5:a==='start'?5:0),m.t+(v.dy||28),v.label,'sm kt tb halo',a);}});
+  (o.refs||[]).forEach(function(r){var g=E('g',{'class':r.k||'k-ink'},svg);E('line',{x1:m.l,x2:W-m.r,y1:sy(r.y),y2:sy(r.y),'class':'ref'},g);if(r.label){var left=r.at==='left';T(g,left?m.l+6:W-m.r-6,sy(r.y)+(r.below?15:-6),r.label,'sm kt tb halo',left?'start':'end');}});
+  var leg=[];
+  (o.series||[]).forEach(function(s){
+    var g=E('g',{'class':s.k||'k-ink'},svg);
+    if(s.label)leg.push(s);
+    if(s.type==='bar'){
+      var unit=(W-m.l-m.r)/(x1-x0),bw=s.bw||unit*0.7,n=s.n||1,i=s.i||0,w=bw/n,base=s.base!==undefined?s.base:Math.max(0,y0);
+      s.data.forEach(function(d){var cx=sx(d[0])-bw/2+i*w,ya=sy(d[1]),yb=sy(base);E('rect',{x:cx+0.5,y:Math.min(ya,yb),width:Math.max(1,w-1),height:Math.max(0.5,Math.abs(yb-ya)),'class':'bar'},g);if(s.values)T(g,cx+w/2,ya-5,(s.vf||String)(d[1]),'sm kt tb','middle');});
+      return;
+    }
+    if(s.type!=='dots'){
+      if(s.area){var b0=sy(Math.max(y0,0)),F=s.data[0],L=s.data[s.data.length-1];E('path',{d:pth(s.data,sx,sy)+' L'+sx(L[0]).toFixed(1)+','+b0.toFixed(1)+' L'+sx(F[0]).toFixed(1)+','+b0.toFixed(1)+' Z','class':'area'},g);}
+      E('path',{d:pth(s.data,sx,sy),'class':'ln'+(s.dash?' dash':'')+(s.thin?' thin':'')},g);
+    }
+    if(s.dots||s.type==='dots'){(s.pts||s.data).forEach(function(d){E('circle',{cx:sx(d[0]),cy:sy(d[1]),r:s.r||4,'class':'dot'},g);if(s.values)T(g,sx(d[0]),sy(d[1])+(s.vdy||-9),(s.vf||String)(d[1]),'sm kt tb halo','middle');});}
+    if(s.end){var Z=s.data[s.data.length-1];T(g,sx(Z[0])+(s.endx||6),sy(Z[1])+(s.endy||4),s.end,'sm kt tb halo',s.enda||'start');}
+  });
+  (o.notes||[]).forEach(function(n){var g=E('g',{'class':n.k||'k-ink'},svg);if(n.dot)E('circle',{cx:sx(n.x),cy:sy(n.y),r:4.5,'class':'dot'},g);lines(g,sx(n.x)+(n.dx||0),sy(n.y)+(n.dy===undefined?-10:n.dy),n.t,'sm kt halo'+(n.b===false?'':' tb'),n.a||'middle',13);});
+  host.appendChild(svg);
+  if(leg.length&&o.legend!==false){var lg=document.createElement('div');lg.className='legend';leg.forEach(function(s){var sp=document.createElement('span');sp.className=s.k||'k-ink';var i=document.createElement('i');if(s.type==='bar')i.className='bar';else if(s.dash)i.className='dash';sp.appendChild(i);sp.appendChild(document.createTextNode(s.label));lg.appendChild(sp);});host.parentNode.insertBefore(lg,host.nextSibling);}
+}
+function spark(id,series,o){o=o||{};plot(id,Object.assign({w:300,h:118,m:{l:12,r:12,t:12,b:14},x:[0,1],y:[0,1.05],series:series,legend:false},o));}
+
+/* ───────── schematic engine: stocks, pipes, valves, clouds, links ───────── */
+function midpt(pts){var best=-1,bi=0;for(var i=0;i<pts.length-1;i++){var d=Math.abs(pts[i+1][0]-pts[i][0])+Math.abs(pts[i+1][1]-pts[i][1]);if(d>best){best=d;bi=i;}}return [(pts[bi][0]+pts[bi+1][0])/2,(pts[bi][1]+pts[bi+1][1])/2-7];}
+function dg(id,o){
+  var host=document.getElementById(id); if(!host) return;
+  var svg=E('svg',{viewBox:'0 0 '+o.w+' '+o.h,role:'img','aria-label':o.label||'','class':'dg'});
+  var N=o.nodes||{};
+  (o.regions||[]).forEach(function(r){E('rect',{x:r.x,y:r.y,width:r.w,height:r.h,'class':'region'},svg);if(r.t)T(svg,r.x+10,r.y+18,r.t,'rlab');});
+  function anc(s){if(Array.isArray(s))return s;var mm=/^(\w+)\.([lrtb])(?:@([\d.]+))?$/.exec(s),n=N[mm[1]],f=mm[3]!==undefined?+mm[3]:0.5;
+    if(mm[2]==='l')return [n.x,n.y+n.h*f];if(mm[2]==='r')return [n.x+n.w,n.y+n.h*f];if(mm[2]==='t')return [n.x+n.w*f,n.y];return [n.x+n.w*f,n.y+n.h];}
+  var CLS={pipe:'e-pipe',info:'e-info',bal:'e-bal',rein:'e-rein',delay:'e-delay',ink:'e-ink',risk:'e-risk',empty:'e-empty',good:'e-good'};
+  var MK={pipe:'ah-flow',info:'ah-info',bal:'ah-bal',rein:'ah-rein',delay:'ah-delay',ink:'ah-ink',risk:'ah-risk',empty:'ah-info',good:'ah-bal'};
+  var eg=E('g',{},svg),labs=[];
+  (o.edges||[]).forEach(function(e){var k=e.kind||'ink',pts=[anc(e.a)].concat(e.via||[],[anc(e.b)]);
+    E('path',{d:'M'+pts.map(function(p){return p[0]+','+p[1];}).join(' L'),'class':CLS[k],'marker-end':e.noarrow?null:'url(#'+MK[k]+')'},eg);
+    if(e.label)labs.push([e.lp||midpt(pts),e.label,e.lk,e.anchor]);});
+  (o.valves||[]).forEach(function(v){var x=v[0],y=v[1],d=v[2]==='v'?'M'+(x-8)+','+(y-8)+' L'+(x+8)+','+(y-8)+' L'+(x-8)+','+(y+8)+' L'+(x+8)+','+(y+8)+' Z':'M'+(x-8)+','+(y-8)+' L'+(x+8)+','+(y+8)+' L'+(x+8)+','+(y-8)+' L'+(x-8)+','+(y+8)+' Z';E('path',{d:d,'class':'valve'},svg);});
+  Object.keys(N).forEach(function(key){var n=N[key],g=E('g',{'class':'n n-'+(n.kind||'box')},svg);
+    if(n.kind==='cloud'){var u=E('use',{href:'#cloud',x:n.x,y:n.y,width:n.w,height:n.h},g);u.setAttributeNS(XL,'xlink:href','#cloud');}
+    else if(n.kind!=='text'){E('rect',{x:n.x,y:n.y,width:n.w,height:n.h,'class':'nb'},g);if(n.kind==='stock'||n.kind==='stockd')E('rect',{x:n.x+4,y:n.y+4,width:n.w-8,height:n.h-8,'class':'nb2'},g);}
+    var L=[];if(n.k)L.push([n.k,'nk']);(n.t||[]).forEach(function(s,i){L.push([s,i===0?'nt':'ns']);});
+    var lh=16,yy=n.y+n.h/2-(L.length-1)*lh/2+4;
+    L.forEach(function(r,i){T(g,n.x+n.w/2,yy+i*lh,r[0],r[1],'middle');});});
+  (o.delays||[]).forEach(function(d){var x=d[0],y=d[1];E('path',{d:d[2]==='v'?'M'+(x-8)+','+(y-3)+' H'+(x+8)+' M'+(x-8)+','+(y+3)+' H'+(x+8):'M'+(x-3)+','+(y-8)+' V'+(y+8)+' M'+(x+3)+','+(y-8)+' V'+(y+8),'class':'dmark'},svg);});
+  (o.badges||[]).forEach(function(b){var g=E('g',{'class':'badge b-'+b.kind},svg);E('circle',{cx:b.x,cy:b.y,r:15},g);T(g,b.x,b.y+5,b.t,'bt','middle');});
+  labs.forEach(function(l){lines(svg,l[0][0],l[0][1],l[1],'lab halo '+(l[2]||''),l[3]||'middle',13);});
+  (o.texts||[]).forEach(function(t){lines(svg,t.x,t.y,t.t,t.c||'lab',t.a||'start',13);});
+  host.appendChild(svg);
+}
+
+/* ───────── nav scroll-spy: marks the header link of the section in view ───────── */
+function spy(){
+  if(!('IntersectionObserver' in window))return;
+  var links=[].slice.call(document.querySelectorAll('.tnav a[data-spy]'));
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.setAttribute('aria-current',a.getAttribute('data-spy')===e.target.id?'true':'false');});}});},{rootMargin:'-35% 0px -60% 0px'});
+  links.forEach(function(a){var s=document.getElementById(a.getAttribute('data-spy'));if(s)io.observe(s);});
+}
+
+return {E:E,T:T,lines:lines,fn:fn,pth:pth,safe:safe,plot:plot,spark:spark,dg:dg,spy:spy};
+})();
+
+(function(){
+'use strict';
+var plot=AE.plot,dg=AE.dg,safe=AE.safe,fn=AE.fn;
+safe(function(){plot('ch-ramp',{
+  w:560,h:250,m:{l:48,r:34,t:25,b:38},
+  x:[0,3],y:[0,9],xt:[0,1,2,3],yt:[0,1,4,9],
+  xl:'time · units',yl:'distance · units',
+  label:'Ideal distance versus elapsed time, in normalized units',
+  series:[{data:fn(function(t){return t*t;},0,3,100),pts:[[0,0],[1,1],[2,4],[3,9]],k:'k-flow',label:'distance',dots:true,values:true}]
+});});
+safe(function(){plot('ch-sharing',{
+  w:560,h:250,m:{l:55,r:35,t:25,b:38},
+  x:[0,20],y:[0,500],xt:[0,5,10,15,20],yt:[0,100,200,300,400,500],
+  xl:'bitline capacitance / cell capacitance',yl:'shift · mV',
+  label:'Ideal bitline voltage shift as bitline capacitance increases',
+  series:[{data:fn(function(r){return 500/(1+r);},0,20,100),k:'k-flow',label:'bitline shift'}],
+  notes:[{x:10,y:500/11,t:'10× → 45.45 mV',k:'k-bal',dot:true,dx:10,dy:-12}]
+});});
+safe(function(){plot('ch-gaps',{
+  w:560,h:250,m:{l:48,r:35,t:25,b:38},
+  x:[-0.5,3.5],y:[0,10],xt:[0,1,2,3],yt:[0,2,4,6,8,10],
+  xf:function(i){return ['Ge','Si','Diamond','SiO₂'][i];},yl:'gap · eV',
+  label:'Representative energy gaps for germanium, silicon, diamond and silicon dioxide',
+  series:[{type:'bar',data:[[0,.66],[1,1.12],[2,5.47],[3,9]],k:'k-stock',label:'energy gap',values:true}]
+});});
+safe(function(){dg('dg-mos',{
+  w:620,h:230,label:'Insulated gate controls a silicon channel between source and drain',
+  nodes:{
+    gate:{x:205,y:12,w:210,h:66,kind:'i',k:'CONTROL',t:['Gate voltage','Insulated electrode']},
+    source:{x:20,y:135,w:145,h:66,kind:'stock',k:'TERMINAL',t:['Source','Carrier supply']},
+    channel:{x:205,y:135,w:210,h:66,kind:'f',k:'CONDUCTION',t:['Silicon channel','Field changes charge']},
+    drain:{x:455,y:135,w:145,h:66,kind:'stock',k:'TERMINAL',t:['Drain','Carrier collection']}
+  },
+  edges:[{a:'gate.b',b:'channel.t',kind:'info'},{a:'source.r',b:'channel.l',kind:'pipe'},{a:'channel.r',b:'drain.l',kind:'pipe'}]
+});});
+AE.spy();
+})();
+</script>
+</body>
+</html>

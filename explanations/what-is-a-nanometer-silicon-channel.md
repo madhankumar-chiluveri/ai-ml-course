@@ -2,7 +2,7 @@
 
 > **The Executive Summary**: A **nanometer silicon channel** is the microscopic electrical switch inside a modern CPU, GPU, or AI chip that turns ON and OFF billions of times per second. Every calculation, conditional branch, and neural network inference is physically performed by electrostatically opening and closing tens of billions of these atomic-scale silicon bridges.
 >
-> **Reference / Context**: [from-physics-to-cpu-silicon.md](file:///d:/madhan-utils/learning/courses/ai-ml-course/explanations/from-physics-to-cpu-silicon.md) | [from-cpu-registers-to-global-system-resources.md](file:///d:/madhan-utils/learning/courses/ai-ml-course/explanations/from-cpu-registers-to-global-system-resources.md)
+> **Reference / Context**: [from-physics-to-cpu-silicon.html](file:///d:/madhan-utils/learning/courses/ai-ml-course/explanations/from-physics-to-cpu-silicon.html) | [from-cpu-registers-to-global-system-resources.md](file:///d:/madhan-utils/learning/courses/ai-ml-course/explanations/from-cpu-registers-to-global-system-resources.md)
 
 ---
 

@@ -51,7 +51,7 @@ Each post file contains one chosen **LinkedIn** section and one chosen **Instagr
 
 No pillar should exceed 60% in one week. The normal cadence is three to five posts when enough briefs are ready. Choose the AI Update pillar for its topic and goal; it does not unlock deferred course posts or require filling every slot.
 
-For the regular news series, prepare Tuesday and recheck Wednesday. Start by testing **Wednesday, 4 PM IST on LinkedIn and 6 PM IST on Instagram**. These are population-based hypotheses, not established personal best times. See [timing evidence and optional tools](skills/ai-news-carousel/references/cadence-and-tools.md). A topical follow-up can use another day; the active week's plan owns proposed dates and status. No recurring execution is configured.
+For each proposed publishing date, consult the [posting-time guide](strategy/posting-times.md). Its daily slots are population-based hypotheses, not established personal best times. For the regular news series, prepare Tuesday and recheck Wednesday. A topical follow-up can use another day; the active week's plan owns proposed dates and status. No recurring execution is configured.
 
 ### Format rules
 

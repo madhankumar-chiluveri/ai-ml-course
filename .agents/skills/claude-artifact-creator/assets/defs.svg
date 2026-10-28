@@ -1,0 +1,12 @@
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id="ah-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-ink"/></marker>
+    <marker id="ah-info" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-info"/></marker>
+    <marker id="ah-bal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-bal"/></marker>
+    <marker id="ah-rein" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-rein"/></marker>
+    <marker id="ah-delay" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-delay"/></marker>
+    <marker id="ah-risk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-risk"/></marker>
+    <marker id="ah-flow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="20" markerHeight="20" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-flow"/></marker>
+    <symbol id="cloud" viewBox="0 0 64 40"><path d="M16 35 C6 35 3 25 10 21 C8 11 19 6 26 11 C30 2 45 3 47 13 C56 11 62 21 56 28 C59 33 53 37 48 35 Z" style="fill:var(--bg-2);stroke:var(--tx-2);stroke-width:1.6"/></symbol>
+  </defs>
+</svg>

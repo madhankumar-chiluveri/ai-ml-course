@@ -74,7 +74,7 @@ The screenshot is a composition reference, not evidence that humour caused its v
 
 ### 5. The promotion that changed nothing
 
-- **Grounding:** [async Python](../../../../course-path/phase-0-engineering-foundations/03_async_typehints_pydantic.md) and [FastAPI](../../../../course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md).
+- **Grounding:** [async Python](../../../../course-path/phase-0-engineering-foundations/03_async_typehints_pydantic.html) and [FastAPI](../../../../course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md).
 - **Situation:** blocking work remains on the event loop after changing a handler to `async def`.
 - **Setup:** Handler: “I got promoted to async.”
 - **Punchline:** Request queue: “Congratulations. We're still waiting.”

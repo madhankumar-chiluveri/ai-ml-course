@@ -12,10 +12,10 @@ theme: Reliable foundations and debugging humour
 |---|---|---|---|---|---|
 | Tue | [LI-009: Retry decisions](posts/01-tue-retry-decisions.md) | Authority | Document / carousel | Technical comments / saves | review |
 | Wed | [LI-013: AI said Fixed; pytest disagrees](posts/02-wed-ai-fix-pytest.md) | Community | Single image / single image | Comments / shares | LinkedIn scheduled |
-| Thu | [LI-014: Before you add another agent](posts/03-thu-another-agent.md) | Authority | Document / carousel | Technical comments / saves | review; proposed 29 Oct, 4 PM IST |
+| Thu | [LI-014: Before you add another agent](posts/03-thu-another-agent.md) | Authority | Document / carousel | Technical comments / saves | scheduled; 29 Oct, LinkedIn 3:20 PM / Instagram 10:45 AM IST |
 
 User confirmed LI-013 is scheduled on LinkedIn for 28 October 2026 at 10:00 AM IST.
-LI-014 is its proposed follow-up. Both platform packages remain in review; the user handles posting and scheduling manually.
+LI-014 is scheduled through Buffer for automatic publication on both platforms. The times use the Thursday queue slots for each channel.
 
 ## Assets
 

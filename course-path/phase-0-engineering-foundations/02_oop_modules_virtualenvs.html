@@ -1,0 +1,1110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>0.2 · OOP, Modules, venvs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600;700&display=swap">
+<style>
+body{margin:0}
+:root{
+  /* Layout: ink-on-paper schematic notebook. Annotations sit in a <=70ch column; diagrams, tables and charts widen to 1120px. One continuous scroll, nothing hidden behind clicks. */
+  --bg:#FFFCF0;--bg-2:#F2F0E5;--ui:#E6E4D9;--ui-2:#DAD8CE;--ui-3:#CECDC3;
+  --tx:#100F0F;--tx-2:#6F6E69;--tx-3:#B7B5AC;
+  --stock:#205EA6;--stock-bg:#E1ECEB;
+  --flow:#24837B;--flow-bg:#DDF1E4;
+  --bal:#66800B;--bal-bg:#EDEECF;
+  --rein:#BC5215;--rein-bg:#FFE7CE;
+  --delay:#A02F6F;--delay-bg:#FEE4E5;
+  --risk:#AF3029;--risk-bg:#FFE1D5;
+  --note:#AD8301;--note-bg:#FAEEC6;
+  --info:#5E409D;--info-bg:#F0EAEC;
+  --f-body:"Atkinson Hyperlegible","Atkinson Hyperlegible Next",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"Atkinson Hyperlegible Mono",ui-monospace,"Cascadia Mono","SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#100F0F;--bg-2:#1C1B1A;--ui:#282726;--ui-2:#343331;--ui-3:#403E3C;
+  --tx:#CECDC3;--tx-2:#878580;--tx-3:#575653;
+  --stock:#4385BE;--stock-bg:#101A24;--flow:#3AA99F;--flow-bg:#101F1D;--bal:#879A39;--bal-bg:#1A1E0C;
+  --rein:#DA702C;--rein-bg:#27180E;--delay:#CE5D97;--delay-bg:#24131D;--risk:#D14D41;--risk-bg:#261312;
+  --note:#D0A215;--note-bg:#241E08;--info:#8B7EC8;--info-bg:#1A1623;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#100F0F;--bg-2:#1C1B1A;--ui:#282726;--ui-2:#343331;--ui-3:#403E3C;
+  --tx:#CECDC3;--tx-2:#878580;--tx-3:#575653;
+  --stock:#4385BE;--stock-bg:#101A24;--flow:#3AA99F;--flow-bg:#101F1D;--bal:#879A39;--bal-bg:#1A1E0C;
+  --rein:#DA702C;--rein-bg:#27180E;--delay:#CE5D97;--delay-bg:#24131D;--risk:#D14D41;--risk-bg:#261312;
+  --note:#D0A215;--note-bg:#241E08;--info:#8B7EC8;--info-bg:#1A1623;color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--tx);font-family:var(--f-body);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+h1,h2,h3,h4,h5{line-height:1.15;text-wrap:balance;margin:0;font-weight:700}
+p,ul,ol,dl,figure{margin:0}
+a{color:inherit}
+a:focus-visible,canvas:focus-visible{outline:2px solid var(--stock);outline-offset:3px}
+b,strong{font-weight:700}
+.mono{font-family:var(--f-mono)}
+.wrap{max-width:1120px;margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.col{max-width:70ch}
+
+/* ── header ── */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1.5px solid var(--tx)}
+.top-in{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px}
+.brand{font-weight:700;text-decoration:none;display:flex;align-items:baseline;gap:10px;white-space:nowrap}
+.brand span{font-family:var(--f-mono);font-size:12px;font-weight:400;color:var(--tx-2)}
+.tnav{display:flex;gap:4px;overflow-x:auto}
+.tnav a{font-family:var(--f-mono);font-size:12.5px;text-decoration:none;padding:4px 9px;border:1px solid transparent;white-space:nowrap}
+.tnav a b{color:var(--tx-2);margin-right:4px}
+.tnav a:hover{border-color:var(--ui-3)}
+.tnav a[aria-current="true"]{border-color:var(--tx);background:var(--bg-2)}
+@media (max-width:640px){.brand span{display:none}.tnav a span{display:none}}
+
+/* ── hero ── */
+.hero{display:grid;gap:24px;padding-block:48px 40px}
+.eyebrow{font-family:var(--f-mono);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-2)}
+.hero h1{font-size:clamp(36px,6.4vw,68px);letter-spacing:-.02em;line-height:1.02;max-width:16ch}
+.hero h1 em{font-style:normal;color:var(--stock)}
+.lede{font-size:19px;line-height:1.5;max-width:62ch}
+.key{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1.5px solid var(--tx)}
+.key>div{display:grid;grid-template-columns:62px 1fr;gap:10px;align-items:center;padding:10px 12px;border-right:1px solid var(--ui-2);border-bottom:1px solid var(--ui-2);min-width:0}
+.key svg{width:62px;height:34px}
+.key b{display:block;font-size:14px}
+.key span{font-size:13px;color:var(--tx-2);line-height:1.3;display:block}
+.key .kh{grid-column:1/-1;display:block;background:var(--tx);color:var(--bg);font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border:0}
+@media (max-width:900px){.key{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.key{grid-template-columns:1fr}}
+.map3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1.5px solid var(--tx)}
+.map3 a{display:grid;gap:6px;padding:14px 16px;text-decoration:none;border-right:1px solid var(--ui-2);align-content:start}
+.map3 a:last-child{border-right:0}
+.map3 a:hover{background:var(--bg-2)}
+.map3 .n{font-family:var(--f-mono);font-size:34px;font-weight:700;line-height:1}
+.map3 .p{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-2)}
+.map3 h3{font-size:19px}
+.map3 p{font-size:14.5px;color:var(--tx-2);line-height:1.45}
+@media (max-width:760px){.map3{grid-template-columns:1fr}.map3 a{border-right:0;border-bottom:1px solid var(--ui-2)}}
+.tags-legend{display:flex;flex-wrap:wrap;gap:10px 18px;font-size:14px;color:var(--tx-2);align-items:center}
+
+/* ── chapter opener ── */
+.chapter{padding-top:56px}
+.ch-open{display:grid;grid-template-columns:auto minmax(0,1fr);gap:28px;border-top:4px solid var(--tx);padding-top:22px}
+.ch-num{font-family:var(--f-mono);font-size:clamp(64px,11vw,132px);font-weight:700;line-height:.82;letter-spacing:-.05em}
+.ch-num small{display:block;font-size:12px;letter-spacing:.14em;font-weight:400;color:var(--tx-2);margin-bottom:8px}
+.ch-body{display:grid;gap:12px;align-content:start}
+.ch-body h2{font-size:clamp(30px,4.6vw,48px);letter-spacing:-.015em}
+.ch-sub{font-size:20px;color:var(--tx-2)}
+.goal{max-width:72ch;border:1.5px solid var(--tx);padding:12px 14px;background:var(--bg-2);font-size:15.5px;line-height:1.5}
+.goal b.l{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;margin-right:8px}
+.cmap{display:flex;flex-wrap:wrap;gap:6px}
+.cmap a{font-family:var(--f-mono);font-size:12.5px;border:1px solid var(--ui-3);padding:3px 8px;text-decoration:none;white-space:nowrap}
+.cmap a:hover{border-color:var(--tx);background:var(--bg-2)}
+.cmap a b{color:var(--tx-2);font-weight:400;margin-right:5px}
+@media (max-width:640px){.ch-open{grid-template-columns:1fr;gap:12px}}
+
+/* ── sections ── */
+.sec{display:grid;gap:22px;padding-block:44px;border-top:1px solid var(--ui-2)}
+.sec>*,.sub>*{min-width:0}
+.sec:first-of-type{border-top:0}
+.sh{display:grid;gap:8px;max-width:72ch}
+.sid{font-family:var(--f-mono);font-size:12.5px;letter-spacing:.1em;color:var(--tx-2);text-transform:uppercase}
+.sh h3{font-size:clamp(25px,3.2vw,32px);letter-spacing:-.01em}
+.sh p{font-size:17.5px;line-height:1.55}
+.sub{display:grid;gap:14px}
+.sub>h4{font-size:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sub>h4 .pill{font-size:11px}
+.sub>p,.p{max-width:70ch}
+.small{font-size:14.5px;color:var(--tx-2);line-height:1.5}
+.k{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-2)}
+
+/* grids */
+.g2,.g3,.g4,.g5{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g5{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:980px){.g5{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:900px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:1fr}}
+@media (max-width:640px){.g2,.g4{grid-template-columns:1fr}.g5{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* panels */
+.panel{border:1.5px solid var(--ui-3);background:var(--bg);padding:14px 16px;display:grid;gap:10px;align-content:start;min-width:0}
+.panel.ink{border-color:var(--tx)}
+.panel>.ph{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.panel h5{font-size:17px}
+.panel p{font-size:15.5px;line-height:1.5}
+.tint{--k:var(--tx);--kb:var(--bg);border-color:var(--k);background:var(--kb)}
+.t-stock{--k:var(--stock);--kb:var(--stock-bg)} .t-flow{--k:var(--flow);--kb:var(--flow-bg)}
+.t-bal{--k:var(--bal);--kb:var(--bal-bg)} .t-rein{--k:var(--rein);--kb:var(--rein-bg)}
+.t-delay{--k:var(--delay);--kb:var(--delay-bg)} .t-risk{--k:var(--risk);--kb:var(--risk-bg)}
+.t-note{--k:var(--note);--kb:var(--note-bg)} .t-info{--k:var(--info);--kb:var(--info-bg)}
+.lab{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--k,var(--tx-2));font-weight:700}
+
+/* pills, marks */
+.pill{display:inline-block;font-family:var(--f-mono);font-size:11px;font-weight:700;padding:2px 7px;border:1px solid var(--k,var(--tx-2));color:var(--k,var(--tx-2));background:var(--kb,transparent);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;line-height:1.5}
+.lb{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;border:2px solid var(--k);color:var(--k);font-family:var(--f-mono);font-weight:700;font-size:13px;flex:0 0 auto;background:var(--bg)}
+.m{display:inline-grid;place-items:center;width:20px;height:20px;font-family:var(--f-mono);font-weight:700;font-size:12px;border:1.5px solid var(--k);color:var(--k);background:var(--kb);margin-right:6px;vertical-align:-3px}
+.m.ok{--k:var(--bal);--kb:var(--bal-bg)} .m.no{--k:var(--risk);--kb:var(--risk-bg)}
+
+/* lists */
+ul.dl{list-style:none;padding:0;display:grid;gap:7px}
+ul.dl li{padding-left:18px;position:relative;font-size:15.5px;line-height:1.5}
+ul.dl li::before{content:"";position:absolute;left:1px;top:.7em;width:9px;height:2px;background:var(--k,var(--tx-2))}
+ol.steps{list-style:none;padding:0;display:grid;gap:8px;counter-reset:s}
+ol.steps li{display:grid;grid-template-columns:30px 1fr;gap:10px;font-size:15.5px;line-height:1.5;align-items:start}
+ol.steps li::before{counter-increment:s;content:counter(s);font-family:var(--f-mono);font-weight:700;width:26px;height:26px;display:grid;place-items:center;border:1.5px solid var(--k,var(--tx));color:var(--k,var(--tx));font-size:13px}
+dl.kv{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:5px 12px;font-size:15px;line-height:1.45}
+dl.kv dt{font-family:var(--f-mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--tx-2);padding-top:3px}
+dl.kv dd{margin:0}
+
+/* callouts & editor notes */
+.call{border:1.5px solid var(--k);background:var(--kb);padding:14px 16px;display:grid;gap:6px;max-width:80ch}
+.call .tag,.ed .tag{font-family:var(--f-mono);font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--k)}
+.call p{font-size:15.5px;line-height:1.5}
+.call.imp{--k:var(--stock);--kb:var(--stock-bg)} .call.cau{--k:var(--risk);--kb:var(--risk-bg)}
+.call.nte{--k:var(--flow);--kb:var(--flow-bg)} .call.wrn{--k:var(--rein);--kb:var(--rein-bg)} .call.tip{--k:var(--bal);--kb:var(--bal-bg)}
+.ed{--k:var(--note);border:1.5px dashed var(--note);background:var(--note-bg);padding:12px 14px;display:grid;gap:6px;max-width:80ch}
+.ed p{font-size:15px;line-height:1.5}
+.ed.fix .tag::before{content:"⚑ "}
+.ed .tag::before{content:"+ "}
+
+/* quotes & equations */
+.quote{font-size:clamp(20px,2.5vw,27px);line-height:1.32;font-weight:700;max-width:46ch;border-top:3px solid var(--tx);padding-top:14px;margin:0}
+.quote cite{display:block;font-family:var(--f-mono);font-size:12.5px;font-weight:400;color:var(--tx-2);font-style:normal;margin-top:10px;letter-spacing:.04em}
+.eq{font-family:var(--f-mono);font-size:clamp(14px,1.9vw,18px);border:1.5px solid var(--tx);padding:12px 16px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:center;background:var(--bg-2);text-align:center}
+.eq .s{color:var(--stock);font-weight:700} .eq .fi{color:var(--flow);font-weight:700} .eq .fo{color:var(--risk);font-weight:700}
+.eq .b{color:var(--bal);font-weight:700} .eq .r{color:var(--rein);font-weight:700} .eq .d{color:var(--delay);font-weight:700}
+.eq small{flex-basis:100%;font-size:12px;color:var(--tx-2)}
+
+/* tables */
+.tbl{overflow-x:auto;border:1.5px solid var(--tx);background:var(--bg)}
+.tbl table{border-collapse:collapse;width:100%;font-size:14.5px;line-height:1.4;font-variant-numeric:tabular-nums}
+.tbl th{font-family:var(--f-mono);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;text-align:left;background:var(--bg-2);color:var(--tx-2);padding:8px 10px;border-bottom:1.5px solid var(--tx);vertical-align:bottom}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--ui-2);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td.n,.tbl th.n{text-align:right;font-family:var(--f-mono);white-space:nowrap}
+.tbl td.c,.tbl th.c{text-align:center}
+.tbl tr.hl td{background:var(--kb)}
+.tbl td.pos{color:var(--bal);font-weight:700} .tbl td.neg{color:var(--risk);font-weight:700}
+.tbl caption{caption-side:top;text-align:left;font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:8px 10px;background:var(--tx);color:var(--bg)}
+.tbl .wide{min-width:720px}
+
+/* comparison split */
+.split{display:grid;grid-template-columns:minmax(0,1fr) 46px minmax(0,1fr);align-items:stretch}
+.side{--k:var(--tx);--kb:var(--bg);border:1.5px solid var(--k);background:var(--kb);padding:14px 16px;display:grid;gap:9px;align-content:start;min-width:0}
+.side.bad{--k:var(--risk);--kb:var(--risk-bg)} .side.good{--k:var(--bal);--kb:var(--bal-bg)}
+.side.r{--k:var(--rein);--kb:var(--rein-bg)} .side.s{--k:var(--stock);--kb:var(--stock-bg)}
+.side h4,.side h5{font-size:18px}
+.side p{font-size:15.5px;line-height:1.5}
+.vs{position:relative;display:grid;place-items:center}
+.vs::before{content:"";position:absolute;top:0;bottom:0;left:50%;border-left:1.5px dashed var(--ui-3)}
+.vs span{position:relative;background:var(--bg);font-family:var(--f-mono);font-size:12px;color:var(--tx-2);padding:6px 0;text-transform:uppercase;letter-spacing:.08em}
+@media (max-width:720px){.split{grid-template-columns:1fr}.vs{height:34px}.vs::before{top:50%;bottom:auto;left:0;right:0;border-left:0;border-top:1.5px dashed var(--ui-3)}.vs span{padding:0 10px}}
+
+/* box-and-pipe rails */
+.rail{display:flex;align-items:stretch;min-width:0}
+.rail>.node{flex:1 1 0;min-width:0}
+.rail>.pipe{flex:0 0 84px;position:relative;display:flex;align-items:center;justify-content:center;--pc:var(--tx)}
+.pipe::before{content:"";position:absolute;left:3px;right:11px;top:50%;border-top:3px solid var(--pc);transform:translateY(-50%)}
+.pipe::after{content:"";position:absolute;right:2px;top:50%;transform:translateY(-50%);border-left:10px solid var(--pc);border-top:6px solid transparent;border-bottom:6px solid transparent}
+.pipe>span{position:relative;z-index:1;font-family:var(--f-mono);font-size:11px;line-height:1.25;color:var(--pc);background:var(--bg);padding:2px 4px;text-align:center;max-width:78px;font-weight:600}
+.pipe.flow{--pc:var(--flow)} .pipe.flow::before{border-top-width:5px}
+.pipe.info{--pc:var(--tx-2)} .pipe.info::before{border-top:2px dashed var(--pc)}
+.pipe.bal{--pc:var(--bal)} .pipe.rein{--pc:var(--rein)} .pipe.risk{--pc:var(--risk)}
+.pipe.delay{--pc:var(--delay)} .pipe.delay>span::before{content:"‖ ";font-weight:700}
+.node{border:1.5px solid var(--tx);background:var(--bg);padding:10px 12px;display:flex;flex-direction:column;gap:3px;justify-content:center;--kc:var(--tx-2)}
+.node .nk{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--kc);font-weight:700}
+.node b{font-size:15.5px;line-height:1.25}
+.node small{font-size:13.5px;color:var(--tx-2);line-height:1.35}
+.node.stock{border:4px double var(--stock);background:var(--stock-bg);--kc:var(--stock)}
+.node.stockd{border:4px double var(--delay);background:var(--delay-bg);--kc:var(--delay)}
+.node.flow{border-color:var(--flow);background:var(--flow-bg);--kc:var(--flow)}
+.node.goal{border:1.8px dashed var(--bal);--kc:var(--bal)}
+.node.ctrl{border-color:var(--info);background:var(--info-bg);--kc:var(--info)}
+.node.bal{border-color:var(--bal);background:var(--bal-bg);--kc:var(--bal)}
+.node.rein{border-color:var(--rein);background:var(--rein-bg);--kc:var(--rein)}
+.node.delay{border-color:var(--delay);background:var(--delay-bg);--kc:var(--delay)}
+.node.risk{border-color:var(--risk);background:var(--risk-bg);--kc:var(--risk)}
+.node.cloud{flex:0 0 auto;border:1.5px dashed var(--tx-3);border-radius:999px;background:var(--bg-2);text-align:center;min-width:76px;align-items:center}
+.ret{position:relative;height:30px;margin:0 9%;border:2px dashed var(--rc,var(--tx-2));border-top:0;--rc:var(--tx-2)}
+.ret::before{content:"";position:absolute;left:-7px;top:-3px;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid var(--rc)}
+.ret>span{position:absolute;left:50%;bottom:-11px;transform:translateX(-50%);background:var(--bg);padding:0 8px;font-family:var(--f-mono);font-size:12px;color:var(--rc);white-space:nowrap;font-weight:600}
+.ret.b{--rc:var(--bal)} .ret.r{--rc:var(--rein)} .ret.d{--rc:var(--delay)}
+.loop{display:grid;gap:0;padding-bottom:14px}
+@media (max-width:760px){
+  .rail{flex-direction:column}
+  .rail>.node{flex:0 0 auto}
+  .rail>.pipe{flex:0 0 auto;min-height:46px}
+  .pipe::before{left:50%;right:auto;top:2px;bottom:11px;border-top:0;border-left:3px solid var(--pc);transform:translateX(-50%)}
+  .pipe.flow::before{border-left-width:5px}
+  .pipe.info::before{border-left:2px dashed var(--pc);border-top:0}
+  .pipe::after{right:auto;left:50%;top:auto;bottom:2px;transform:translateX(-50%);border-left:6px solid transparent;border-right:6px solid transparent;border-top:10px solid var(--pc);border-bottom:0}
+  .pipe>span{max-width:none}
+  .ret{height:auto;margin:6px 0 0;border:2px dashed var(--rc);padding:6px 10px;text-align:center}
+  .ret::before{display:none}
+  .ret>span{position:static;transform:none;white-space:normal;padding:0}
+  .ret>span::before{content:"↺ "}
+  .loop{padding-bottom:0}
+}
+
+/* causal chains */
+.chain{display:flex;flex-wrap:wrap;gap:6px 4px;align-items:center;--k:var(--tx);--kb:var(--bg)}
+.chain span{border:1.2px solid var(--k);background:var(--kb);padding:3px 9px;font-size:14px;line-height:1.35}
+.chain i{font-style:normal;color:var(--k);font-family:var(--f-mono);font-weight:700;padding:0 2px}
+.chain.r{--k:var(--rein);--kb:var(--rein-bg)} .chain.b{--k:var(--bal);--kb:var(--bal-bg)} .chain.x{--k:var(--risk);--kb:var(--risk-bg)} .chain.s{--k:var(--stock);--kb:var(--stock-bg)}
+
+/* figures & charts */
+.fig{border:1.5px solid var(--ui-3);background:var(--bg);padding:12px;display:grid;gap:8px;min-width:0}
+.fig.ink{border-color:var(--tx)}
+.fig .scroll{overflow-x:auto;min-width:0}
+.fig svg{display:block;width:100%;height:auto}
+.fig .scroll>svg{min-width:var(--minw,0px)}
+.fig figcaption{font-size:14px;color:var(--tx-2);line-height:1.45}
+.fig .ft{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-2);font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-family:var(--f-mono);font-size:12px;color:var(--tx-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:16px;height:3px;background:var(--k)}
+.legend i.bar{height:10px;width:10px}
+.legend i.dash{background:repeating-linear-gradient(90deg,var(--k) 0 4px,transparent 4px 7px)}
+svg text{font-family:var(--f-mono);font-size:12px;fill:var(--tx)}
+svg .t2{fill:var(--tx-2)} svg .t3{fill:var(--tx-3)} svg .tb{font-weight:700}
+svg .sm{font-size:11px}
+svg .axis{stroke:var(--tx);stroke-width:1.2}
+svg .grid{stroke:var(--ui-2);stroke-width:1}
+svg .ln{fill:none;stroke:var(--k);stroke-width:2.6;stroke-linejoin:round;stroke-linecap:round}
+svg .ln.dash{stroke-dasharray:6 5}
+svg .ln.thin{stroke-width:1.8}
+svg .bar{fill:var(--k)}
+svg .area{fill:var(--k);opacity:.13}
+svg .dot{fill:var(--k);stroke:var(--bg);stroke-width:2}
+svg .band{fill:var(--k);opacity:.09}
+svg .ref{stroke:var(--k);stroke-width:1.5;stroke-dasharray:4 4;fill:none}
+svg .kt{fill:var(--k)}
+svg .halo{paint-order:stroke;stroke:var(--bg);stroke-width:5px;stroke-linejoin:round}
+.k-stock{--k:var(--stock)} .k-flow{--k:var(--flow)} .k-bal{--k:var(--bal)} .k-rein{--k:var(--rein)}
+.k-delay{--k:var(--delay)} .k-risk{--k:var(--risk)} .k-note{--k:var(--note)} .k-info{--k:var(--info)}
+.k-ink{--k:var(--tx)} .k-mute{--k:var(--tx-2)}
+
+/* schematic diagrams (dg) */
+.dg text{font-family:var(--f-mono)}
+.dg .nk{font-size:10.5px;letter-spacing:.06em;fill:var(--kc,var(--tx-2));font-weight:700}
+.dg .nt{font-size:13px;font-weight:700;fill:var(--tx)}
+.dg .ns{font-size:11.5px;fill:var(--tx-2)}
+.dg .lab{font-size:11px;fill:var(--tx-2);text-transform:none;letter-spacing:0;font-weight:400}
+.dg .lab.tb{font-weight:700;fill:var(--tx)}
+.dg .lab.c-bal{fill:var(--bal);font-weight:700} .dg .lab.c-rein{fill:var(--rein);font-weight:700}
+.dg .lab.c-flow{fill:var(--flow);font-weight:700} .dg .lab.c-delay{fill:var(--delay);font-weight:700}
+.dg .lab.c-risk{fill:var(--risk);font-weight:700} .dg .lab.c-stock{fill:var(--stock);font-weight:700}
+.dg .lab.big{font-size:13px}
+.dg .nb{fill:var(--bg);stroke:var(--tx);stroke-width:1.5}
+.dg .n-stock{--kc:var(--stock)} .dg .n-stock .nb{fill:var(--stock-bg);stroke:var(--stock);stroke-width:2.5} .dg .n-stock .nb2{fill:none;stroke:var(--stock);stroke-width:1}
+.dg .n-stockd{--kc:var(--delay)} .dg .n-stockd .nb{fill:var(--delay-bg);stroke:var(--delay);stroke-width:2.5} .dg .n-stockd .nb2{fill:none;stroke:var(--delay);stroke-width:1}
+.dg .n-b{--kc:var(--bal)} .dg .n-b .nb{fill:var(--bal-bg);stroke:var(--bal)}
+.dg .n-r{--kc:var(--rein)} .dg .n-r .nb{fill:var(--rein-bg);stroke:var(--rein)}
+.dg .n-i{--kc:var(--info)} .dg .n-i .nb{fill:var(--info-bg);stroke:var(--info)}
+.dg .n-d{--kc:var(--delay)} .dg .n-d .nb{fill:var(--delay-bg);stroke:var(--delay)}
+.dg .n-x{--kc:var(--risk)} .dg .n-x .nb{fill:var(--risk-bg);stroke:var(--risk)}
+.dg .n-f{--kc:var(--flow)} .dg .n-f .nb{fill:var(--flow-bg);stroke:var(--flow)}
+.dg .n-goal{--kc:var(--bal)} .dg .n-goal .nb{fill:var(--bg);stroke:var(--bal);stroke-dasharray:5 4;stroke-width:1.8}
+.dg .n-mute .nb{fill:var(--bg-2);stroke:var(--ui-3)}
+.dg .e-pipe{stroke:var(--flow);stroke-width:7;fill:none;stroke-linejoin:round}
+.dg .e-empty{stroke:var(--tx-3);stroke-width:3;fill:none;stroke-dasharray:6 6}
+.dg .e-info{stroke:var(--tx-2);stroke-width:1.6;fill:none;stroke-dasharray:5 4}
+.dg .e-bal{stroke:var(--bal);stroke-width:2;fill:none}
+.dg .e-rein{stroke:var(--rein);stroke-width:2;fill:none}
+.dg .e-delay{stroke:var(--delay);stroke-width:2;fill:none}
+.dg .e-ink{stroke:var(--tx);stroke-width:1.6;fill:none}
+.dg .e-risk{stroke:var(--risk);stroke-width:2;fill:none;stroke-dasharray:6 4}
+.dg .e-good{stroke:var(--bal);stroke-width:2;fill:none}
+.dg .valve{fill:var(--bg);stroke:var(--flow);stroke-width:2;stroke-linejoin:round}
+.dg .badge circle{fill:var(--bg);stroke-width:2.2}
+.dg .bt{font-size:13px;font-weight:700}
+.dg .b-bal circle{stroke:var(--bal)} .dg .b-bal .bt{fill:var(--bal)}
+.dg .b-rein circle{stroke:var(--rein)} .dg .b-rein .bt{fill:var(--rein)}
+.dg .dmark{stroke:var(--delay);stroke-width:2.6}
+.dg .region{fill:none;stroke:var(--ui-3);stroke-width:1.3;stroke-dasharray:3 4}
+.dg .rlab{font-size:10.5px;letter-spacing:.1em;fill:var(--tx-2);font-weight:700}
+.mk-ink{fill:var(--tx)} .mk-flow{fill:var(--flow)} .mk-info{fill:var(--tx-2)} .mk-bal{fill:var(--bal)}
+.mk-rein{fill:var(--rein)} .mk-delay{fill:var(--delay)} .mk-risk{fill:var(--risk)}
+
+/* hand-drawn illustration classes */
+.il .ink{stroke:var(--tx);fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.il .thin{stroke-width:1.2}
+.il .paper{fill:var(--bg)}
+.il .paper2{fill:var(--bg-2)}
+.il .water{fill:var(--stock);opacity:.28}
+.il .waterl{stroke:var(--stock);stroke-width:2;fill:none}
+.il .rock{fill:var(--ui-3);stroke:var(--tx-2);stroke-width:1.2}
+.il .rockx{fill:var(--risk-bg);stroke:var(--risk);stroke-width:1.6}
+.il .fl{stroke:var(--flow);stroke-width:7;fill:none;stroke-linejoin:round}
+.il .flt{stroke:var(--flow);stroke-width:3;fill:none}
+.il .valve{fill:var(--bg);stroke:var(--flow);stroke-width:2}
+.il .risk{stroke:var(--risk);fill:none;stroke-width:2.2}
+.il .good{stroke:var(--bal);fill:none;stroke-width:2.2}
+.il .fillg{fill:var(--bal)} .il .fillr{fill:var(--risk)} .il .fills{fill:var(--stock)}
+
+/* diagnostic card */
+.diag{border:2px solid var(--tx);background:var(--bg);max-width:900px}
+.diag-h{background:var(--tx);color:var(--bg);font-family:var(--f-mono);padding:9px 14px;letter-spacing:.08em;text-transform:uppercase;font-size:12.5px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.diag ol{list-style:none;margin:0;padding:0;counter-reset:q}
+.diag li{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;padding:14px 16px;border-top:1px solid var(--ui-2)}
+.diag li:first-child{border-top:0}
+.diag li::before{counter-increment:q;content:counter(q,decimal-leading-zero);font-family:var(--f-mono);font-size:24px;font-weight:700;line-height:1;color:var(--tx-2)}
+.diag li b{display:block;font-size:17px;margin-bottom:3px}
+.diag li p{font-size:15.5px;line-height:1.5;color:var(--tx)}
+.diag li .chk{display:inline-block;width:16px;height:16px;border:1.5px solid var(--tx);margin-right:8px;vertical-align:-2px}
+
+/* laws grid */
+.laws{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:1.5px solid var(--tx)}
+.laws>div{padding:14px 16px;border-bottom:1px solid var(--ui-2);border-right:1px solid var(--ui-2);display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;align-items:start}
+.laws>div:nth-child(2n){border-right:0}
+.laws .ln-n{font-family:var(--f-mono);font-size:22px;font-weight:700;color:var(--tx-2);line-height:1}
+.laws b{display:block;font-size:15.5px;letter-spacing:.01em;text-transform:uppercase;font-family:var(--f-mono);font-size:13px;margin-bottom:4px}
+.laws p{font-size:15px;line-height:1.45}
+.laws>div.span{grid-column:1/-1;border-right:0}
+@media (max-width:720px){.laws{grid-template-columns:1fr}.laws>div{border-right:0}}
+
+/* low vs high leverage rows */
+.lev{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);border:1.5px solid var(--tx)}
+.lev>div{padding:12px 14px;display:grid;gap:6px;align-content:start}
+.lev .lo{background:var(--risk-bg);border-right:1px solid var(--ui-3)}
+.lev .hi{background:var(--bal-bg)}
+.lev .lab{--k:var(--risk)} .lev .hi .lab{--k:var(--bal)}
+.lev p,.lev li{font-size:15px;line-height:1.5}
+.lev h5{grid-column:1/-1;background:var(--tx);color:var(--bg);padding:8px 14px;font-family:var(--f-mono);font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+@media (max-width:720px){.lev{grid-template-columns:1fr}.lev .lo{border-right:0;border-bottom:1px solid var(--ui-3)}}
+
+/* iceberg (events vs stocks) */
+.berg{border:1.5px solid var(--tx);display:grid}
+.berg .above,.berg .below{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0}
+.berg .above>div,.berg .below>div{padding:12px 14px;font-size:14.5px;line-height:1.4;border-right:1px solid var(--ui-2)}
+.berg .above>div:last-child,.berg .below>div:last-child{border-right:0}
+.berg .above{background:var(--bg)}
+.berg .below{background:var(--stock-bg)}
+.berg .wl{display:flex;align-items:center;gap:10px;padding:6px 14px;background:var(--stock);color:var(--bg);font-family:var(--f-mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.berg .ev{font-weight:700}
+.berg .st{color:var(--stock);font-weight:700}
+@media (max-width:760px){.berg .above,.berg .below{grid-template-columns:1fr 1fr}.berg .above>div:nth-child(2),.berg .below>div:nth-child(2){border-right:0}.berg .above>div:nth-child(-n+2),.berg .below>div:nth-child(-n+2){border-bottom:1px solid var(--ui-2)}}
+
+/* tiers */
+.tiers{display:grid;gap:0;border:1.5px solid var(--tx)}
+.tier{display:grid;grid-template-columns:160px minmax(0,1fr);border-bottom:1px solid var(--ui-3)}
+.tier:last-child{border-bottom:0}
+.tier>.th{padding:12px 14px;display:grid;gap:4px;align-content:start;background:var(--kb);border-right:1.5px solid var(--k)}
+.tier>.th b{font-size:15px}
+.tier>.th .lab{font-size:11px}
+.tier>.tb{padding:12px 14px;display:grid;gap:10px;min-width:0}
+@media (max-width:720px){.tier{grid-template-columns:1fr}.tier>.th{border-right:0;border-bottom:1.5px solid var(--k)}}
+
+/* bars (log comparisons) */
+.hbars{display:grid;gap:10px}
+.hbar{display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px;align-items:center}
+.hbar .nm{font-family:var(--f-mono);font-size:12.5px;font-weight:700}
+.hbar .tr{position:relative;height:30px;background:var(--bg-2);border:1px solid var(--ui-3)}
+.hbar .fl{position:absolute;inset:0 auto 0 0;background:var(--k)}
+.hbar .vl{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-family:var(--f-mono);font-size:12.5px;font-weight:700;color:var(--tx);background:var(--bg);padding:0 6px;white-space:nowrap}
+.scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--tx-2);margin-left:120px}
+
+/* gauge */
+.gauge{display:grid;grid-template-columns:3fr 3fr 1.2fr;border:1.5px solid var(--tx);font-size:13.5px}
+.gauge>div{padding:10px 12px;display:grid;gap:2px;background:var(--kb);border-right:1px solid var(--ui-3)}
+.gauge>div:last-child{border-right:0}
+.gauge b{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--k)}
+@media (max-width:640px){.gauge{grid-template-columns:1fr}.gauge>div{border-right:0;border-bottom:1px solid var(--ui-3)}}
+
+/* nested containment (hierarchy) */
+.nest{border:2px solid var(--tx);padding:12px;display:grid;gap:10px;background:var(--bg)}
+.nest .lab{--k:var(--tx)}
+.nest .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.nest .sub2{border:1.5px solid var(--stock);background:var(--stock-bg);padding:10px;display:grid;gap:8px}
+.nest .sub2 .lab{--k:var(--stock)}
+.nest .mods{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.nest .mods span{border:1.2px dashed var(--tx-2);background:var(--bg);padding:8px;text-align:center;font-family:var(--f-mono);font-size:13px}
+@media (max-width:520px){.nest .row{grid-template-columns:1fr}}
+
+/* balance beam */
+.beam{display:grid;gap:10px;justify-items:center}
+.beam .bar{display:grid;grid-template-columns:1fr auto 1fr;width:100%;max-width:820px;align-items:center;gap:10px}
+.beam .bar>span{border:1.5px solid var(--tx);padding:8px 10px;text-align:center;font-weight:700;font-size:15px}
+.beam .bar>span small{display:block;font-weight:400;color:var(--tx-2);font-size:13px}
+.beam .bar>i{font-style:normal;font-family:var(--f-mono);font-size:20px}
+.beam .fulcrum{width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:22px solid var(--tx)}
+
+/* GoL & boids */
+.gol{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}
+.gol figure{display:grid;gap:4px;justify-items:center}
+.gol figcaption{font-family:var(--f-mono);font-size:11.5px;color:var(--tx-2);text-align:center}
+.gol svg{width:auto;height:auto}
+.gol .on{fill:var(--tx)} .gol .off{fill:var(--bg-2);stroke:var(--ui-2);stroke-width:1}
+.gol .grp{display:grid;gap:6px;border:1px solid var(--ui-3);padding:10px}
+.gol .grp>.row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.boids{position:relative;border:1.5px solid var(--tx);background:var(--bg-2);height:260px}
+.boids canvas{display:block;width:100%;height:100%}
+.boids .cap{position:absolute;left:10px;top:8px;font-family:var(--f-mono);font-size:11.5px;color:var(--tx-2);background:var(--bg-2);padding:2px 6px;letter-spacing:.06em;text-transform:uppercase}
+
+/* generic chart hosts */
+.scroll{overflow-x:auto;min-width:0}
+.scroll>svg{min-width:var(--minw,0px)}
+[id^="sp-"] svg,[id^="ch-"] svg,[id^="dg-"] svg{display:block;width:100%;height:auto}
+.wm{display:block;width:100%;height:auto;max-width:460px;min-width:240px}
+.wm .wm-lost{fill:var(--risk)} .wm .wm-ok{fill:var(--bal)} .wm .wm-empty{fill:var(--bg-2);stroke:var(--ui-3);stroke-width:.6}
+
+/* next-chapter + footer */
+.next{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border:1.5px solid var(--tx);padding:14px 16px;text-decoration:none;background:var(--bg-2)}
+.next:hover{background:var(--ui)}
+.next b{font-size:18px}
+.next span{font-family:var(--f-mono);font-size:12px;color:var(--tx-2);letter-spacing:.08em;text-transform:uppercase}
+footer.foot{border-top:4px solid var(--tx);margin-top:56px;padding-block:24px 48px;font-size:14px;color:var(--tx-2);display:grid;gap:8px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id="ah-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-ink"/></marker>
+    <marker id="ah-info" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-info"/></marker>
+    <marker id="ah-bal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-bal"/></marker>
+    <marker id="ah-rein" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-rein"/></marker>
+    <marker id="ah-delay" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-delay"/></marker>
+    <marker id="ah-risk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-risk"/></marker>
+    <marker id="ah-flow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="20" markerHeight="20" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk-flow"/></marker>
+    <symbol id="cloud" viewBox="0 0 64 40"><path d="M16 35 C6 35 3 25 10 21 C8 11 19 6 26 11 C30 2 45 3 47 13 C56 11 62 21 56 28 C59 33 53 37 48 35 Z" style="fill:var(--bg-2);stroke:var(--tx-2);stroke-width:1.6"/></symbol>
+  </defs>
+</svg>
+
+<header class="top"><div class="wrap top-in">
+  <a class="brand" href="#top">0.2 · OOP, Modules, venvs<span>Phase 0 · Foundations</span></a>
+  <nav class="tnav" aria-label="Page sections">
+    <a href="#overview"><b>01</b><span>Overview</span></a>
+    <a href="#glossary"><b>02</b><span>Glossary</span></a>
+    <a href="#skiptest"><b>03</b><span>Skip Test</span></a>
+    <a href="#visuals"><b>04</b><span>Visuals</span></a>
+    <a href="#deepdive"><b>05</b><span>Deep Dive</span></a>
+    <a href="#handson"><b>06</b><span>Hands-On</span></a>
+    <a href="#checkpoint"><b>07</b><span>Checkpoint</span></a>
+    <a href="#rebuild"><b>08</b><span>Rebuild</span></a>
+  </nav>
+</div></header>
+<style>
+  pre { overflow-x: auto; max-width: 100%; }
+  pre.screen { overflow-x: auto; max-width: 100%; font-family: var(--f-mono); font-size: 13px; line-height: 1.4; padding: 12px 14px; background: var(--bg-2); border: 1.5px solid var(--ui-3); }
+  .nav-siblings { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 1.5rem; font-size: 13px; font-family: var(--f-mono); }
+  .nav-siblings .active { font-weight: 700; color: var(--tx); border-bottom: 2px solid var(--tx); }
+  .nav-siblings a { color: var(--tx-2); text-decoration: none; }
+  .nav-siblings a:hover { color: var(--tx); }
+</style>
+<main id="top">
+
+<section class="hero wrap">
+  <div class="nav-siblings">
+    <a href="01_python_basics.html">← 0.1 · Python Basics</a>
+    <span class="active">0.2 · OOP, Modules, venvs</span>
+    <a href="03_async_typehints_pydantic.html">0.3 · Async, Type Hints, Pydantic →</a>
+  </div>
+  <p class="eyebrow">Phase 0 · Engineering Foundations · Topic 0.2</p>
+  <h1>Object-Oriented Architecture: <em>Contracts, Inheritance &amp; MRO.</em></h1>
+  <p class="lede">How Python's object model structures modern agent frameworks, PyTorch layers, and modular ML codebases. Master Abstract Base Classes, attribute resolution order, and environment isolation.</p>
+
+  <div class="rail">
+    <div class="node stock"><span class="nk">01 · CONTRACTS</span><b>Abstract Base Classes</b><small>Refuse incomplete tools at construction</small></div>
+    <div class="pipe flow"><span>inherit</span></div>
+    <div class="node ctrl"><span class="nk">02 · RESOLUTION</span><b>MRO &amp; Lookup</b><small>Instance → Class → Parent hierarchy</small></div>
+    <div class="pipe flow"><span>compose</span></div>
+    <div class="node bal"><span class="nk">03 · INTERFACE</span><b>Polymorphism</b><small>Unified list[BaseTool] dispatch</small></div>
+    <div class="pipe flow"><span>package</span></div>
+    <div class="node rein"><span class="nk">04 · ENVIRONMENT</span><b>Modules &amp; venv</b><small>Hermetic dependencies &amp; sys.path</small></div>
+  </div>
+
+  <div class="laws" aria-label="Four Core Principles">
+    <div><span class="ln-n">01</span><div><b>Early Construction Rejection</b><p>An Abstract Base Class with @abstractmethod rejects an incomplete subclass during object instantiation, preventing late runtime failures.</p></div></div>
+    <div><span class="ln-n">02</span><div><b>Class Attributes are Shared</b><p>A mutable attribute declared in the class body is allocated once and shared across every instance. Mutating it corrupts all siblings.</p></div></div>
+    <div><span class="ln-n">03</span><div><b>Attribute Lookup Walks MRO</b><p>Python searches instance dict first, then class dict, then parent classes. Shadowing writes to instance dict without modifying class dict.</p></div></div>
+    <div><span class="ln-n">04</span><div><b>Traceability Demands __repr__</b><p>Production agent pipelines log state transitions. Without a clear __repr__, logs display uninformative hex memory addresses.</p></div></div>
+  </div>
+</section>
+
+<section class="chapter wrap" id="overview">
+  <div class="ch-open"><div class="ch-num">01</div><div class="ch-body"><p class="eyebrow">Executive Summary</p><h2>Overview &amp; OOP Decision Matrix</h2><p class="ch-sub">Why AI/ML engineering relies on object-oriented programming for tool abstractions, models, and environments.</p></div></div>
+
+  <div class="tbl">
+    <table class="wide">
+      <thead><tr><th>OOP Concept</th><th>CPython Mechanism</th><th>Failure Mode if Ignored</th><th>AI/ML Pipeline Pattern</th></tr></thead>
+      <tbody>
+        <tr><td><b>Abstract Base Class (ABC)</b></td><td><code>abc.ABCMeta</code> metaclass checks <code>__abstractmethods__</code> at construction</td><td>Agent crashes 40 steps into workflow on missing <code>.run()</code></td><td><code>BaseTool</code>, <code>BaseRetriever</code>, <code>BaseLLM</code> contracts</td></tr>
+        <tr><td><b>Instance vs Class Attribute</b></td><td><code>self.x = []</code> in <code>__init__</code> vs <code>x = []</code> on class definition</td><td>State leak: Agent B observes call history of Agent A</td><td>Tool state isolation, conversation session buffers</td></tr>
+        <tr><td><b>MRO &amp; <code>super()</code></b></td><td>C3 Linearization algorithm resolving <code>__mro__</code> tuple</td><td>Parent <code>__init__</code> skipped; missing timeouts / configs</td><td>Custom PyTorch layers subclassing <code>nn.Module</code></td></tr>
+        <tr><td><b>Polymorphic Dispatch</b></td><td>Dynamic duck-typing matching signature interfaces</td><td>Brittle <code>if isinstance(tool, SQLTool)</code> branching</td><td>Agent tool router executing <code>list[BaseTool]</code></td></tr>
+        <tr><td><b>Developer <code>__repr__</code></b></td><td>Format specifier <code>!r</code> calling <code>__repr__()</code> method</td><td>Logs show unreadable <code>&lt;SQLTool at 0x7fa281b&gt;</code></td><td>Agent trace logs, LangSmith / OpenTelemetry telemetry</td></tr>
+        <tr><td><b>Hermetic <code>venv</code></b></td><td>Modifies <code>sys.prefix</code> and <code>sys.path</code> via <code>pyvenv.cfg</code></td><td>CUDA driver mismatch or conflicting NumPy versions</td><td>Docker microservices and isolated training environments</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="split">
+    <div class="side bad">
+      <h4>❌ Fatal AI Agent Bug: Shared Mutable State</h4>
+      <p>Defining state storage in the class body shares a single list pointer across all worker instances.</p>
+      <pre><code>class AgentTool:
+    call_log = []  # CLASS ATTRIBUTE: Shared across ALL instances!
+
+tool1 = AgentTool()
+tool2 = AgentTool()
+tool1.call_log.append("tool1_query")
+# tool2.call_log is now ['tool1_query']! Memory leaked between sessions!</code></pre>
+    </div>
+    <div class="side good">
+      <h4>✅ Production Pattern: Instance Initialization</h4>
+      <p>Allocating unique container objects inside <code>__init__</code> binds the list to the individual instance dict.</p>
+      <pre><code>class AgentTool:
+    def __init__(self):
+        self.call_log = []  # INSTANCE ATTRIBUTE: Unique per instance
+
+tool1 = AgentTool()
+tool2 = AgentTool()
+tool1.call_log.append("tool1_query")
+# tool2.call_log remains empty []</code></pre>
+    </div>
+  </div>
+</section>
+
+<section class="chapter wrap" id="glossary">
+  <div class="ch-open"><div class="ch-num">02</div><div class="ch-body"><p class="eyebrow">Terminology &amp; Mechanisms</p><h2>The 8 Core Glossary Terms</h2><p class="ch-sub">Detailed breakdown of inheritance, resolution mechanics, packaging, and runtime representation.</p></div></div>
+
+  <div class="term-card">
+    <div class="th"><span class="tag">2.1</span><h3>ABC (Abstract Base Class)</h3></div>
+    <p class="def">A class deriving from <code>abc.ABC</code> containing one or more methods decorated with <code>@abstractmethod</code>. The metaclass forbids direct instantiation of subclasses that do not implement all abstract methods.</p>
+    <div class="panel tint t-info"><h5>💡 Production Mechanism</h5><p>An architectural blueprint for hardware manufacturing. An engine block casting cannot leave the foundry until every required cylinder sleeve and bolt hole is verified.</p></div>
+    <div class="g2">
+      <div class="panel"><h5>⚠️ Fragile Subclass Trap</h5><pre><code>from abc import ABC, abstractmethod
+class BaseTool(ABC):
+    @abstractmethod
+    def run(self, query: str) -> str: pass
+
+class BadTool(BaseTool): pass
+t = BadTool() # TypeError: Can't instantiate abstract class!</code></pre></div>
+      <div class="panel"><h5>✅ Verified Production Output</h5><pre class="screen"><code>BrokenTool() -> TypeError: Can't instantiate abstract class
+BrokenTool without an implementation for abstract method 'run'
+^ Caught when building the object, NOT when an agent calls run().</code></pre></div>
+    </div>
+    <div class="panel tint t-bal"><h5>🤖 AI/ML Pipeline Application</h5><p>LangChain and LlamaIndex tool contracts: ensuring any LLM-callable tool implements <code>name</code>, <code>description</code>, and <code>_run()</code> before registering with the agent reasoning loop.</p></div>
+    <div class="rail"><div class="node stock"><b>BaseTool(ABC)</b><small>@abstractmethod def run()</small></div><div class="pipe flow"><span>subclass</span></div><div class="node rein"><b>SQLTool</b><small>Implements run()</small></div><div class="pipe flow"><span>validate</span></div><div class="node bal"><b>Instantiation Allowed</b><small>Instance constructed</small></div></div>
+  </div>
+
+  <div class="term-card">
+    <div class="th"><span class="tag">2.2</span><h3>Class Attribute vs. Instance Attribute</h3></div>
+    <p class="def">Class attributes are stored in the class object's dictionary (<code>Class.__dict__</code>) and shared by all instances. Instance attributes are stored in <code>instance.__dict__</code> and belong exclusively to that instance.</p>
+    <div class="panel tint t-info"><h5>💡 Production Mechanism</h5><p>A communal whiteboard in a shared conference room versus a personal notebook at an engineer's desk. Writing on the whiteboard alters what every attendee in the room sees.</p></div>
+    <div class="g2">
+      <div class="panel"><h5>⚠️ The Classic Shared Mutable Bug</h5><pre><code>class Tool:
+    call_log = [] # Shared class attribute
+    def record(self, q):
+        self.call_log.append(q)
+
+a, b = Tool(), Tool()
+a.record("query 1")
+print(b.call_log) # ['query 1'] -- State leak!</code></pre></div>
+      <div class="panel"><h5>✅ Verified Production Output</h5><pre class="screen"><code>a.call_log        : ['sql_query', 'web_search']
+b.call_log        : ['sql_query', 'web_search']
+same list object? : True
+Tool.call_log     : ['sql_query', 'web_search']
+^ ONE list shared by every instance AND the class itself.</code></pre></div>
+    </div>
+    <div class="panel tint t-bal"><h5>🤖 AI/ML Pipeline Application</h5><p>Multi-tenant LLM serving: preventing user session conversation histories or vector search filters from leaking into concurrent requests handled by the same worker process.</p></div>
+    <div class="split"><div class="side bad"><h4>Class Attribute (Shared Heap Object)</h4><p>Tool.__dict__['call_log'] → 0x7fa910 (Single list accessed by all instances)</p></div><div class="side good"><h4>Instance Attribute (Isolated Storage)</h4><p>self.__dict__['call_log'] → 0x7fa999 (New list created during __init__)</p></div></div>
+  </div>
+
+  <div class="term-card">
+    <div class="th"><span class="tag">2.3</span><h3>MRO (Method Resolution Order)</h3></div>
+    <p class="def">The deterministic linearization order Python uses to search for methods and attributes across class inheritance hierarchies, calculated via the C3 Linearization algorithm and stored in <code>Class.__mro__</code>.</p>
+    <div class="panel tint t-info"><h5>💡 Production Mechanism</h5><p>A corporate escalation path. A support ticket checks the primary technician, escalates to the senior team lead, and finally to department director in a fixed sequence.</p></div>
+    <div class="g2">
+      <div class="panel"><h5>⚠️ Forgetting super().__init__()</h5><pre><code>class Base:
+    def __init__(self, timeout=30.0):
+        self.timeout = timeout
+
+class Child(Base):
+    def __init__(self, dsn):
+        self.dsn = dsn
+        # Forgot super().__init__()! self.timeout is lost!</code></pre></div>
+      <div class="panel"><h5>✅ Verified Production Output</h5><pre class="screen"><code>SQLTool.timeout     : 30.0
+ForgotSuper.timeout : AttributeError: 'ForgotSuper' object has no attribute 'timeout'
+^ The symptom appears FAR from the cause -- some later line reads
+  self.timeout and blows up, with nothing pointing at __init__.</code></pre></div>
+    </div>
+    <div class="panel tint t-bal"><h5>🤖 AI/ML Pipeline Application</h5><p>PyTorch custom modules: subclassing <code>nn.Module</code> requires calling <code>super().__init__()</code> to initialize internal parameter registries (<code>_parameters</code>, <code>_buffers</code>, <code>_modules</code>).</p></div>
+    <div class="chain"><span class="cn">Instance</span><span>→</span><span class="cn">SQLTool</span><span>→</span><span class="cn">Tool</span><span>→</span><span class="cn">ABC</span><span>→</span><span class="cn">object</span></div>
+  </div>
+
+  <div class="term-card">
+    <div class="th"><span class="tag">2.4</span><h3>Attribute Shadowing</h3></div>
+    <p class="def">Assigning a value to <code>self.attr</code> creates a key in <code>instance.__dict__</code>, shadowing any class attribute of the same name without altering the class attribute's underlying value.</p>
+    <div class="panel tint t-info"><h5>💡 Production Mechanism</h5><p>Placing an adhesive label over a printed door sign. Removing or bypassing the personal label reveals the original building signage underneath unchanged.</p></div>
+    <div class="g2">
+      <div class="panel"><h5>⚠️ Shadowing Code Example</h5><pre><code>class Tool:
+    name = "unnamed"
+
+t = Tool()
+print(t.name)       # "unnamed" (from Class)
+t.name = "custom"   # Creates key in t.__dict__
+print(t.name)       # "custom" (from Instance)
+print(Tool.name)    # "unnamed" (Class UNCHANGED)</code></pre></div>
+      <div class="panel"><h5>✅ Verified Production Output</h5><pre class="screen"><code>after t.name = 'instance_override':
+t.name       -> 'instance_override'
+SQLTool.name -> 'sql_query'   <- class value UNCHANGED</code></pre></div>
+    </div>
+    <div class="panel tint t-bal"><h5>🤖 AI/ML Pipeline Application</h5><p>Default configuration overrides: defining default model inference hyperparameters on a base class while allowing per-instance fine-tuning overrides without modifying globals.</p></div>
+    <div class="rail"><div class="node stock"><b>Tool.name = "default"</b><small>Class dict default</small></div><div class="pipe flow"><span>override</span></div><div class="node bal"><b>self.name = "custom"</b><small>Written to instance dict</small></div><div class="pipe flow"><span>lookup</span></div><div class="node rein"><b>t.name returns "custom"</b><small>Instance dict shadows class</small></div></div>
+  </div>
+
+  <div class="term-card">
+    <div class="th"><span class="tag">2.5</span><h3>Polymorphism &amp; Duck Typing</h3></div>
+    <p class="def">The ability of diverse objects to expose the same interface (methods and attributes), allowing client code to treat them interchangeably without type-branching.</p>
+    <div class="panel tint t-info"><h5>💡 Production Mechanism</h5><p>A universal USB-C charging port. A single charger protocol powers laptops, phones, and peripherals without requiring a custom electrical transformer for each device.</p></div>
+    <div class="g2">
+      <div class="panel"><h5>⚠️ Code Example: Tool Collection</h5><pre><code>tools: list[Tool] = [
+    SQLTool("oracle://db"),
+    WebSearchTool("https://api.search")
+]
+# Execution loop requires zero isinstance checks!
+for tool in tools:
+    result = tool.run(user_query)</code></pre></div>
+      <div class="panel"><h5>✅ Verified Production Output</h5><pre class="screen"><code>sql_query    times out after 30.0s
+web_search   times out after 15.0s
+
+all isinstance(Tool)? True</code></pre></div>
+    </div>
+    <div class="panel tint t-bal"><h5>🤖 AI/ML Pipeline Application</h5><p>Agent reasoning loops (e.g. ReAct): taking a heterogeneous list of tools (Calculators, Vector DBs, Bash executors) and invoking them uniformly through a standard <code>run()</code> interface.</p></div>
+    <div class="rail"><div class="node stock"><b>Agent Router</b><small>Holds list[Tool]</small></div><div class="pipe flow"><span>dispatch</span></div><div class="node ctrl"><b>tool.run(input)</b><small>Uniform interface</small></div><div class="pipe flow"><span>executes</span></div><div class="node bal"><b>SQL / Web / Bash</b><small>Concrete execution</small></div></div>
+  </div>
+
+  <div class="term-card">
+    <div class="th"><span class="tag">2.6</span><h3>`__init__.py` &amp; Package Architecture</h3></div>
+    <p class="def">A file that designates a directory as a regular Python package. Executes upon package import to configure namespace exports and public symbol registries (<code>__all__</code>).</p>
+    <div class="panel tint t-info"><h5>💡 Production Mechanism</h5><p>The concierge desk at an enterprise headquarters. Visitors do not wander unannounced through private offices; the lobby desk presents authorized public departments.</p></div>
+    <div class="g2">
+      <div class="panel"><h5>⚠️ Package Configuration</h5><pre><code># my_agent/__init__.py
+from .tools import SQLTool, WebTool
+from .core import Agent
+
+__all__ = ["SQLTool", "WebTool", "Agent"]
+# Prevents internal helper leakage</code></pre></div>
+      <div class="panel"><h5>✅ Clean Public API Access</h5><pre><code># Client import cleanly exposes API:
+from my_agent import Agent, SQLTool
+# No need for: from my_agent.tools.impl import SQLTool</code></pre></div>
+    </div>
+    <div class="panel tint t-bal"><h5>🤖 AI/ML Pipeline Application</h5><p>Designing reusable modular ML repositories (e.g. custom model architectures, loss functions, metrics) with versioned, clean public API entrypoints.</p></div>
+    <div class="chain"><span class="cn">Directory</span><span>+</span><span class="cn">__init__.py</span><span>→</span><span class="cn">Regular Package</span><span>→</span><span class="cn">Controlled __all__ Exports</span></div>
+  </div>
+
+  <div class="term-card">
+    <div class="th"><span class="tag">2.7</span><h3>`venv` (Virtual Environment)</h3></div>
+    <p class="def">An isolated directory tree containing a Python installation for a specific version of Python, plus a number of additional packages. Configured via <code>pyvenv.cfg</code>, repointing <code>sys.prefix</code>.</p>
+    <div class="panel tint t-info"><h5>💡 Production Mechanism</h5><p>An isolated biological laboratory glovebox. Experiments with volatile reagents are conducted inside a sealed enclosure so they never contaminate the broader facility.</p></div>
+    <div class="g2">
+      <div class="panel"><h5>⚠️ Virtual Environment Activation</h5><pre><code># Create virtual environment:
+python -m venv .venv
+
+# Activate on Windows / Linux:
+.venv\Scripts\activate  # Windows
+source .venv/bin/activate # Linux/macOS</code></pre></div>
+      <div class="panel"><h5>✅ pyvenv.cfg Structure</h5><pre><code>home = C:\Python314
+include-system-site-packages = false
+version = 3.14.4
+# sys.prefix repointed to .venv folder</code></pre></div>
+    </div>
+    <div class="panel tint t-bal"><h5>🤖 AI/ML Pipeline Application</h5><p>Preventing catastrophic CUDA toolkit and library version collisions between PyTorch, TensorFlow, flash-attention, and vLLM dependencies.</p></div>
+    <div class="rail"><div class="node stock"><b>Host Python</b><small>Global packages</small></div><div class="pipe flow"><span>isolates</span></div><div class="node bal"><b>.venv/</b><small>Local site-packages</small></div><div class="pipe flow"><span>configures</span></div><div class="node rein"><b>pyvenv.cfg</b><small>Independent sys.path</small></div></div>
+  </div>
+
+  <div class="term-card">
+    <div class="th"><span class="tag">2.8</span><h3>`__repr__` (Developer Representation)</h3></div>
+    <p class="def">Method returning an unambiguous, developer-facing string representation of an object, ideally showing the exact code required to recreate the object. Invoked by <code>repr(obj)</code> and <code>f"{obj!r}"</code>.</p>
+    <div class="panel tint t-info"><h5>💡 Production Mechanism</h5><p>An aircraft flight data recorder (black box) timestamp and telemetry log, versus an uninformative blinker light stating "equipment operating".</p></div>
+    <div class="g2">
+      <div class="panel"><h5>⚠️ Implementation Pattern</h5><pre><code>class Tool:
+    def __init__(self, name, timeout):
+        self.name = name
+        self.timeout = timeout
+    def __repr__(self):
+        return f"Tool(name={self.name!r}, timeout={self.timeout})"</code></pre></div>
+      <div class="panel"><h5>✅ Verified Production Output</h5><pre class="screen"><code>with __repr__    : SQLTool(name='sql_query', timeout=30.0)
+without __repr__ : &lt;__main__.demo_repr_matters.&lt;locals&gt;.NoRepr object at 0x000002DD3E819400&gt;
+^ The second tells you nothing when tracing an agent run (7.6).</code></pre></div>
+    </div>
+    <div class="panel tint t-bal"><h5>🤖 AI/ML Pipeline Application</h5><p>Observability in agent traces: logging step-by-step tool invocation parameters and message payloads in LangSmith, WandB, and production application error logs.</p></div>
+    <div class="split"><div class="side bad"><h4>Default __repr__</h4><p>&lt;Tool object at 0x7fa281&gt; (No insight into parameters or state)</p></div><div class="side good"><h4>Custom __repr__</h4><p>SQLTool(name='sql_query', timeout=30.0) (Exact state visible)</p></div></div>
+  </div>
+</section>
+
+<section class="chapter wrap" id="skiptest">
+  <div class="ch-open"><div class="ch-num">03</div><div class="ch-body"><p class="eyebrow">Diagnostic Assessment</p><h2>Skip Test — Answered</h2><p class="ch-sub">Prerequisite gate before topic study. Verify these two core tasks from memory.</p></div></div>
+
+  <div class="diag">
+    <div class="dh"><h4>Question 1: Define an Abstract Tool Contract</h4><span class="tag">Pass Criteria: abc.ABC + @abstractmethod</span></div>
+    <p><b>Prompt:</b> Write an abstract base class <code>Tool</code> with an abstract method <code>run(self, query: str) -&gt; str</code> and a constructor that sets <code>self.name</code>.</p>
+    <pre><code>from abc import ABC, abstractmethod
+
+class Tool(ABC):
+    def __init__(self, name: str):
+        self.name = name
+
+    @abstractmethod
+    def run(self, query: str) -> str:
+        # Subclasses must implement execution logic
+        pass</code></pre>
+    <div class="panel tint t-bal">
+      <h5>Verification Mechanism</h5>
+      <p>Attempting to instantiate an un-implemented subclass (<code>BrokenTool()</code>) raises <code>TypeError: Can't instantiate abstract class BrokenTool without an implementation for abstract method 'run'</code> immediately at construction time.</p>
+    </div>
+  </div>
+
+  <div class="diag">
+    <div class="dh"><h4>Question 2: Diagnose the Shared Mutable Bug</h4><span class="tag">Pass Criteria: Root Cause Identification</span></div>
+    <p><b>Prompt:</b> Explain why the following code leaks state between instances, and provide the fix:</p>
+    <pre><code>class Tool:
+    call_history = []  # Buggy class attribute
+    def record(self, q):
+        self.call_history.append(q)</code></pre>
+    <div class="g2">
+      <div class="panel tint t-risk">
+        <h5>Root Cause</h5>
+        <p><code>call_history</code> is evaluated when the class definition is executed and stored in <code>Tool.__dict__</code>. Both instances point to the same list in memory.</p>
+      </div>
+      <div class="panel tint t-bal">
+        <h5>Production Fix</h5>
+        <pre><code>class Tool:
+    def __init__(self):
+        self.call_history = []  # Allocated per-instance</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="chapter wrap" id="visuals">
+  <div class="ch-open"><div class="ch-num">04</div><div class="ch-body"><p class="eyebrow">Architectural Mechanisms</p><h2>Visual Concept Diagrams</h2><p class="ch-sub">Class vs instance attribute memory mapping, MRO search graphs, and ABC construction-time contract gating.</p></div></div>
+
+  <h3>3.1 — Class vs. Instance Attributes: The Shared-Mutable Memory Trap</h3>
+  <p>When an attribute is declared in the class body, CPython creates a single object in the heap. Both instances reference this shared object through their class pointer.</p>
+
+  <div class="scroll" style="--minw:680px"><div id="dg-mutable-attr" class="dg-host"></div></div>
+
+  <h3>3.2 — Attribute Lookup Walks the MRO</h3>
+  <p>Python resolves attribute lookups through a strict fallback pipeline: Instance Dict → Class Dict → Parent Class Dict → <code>object</code> Dict → <code>AttributeError</code>.</p>
+
+  <div class="scroll" style="--minw:680px"><div id="dg-mro-lookup" class="dg-host"></div></div>
+
+  <h3>3.3 — ABC Moves Failure Earlier</h3>
+  <p>Contract enforcement at construction prevents insidious runtime bugs 40 steps into a multi-agent execution pipeline.</p>
+
+  <div class="scroll" style="--minw:680px"><div id="dg-abc-gate" class="dg-host"></div></div>
+</section>
+
+<section class="chapter wrap" id="deepdive">
+  <div class="ch-open"><div class="ch-num">05</div><div class="ch-body"><p class="eyebrow">Object Model Internals</p><h2>Core Technical Deep Dive</h2><p class="ch-sub">The PyTypeObject struct, C3 linearization algorithm, and the memory benefits of __slots__.</p></div></div>
+
+  <div class="tiers">
+    <div class="tier" style="--k:var(--stock);--kb:var(--stock-bg)">
+      <div class="th"><span class="lab">Level 1</span><b>CPython Type System: type and object</b></div>
+      <div class="tb">
+        <p>In Python, everything is an object, including classes themselves. Classes are instances of <code>type</code> (the default metaclass). Every user-defined object contains:</p>
+        <div class="tbl">
+          <table class="wide">
+            <thead><tr><th>Attribute</th><th>Type</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td><code>__class__</code></td><td><code>type</code></td><td>Pointer to the class definition object that created this instance</td></tr>
+              <tr><td><code>__dict__</code></td><td><code>dict</code></td><td>Dynamic hash table storing instance-specific attributes (unless <code>__slots__</code> is used)</td></tr>
+              <tr><td><code>__doc__</code></td><td><code>str | None</code></td><td>Class documentation string extracted for LLM tool generation</td></tr>
+              <tr><td><code>__mro__</code></td><td><code>tuple</code></td><td>Precomputed tuple of classes searched during attribute lookup</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tier" style="--k:var(--info);--kb:var(--info-bg)">
+      <div class="th"><span class="lab">Level 2</span><b>C3 Linearization &amp; super() Cooperative Inheritance</b></div>
+      <div class="tb">
+        <p>When multiple inheritance is used, Python calculates a monotonic order that satisfies two properties:</p>
+        <div class="g2">
+          <div class="panel"><h5>1. Children Precede Parents</h5><p>Subclasses are always searched before their parent base classes.</p></div>
+          <div class="panel"><h5>2. Declaration Order Preserved</h5><p>Classes listed first in base declarations (<code>class C(A, B):</code>) are searched before subsequent bases.</p></div>
+        </div>
+        <p>Calling <code>super()</code> does NOT call the parent class directly; it calls the <em>next class in the MRO tuple</em> of the current instance.</p>
+      </div>
+    </div>
+
+    <div class="tier" style="--k:var(--bal);--kb:var(--bal-bg)">
+      <div class="th"><span class="lab">Level 3</span><b>Memory Optimization: __slots__ in High-Throughput Pipelines</b></div>
+      <div class="tb">
+        <p>By default, every Python instance carries a dynamic <code>__dict__</code> dictionary (~150 bytes of overhead). When processing millions of tokens, chunks, or bounding boxes, this memory overhead dominates:</p>
+        <pre><code>class TokenRecord:
+    __slots__ = ('token_id', 'embedding', 'score')
+    def __init__(self, token_id, embedding, score):
+        self.token_id = token_id
+        self.embedding = embedding
+        self.score = score
+# Eliminates instance __dict__; allocates fixed C-struct pointer slots (60% memory savings)</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="chapter wrap" id="handson">
+  <div class="ch-open"><div class="ch-num">06</div><div class="ch-body"><p class="eyebrow">Hands-On Proof</p><h2>Companion Script &amp; Verified Output</h2><p class="ch-sub">Actual execution output captured from running <code>02_oop_modules_virtualenvs.py</code> on Python 3.14.4 in an isolated test environment.</p></div></div>
+
+  <div class="call nte">
+    <span class="tag">Verified Local Run · 2026-10-28</span>
+    <p>Every line below was produced by running <code>02_oop_modules_virtualenvs.py</code>. Captures the ABC contract refusal, mutable attribute sharing, MRO lookup chain, polymorphism, and __repr__ formatting.</p>
+  </div>
+
+  <pre class="screen"><code>====================================================================
+DEMO 1 — ABC refuses an incomplete subclass AT CONSTRUCTION
+====================================================================
+  BrokenTool()  -&gt; TypeError: Can&#x27;t instantiate abstract class BrokenTool without an implementation for abstract method &#x27;run&#x27;
+  ^ Caught when building the object, NOT when an agent calls run().
+  SQLTool(...)  -&gt; SQLTool(name=&#x27;sql_query&#x27;, timeout=30.0)          &lt;- __repr__ fires here
+====================================================================
+DEMO 2 — the classic bug: a MUTABLE class attribute is SHARED
+====================================================================
+  a.call_log            : [&#x27;sql_query:SELECT 1&#x27;, &#x27;web_search:langgraph docs&#x27;]
+  b.call_log            : [&#x27;sql_query:SELECT 1&#x27;, &#x27;web_search:langgraph docs&#x27;]
+  same list object?     : True
+  Tool.call_log         : [&#x27;sql_query:SELECT 1&#x27;, &#x27;web_search:langgraph docs&#x27;]
+  ^ ONE list shared by every instance AND the class itself.
+    Fix: create it per-instance in __init__ (self.call_log = []).
+====================================================================
+DEMO 3 — forgetting super().__init__() loses parent attributes
+====================================================================
+  SQLTool.timeout       : 30.0
+  ForgotSuper.timeout   : AttributeError: &#x27;ForgotSuper&#x27; object has no attribute &#x27;timeout&#x27;
+  ^ The symptom appears FAR from the cause — some later line reads
+    self.timeout and blows up, with nothing pointing at __init__.
+====================================================================
+DEMO 4 — attribute lookup: instance -&gt; class -&gt; parent (the MRO)
+====================================================================
+  t.dsn      -&gt; &#x27;oracle://finance&#x27;     found on the INSTANCE
+  t.name     -&gt; &#x27;sql_query&#x27;            found on SQLTool (shadows Tool)
+  Tool.name  -&gt; &#x27;unnamed&#x27;              the parent&#x27;s value, untouched
+  MRO        : [&#x27;SQLTool&#x27;, &#x27;Tool&#x27;, &#x27;ABC&#x27;, &#x27;object&#x27;]
+
+  after t.name = &#x27;instance_override&#x27;:
+  t.name       -&gt; &#x27;instance_override&#x27;
+  SQLTool.name -&gt; &#x27;sql_query&#x27;   &lt;- class value UNCHANGED
+====================================================================
+DEMO 5 — polymorphism: why agent frameworks take list[Tool]
+====================================================================
+  sql_query    times out after 30.0s
+  web_search   times out after 15.0s
+
+  all isinstance(Tool)? True
+====================================================================
+DEMO 6 — __repr__ decides if a log line is useful
+====================================================================
+  with __repr__    : SQLTool(name=&#x27;sql_query&#x27;, timeout=30.0)
+  without __repr__ : &lt;__main__.demo_repr_matters.&lt;locals&gt;.NoRepr object at 0x000002DD3E819400&gt;
+  ^ The second tells you nothing when tracing an agent run (7.6).
+====================================================================
+</code></pre>
+
+  <aside class="ed"><span class="tag">Analysis · Key Takeaways from Run</span>
+    <p>1. <b>Demo 1:</b> <code>BrokenTool()</code> failed immediately with <code>TypeError</code> upon instantiation. It never entered the execution loop.</p>
+    <p>2. <b>Demo 2:</b> <code>a.call_log</code> and <code>b.call_log</code> point to the exact same list (<code>same list object? True</code>). Appending to one polluted both.</p>
+    <p>3. <b>Demo 4:</b> Instance assignment <code>t.name = 'instance_override'</code> shadowed the class attribute, leaving <code>SQLTool.name</code> unchanged.</p>
+  </aside>
+</section>
+
+<section class="chapter wrap" id="checkpoint">
+  <div class="ch-open"><div class="ch-num">07</div><div class="ch-body"><p class="eyebrow">Active Recall</p><h2>Retrieval Checkpoint — Unanswered</h2><p class="ch-sub">Close all notes. Answer these questions from memory to confirm structural retention.</p></div></div>
+
+  <div class="laws" aria-label="Retrieval Questions">
+    <div><span class="ln-n">Q1</span><div><b>The Construction Gate</b><p>At what exact moment does an Abstract Base Class (ABC) raise an exception if a subclass fails to implement an abstract method?</p></div></div>
+    <div><span class="ln-n">Q2</span><div><b>Attribute Resolution</b><p>Trace the attribute lookup sequence when code accesses <code>instance.attr</code>. When does Python search the instance dictionary versus the class dictionary?</p></div></div>
+    <div><span class="ln-n">Q3</span><div><b>The Mutable Attribute Trap</b><p>Why does <code>call_history = []</code> defined inside the body of a class leak state across independent agent instances? How do you fix it?</p></div></div>
+    <div><span class="ln-n">Q4</span><div><b>Observability &amp; __repr__</b><p>What format specifier in Python f-strings explicitly calls an object's <code>__repr__()</code> method instead of its <code>__str__()</code> method?</p></div></div>
+  </div>
+
+  <div class="ch-open" id="rebuild"><div class="ch-num">08</div><div class="ch-body"><p class="eyebrow">Practical Mastery</p><h2>Closed-Book Rebuild Challenge</h2><p class="ch-sub">30-minute timed implementation exercise.</p></div></div>
+
+  <div class="diag">
+    <div class="dh"><h4>Challenge Specification</h4><span class="tag">Timed Drill · 30 Minutes</span></div>
+    <p>Implement a complete agent tool subsystem from scratch:</p>
+    <div class="rail">
+      <div class="node stock"><b>1. BaseTool ABC</b><small>Abstract run() method with name and timeout</small></div>
+      <div class="pipe flow"><span>derive</span></div>
+      <div class="node ctrl"><b>2. Concrete Tools</b><small>SQLTool and WebSearchTool with custom run()</small></div>
+      <div class="pipe flow"><span>isolate</span></div>
+      <div class="node bal"><b>3. State Isolation</b><small>Ensure call_history is an instance attribute</small></div>
+      <div class="pipe flow"><span>instrument</span></div>
+      <div class="node rein"><b>4. Developer __repr__</b><small>Output Tool(name=..., timeout=...)</small></div>
+    </div>
+    <p><b>Requirements:</b> Verify that an incomplete tool cannot be instantiated, and verify that invoking tool 1 does not alter tool 2's call history.</p>
+  </div>
+</section>
+
+<footer class="foot wrap">
+  <div class="nav-siblings">
+    <a href="01_python_basics.html">← 0.1 · Python Basics</a>
+    <span class="active">0.2 · OOP, Modules, venvs</span>
+    <a href="03_async_typehints_pydantic.html">0.3 · Async, Type Hints, Pydantic →</a>
+  </div>
+  <p><b>Course Path:</b> <a href="../README.md">AI &amp; ML Engineering Mastery</a> · Phase 0: Engineering Foundations.</p>
+  <p><b>⚑ Corrected</b> identifies audited runtime behavior; <b>+ Added</b> indicates production architectural context.</p>
+</footer>
+</main>
+
+<script>
+/* claude-artifact-creator engine: chart (plot/spark) + stock-and-flow schematic (dg) + nav scroll-spy.
+   Exposes window.AE. Every mark is placed through one scale per chart; all colors come from CSS tokens. */
+var AE=(function(){
+'use strict';
+var NS='http://www.w3.org/2000/svg', XL='http://www.w3.org/1999/xlink';
+function E(tag,attrs,parent){var e=document.createElementNS(NS,tag);if(attrs){for(var k in attrs){if(attrs[k]!==null&&attrs[k]!==undefined)e.setAttribute(k,attrs[k]);}}if(parent)parent.appendChild(e);return e;}
+function T(p,x,y,s,cls,anchor){var t=E('text',{x:x,y:y,'class':cls||'','text-anchor':anchor||'start'},p);t.textContent=s;return t;}
+function lines(p,x,y,s,cls,anchor,lh){String(s).split('\n').forEach(function(l,i){T(p,x,y+i*(lh||14),l,cls,anchor);});}
+function fn(f,a,b,n){n=n||160;var r=[];for(var i=0;i<=n;i++){var x=a+(b-a)*i/n;r.push([x,f(x)]);}return r;}
+function pth(pts,sx,sy){return 'M'+pts.map(function(p){return sx(p[0]).toFixed(1)+','+sy(p[1]).toFixed(1);}).join(' L');}
+function safe(f){try{f();}catch(err){if(window.console)console.error(err);}}
+
+/* ───────── chart engine: one scale per chart, every mark placed through it ───────── */
+function plot(id,o){
+  var host=document.getElementById(id); if(!host) return;
+  var W=o.w||640,H=o.h||260,m=Object.assign({l:52,r:18,t:22,b:34},o.m||{});
+  var x0=o.x[0],x1=o.x[1],y0=o.y[0],y1=o.y[1];
+  var sx=function(v){return m.l+(v-x0)/(x1-x0)*(W-m.l-m.r);};
+  var sy=function(v){return H-m.b-(v-y0)/(y1-y0)*(H-m.t-m.b);};
+  var svg=E('svg',{viewBox:'0 0 '+W+' '+H,role:'img','aria-label':o.label||''});
+  (o.bands||[]).forEach(function(b){E('rect',{x:sx(b.x0),y:m.t,width:sx(b.x1)-sx(b.x0),height:H-m.t-m.b,'class':'band '+(b.k||'k-mute')},svg);if(b.label)T(svg,(sx(b.x0)+sx(b.x1))/2,m.t+13,b.label,'sm t2','middle');});
+  (o.yt||[]).forEach(function(v){E('line',{x1:m.l,x2:W-m.r,y1:sy(v),y2:sy(v),'class':'grid'},svg);T(svg,m.l-7,sy(v)+4,(o.yf||String)(v),'t2 sm','end');});
+  if(o.frame!==false){E('line',{x1:m.l,x2:W-m.r,y1:H-m.b,y2:H-m.b,'class':'axis'},svg);E('line',{x1:m.l,x2:m.l,y1:m.t,y2:H-m.b,'class':'axis'},svg);}
+  (o.xt||[]).forEach(function(v){T(svg,sx(v),H-m.b+16,(o.xf||String)(v),'t2 sm','middle');});
+  if(o.xl)T(svg,W-m.r,H-3,o.xl,'t2 sm','end');
+  if(o.yl)T(svg,m.l+4,m.t-8,o.yl,'t2 sm','start');
+  (o.vlines||[]).forEach(function(v){var g=E('g',{'class':v.k||'k-ink'},svg);E('line',{x1:sx(v.x),x2:sx(v.x),y1:m.t,y2:H-m.b,'class':'ref'},g);if(v.label){var px=sx(v.x),a=v.anchor||(px>W-m.r-50?'end':(px<m.l+50?'start':'middle'));T(g,px+(a==='end'?-5:a==='start'?5:0),m.t+(v.dy||28),v.label,'sm kt tb halo',a);}});
+  (o.refs||[]).forEach(function(r){var g=E('g',{'class':r.k||'k-ink'},svg);E('line',{x1:m.l,x2:W-m.r,y1:sy(r.y),y2:sy(r.y),'class':'ref'},g);if(r.label){var left=r.at==='left';T(g,left?m.l+6:W-m.r-6,sy(r.y)+(r.below?15:-6),r.label,'sm kt tb halo',left?'start':'end');}});
+  var leg=[];
+  (o.series||[]).forEach(function(s){
+    var g=E('g',{'class':s.k||'k-ink'},svg);
+    if(s.label)leg.push(s);
+    if(s.type==='bar'){
+      var unit=(W-m.l-m.r)/(x1-x0),bw=s.bw||unit*0.7,n=s.n||1,i=s.i||0,w=bw/n,base=s.base!==undefined?s.base:Math.max(0,y0);
+      s.data.forEach(function(d){var cx=sx(d[0])-bw/2+i*w,ya=sy(d[1]),yb=sy(base);E('rect',{x:cx+0.5,y:Math.min(ya,yb),width:Math.max(1,w-1),height:Math.max(0.5,Math.abs(yb-ya)),'class':'bar'},g);if(s.values)T(g,cx+w/2,ya-5,(s.vf||String)(d[1]),'sm kt tb','middle');});
+      return;
+    }
+    if(s.type!=='dots'){
+      if(s.area){var b0=sy(Math.max(y0,0)),F=s.data[0],L=s.data[s.data.length-1];E('path',{d:pth(s.data,sx,sy)+' L'+sx(L[0]).toFixed(1)+','+b0.toFixed(1)+' L'+sx(F[0]).toFixed(1)+','+b0.toFixed(1)+' Z','class':'area'},g);}
+      E('path',{d:pth(s.data,sx,sy),'class':'ln'+(s.dash?' dash':'')+(s.thin?' thin':'')},g);
+    }
+    if(s.dots||s.type==='dots'){(s.pts||s.data).forEach(function(d){E('circle',{cx:sx(d[0]),cy:sy(d[1]),r:s.r||4,'class':'dot'},g);if(s.values)T(g,sx(d[0]),sy(d[1])+(s.vdy||-9),(s.vf||String)(d[1]),'sm kt tb halo','middle');});}
+    if(s.end){var Z=s.data[s.data.length-1];T(g,sx(Z[0])+(s.endx||6),sy(Z[1])+(s.endy||4),s.end,'sm kt tb halo',s.enda||'start');}
+  });
+  (o.notes||[]).forEach(function(n){var g=E('g',{'class':n.k||'k-ink'},svg);if(n.dot)E('circle',{cx:sx(n.x),cy:sy(n.y),r:4.5,'class':'dot'},g);lines(g,sx(n.x)+(n.dx||0),sy(n.y)+(n.dy===undefined?-10:n.dy),n.t,'sm kt halo'+(n.b===false?'':' tb'),n.a||'middle',13);});
+  host.appendChild(svg);
+  if(leg.length&&o.legend!==false){var lg=document.createElement('div');lg.className='legend';leg.forEach(function(s){var sp=document.createElement('span');sp.className=s.k||'k-ink';var i=document.createElement('i');if(s.type==='bar')i.className='bar';else if(s.dash)i.className='dash';sp.appendChild(i);sp.appendChild(document.createTextNode(s.label));lg.appendChild(sp);});host.parentNode.insertBefore(lg,host.nextSibling);}
+}
+function spark(id,series,o){o=o||{};plot(id,Object.assign({w:300,h:118,m:{l:12,r:12,t:12,b:14},x:[0,1],y:[0,1.05],series:series,legend:false},o));}
+
+/* ───────── schematic engine: stocks, pipes, valves, clouds, links ───────── */
+function midpt(pts){var best=-1,bi=0;for(var i=0;i<pts.length-1;i++){var d=Math.abs(pts[i+1][0]-pts[i][0])+Math.abs(pts[i+1][1]-pts[i][1]);if(d>best){best=d;bi=i;}}return [(pts[bi][0]+pts[bi+1][0])/2,(pts[bi][1]+pts[bi+1][1])/2-7];}
+function dg(id,o){
+  var host=document.getElementById(id); if(!host) return;
+  var svg=E('svg',{viewBox:'0 0 '+o.w+' '+o.h,role:'img','aria-label':o.label||'','class':'dg'});
+  var N=o.nodes||{};
+  (o.regions||[]).forEach(function(r){E('rect',{x:r.x,y:r.y,width:r.w,height:r.h,'class':'region'},svg);if(r.t)T(svg,r.x+10,r.y+18,r.t,'rlab');});
+  function anc(s){if(Array.isArray(s))return s;var mm=/^(\w+)\.([lrtb])(?:@([\d.]+))?$/.exec(s),n=N[mm[1]],f=mm[3]!==undefined?+mm[3]:0.5;
+    if(mm[2]==='l')return [n.x,n.y+n.h*f];if(mm[2]==='r')return [n.x+n.w,n.y+n.h*f];if(mm[2]==='t')return [n.x+n.w*f,n.y];return [n.x+n.w*f,n.y+n.h];}
+  var CLS={pipe:'e-pipe',info:'e-info',bal:'e-bal',rein:'e-rein',delay:'e-delay',ink:'e-ink',risk:'e-risk',empty:'e-empty',good:'e-good'};
+  var MK={pipe:'ah-flow',info:'ah-info',bal:'ah-bal',rein:'ah-rein',delay:'ah-delay',ink:'ah-ink',risk:'ah-risk',empty:'ah-info',good:'ah-bal'};
+  var eg=E('g',{},svg),labs=[];
+  (o.edges||[]).forEach(function(e){var k=e.kind||'ink',pts=[anc(e.a)].concat(e.via||[],[anc(e.b)]);
+    E('path',{d:'M'+pts.map(function(p){return p[0]+','+p[1];}).join(' L'),'class':CLS[k],'marker-end':e.noarrow?null:'url(#'+MK[k]+')'},eg);
+    if(e.label)labs.push([e.lp||midpt(pts),e.label,e.lk,e.anchor]);});
+  (o.valves||[]).forEach(function(v){var x=v[0],y=v[1],d=v[2]==='v'?'M'+(x-8)+','+(y-8)+' L'+(x+8)+','+(y-8)+' L'+(x-8)+','+(y+8)+' L'+(x+8)+','+(y+8)+' Z':'M'+(x-8)+','+(y-8)+' L'+(x+8)+','+(y+8)+' L'+(x+8)+','+(y-8)+' L'+(x-8)+','+(y+8)+' Z';E('path',{d:d,'class':'valve'},svg);});
+  Object.keys(N).forEach(function(key){var n=N[key],g=E('g',{'class':'n n-'+(n.kind||'box')},svg);
+    if(n.kind==='cloud'){var u=E('use',{href:'#cloud',x:n.x,y:n.y,width:n.w,height:n.h},g);u.setAttributeNS(XL,'xlink:href','#cloud');}
+    else if(n.kind!=='text'){E('rect',{x:n.x,y:n.y,width:n.w,height:n.h,'class':'nb'},g);if(n.kind==='stock'||n.kind==='stockd')E('rect',{x:n.x+4,y:n.y+4,width:n.w-8,height:n.h-8,'class':'nb2'},g);}
+    var L=[];if(n.k)L.push([n.k,'nk']);(n.t||[]).forEach(function(s,i){L.push([s,i===0?'nt':'ns']);});
+    var lh=16,yy=n.y+n.h/2-(L.length-1)*lh/2+4;
+    L.forEach(function(r,i){T(g,n.x+n.w/2,yy+i*lh,r[0],r[1],'middle');});});
+  (o.delays||[]).forEach(function(d){var x=d[0],y=d[1];E('path',{d:d[2]==='v'?'M'+(x-8)+','+(y-3)+' H'+(x+8)+' M'+(x-8)+','+(y+3)+' H'+(x+8):'M'+(x-3)+','+(y-8)+' V'+(y+8)+' M'+(x+3)+','+(y-8)+' V'+(y+8),'class':'dmark'},svg);});
+  (o.badges||[]).forEach(function(b){var g=E('g',{'class':'badge b-'+b.kind},svg);E('circle',{cx:b.x,cy:b.y,r:15},g);T(g,b.x,b.y+5,b.t,'bt','middle');});
+  labs.forEach(function(l){lines(svg,l[0][0],l[0][1],l[1],'lab halo '+(l[2]||''),l[3]||'middle',13);});
+  (o.texts||[]).forEach(function(t){lines(svg,t.x,t.y,t.t,t.c||'lab',t.a||'start',13);});
+  host.appendChild(svg);
+}
+
+/* ───────── nav scroll-spy: marks the header link of the section in view ───────── */
+function spy(){
+  if(!('IntersectionObserver' in window))return;
+  var links=[].slice.call(document.querySelectorAll('.tnav a[data-spy]'));
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.setAttribute('aria-current',a.getAttribute('data-spy')===e.target.id?'true':'false');});}});},{rootMargin:'-35% 0px -60% 0px'});
+  links.forEach(function(a){var s=document.getElementById(a.getAttribute('data-spy'));if(s)io.observe(s);});
+}
+
+return {E:E,T:T,lines:lines,fn:fn,pth:pth,safe:safe,plot:plot,spark:spark,dg:dg,spy:spy};
+})();
+
+(function(){
+'use strict';
+var dg = AE.dg, safe = AE.safe;
+
+// 1. dg-mutable-attr: Shared Mutable Class Attribute
+safe(function(){
+  dg('dg-mutable-attr', {
+    w: 720, h: 250, label: 'Memory layout of a mutable class attribute shared across multiple instances',
+    nodes: {
+      inst_a: {x: 20, y: 25, w: 180, h: 65, kind: 'stock', k: 'INSTANCE A', t: ['SQLTool Instance', 'Empty instance dict']},
+      inst_b: {x: 20, y: 155, w: 180, h: 65, kind: 'stock', k: 'INSTANCE B', t: ['WebTool Instance', 'Empty instance dict']},
+      cls_dict: {x: 260, y: 90, w: 190, h: 68, kind: 'i', k: 'TOOL CLASS DICT', t: ['Tool.__dict__', 'call_log pointer']},
+      shared_list: {x: 510, y: 90, w: 190, h: 68, kind: 'x', k: 'HEAP OBJECT', t: ['Shared List []', 'Single list in memory!']}
+    },
+    edges: [
+      {a: 'inst_a.r', b: 'cls_dict.l@0.3', kind: 'info'},
+      {a: 'inst_b.r', b: 'cls_dict.l@0.7', kind: 'info'},
+      {a: 'cls_dict.r', b: 'shared_list.l', kind: 'risk'}
+    ]
+  });
+});
+
+// 2. dg-mro-lookup: Attribute Lookup Walk
+safe(function(){
+  dg('dg-mro-lookup', {
+    w: 720, h: 220, label: 'Attribute resolution order search pipeline across instance and class inheritance',
+    nodes: {
+      inst: {x: 20, y: 80, w: 140, h: 65, kind: 'stock', k: '1. INSTANCE', t: ['t.__dict__', 'Instance attrs']},
+      cls: {x: 200, y: 80, w: 140, h: 65, kind: 'ctrl', k: '2. CLASS', t: ['SQLTool', 'Class attrs']},
+      parent: {x: 380, y: 80, w: 140, h: 65, kind: 'bal', k: '3. PARENT', t: ['Base Tool', 'Base attrs']},
+      obj: {x: 560, y: 80, w: 140, h: 65, kind: 'flow', k: '4. ROOT', t: ['object', 'Default methods']}
+    },
+    edges: [
+      {a: 'inst.r', b: 'cls.l', kind: 'pipe'},
+      {a: 'cls.r', b: 'parent.l', kind: 'pipe'},
+      {a: 'parent.r', b: 'obj.l', kind: 'pipe'}
+    ]
+  });
+});
+
+// 3. dg-abc-gate: ABC Contract Validation Gate
+safe(function(){
+  dg('dg-abc-gate', {
+    w: 740, h: 240, label: 'Construction-time contract validation by ABCMeta versus runtime missing method errors',
+    nodes: {
+      subclass: {x: 20, y: 85, w: 180, h: 65, kind: 'stock', k: 'SUBCLASS DEFINITION', t: ['BrokenTool(BaseTool)', 'Missing run() method']},
+      gate: {x: 250, y: 85, w: 215, h: 65, kind: 'i', k: 'ABCMeta.__new__', t: ['Construction Gate', 'Checks abstract methods']},
+      rejected: {x: 520, y: 30, w: 190, h: 62, kind: 'x', k: 'EARLY REJECTION', t: ['TypeError at __init__', 'Caught before run!']},
+      runtime_err: {x: 520, y: 145, w: 190, h: 62, kind: 'd', k: 'WITHOUT ABC', t: ['AttributeError', 'Crashes 40 steps later']}
+    },
+    edges: [
+      {a: 'subclass.r', b: 'gate.l', kind: 'pipe'},
+      {a: 'gate.r@0.3', b: 'rejected.l', kind: 'good'},
+      {a: 'gate.r@0.7', b: 'runtime_err.l', kind: 'risk'}
+    ]
+  });
+});
+
+AE.spy();
+})();
+</script>
+</body>
+</html>

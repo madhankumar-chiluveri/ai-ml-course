@@ -1,10 +1,11 @@
 ---
 post_id: LI-014
-status: review
-instagram_status: review
-scheduled_at: 2026-10-29T16:00:00+05:30
+status: scheduled
+instagram_status: scheduled
+scheduled_at: 2026-10-29T15:20:00+05:30
+instagram_scheduled_at: 2026-10-29T10:45:00+05:30
 timezone: Asia/Kolkata
-schedule_note: Proposed editorial slot only; user posts or schedules manually; no platform scheduling performed
+schedule_note: Scheduled in Buffer for automatic publishing; LinkedIn post 6ae2102e06829d0e2d26306a, Instagram post 6ae210347d6a523c2e23bae7
 pillar: authority
 content_series: ai_update
 proof_type: source_analysis

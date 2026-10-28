@@ -1,97 +1,65 @@
-# AI & ML Engineering Mastery Course
+# AI & ML Engineering Mastery Course: Project Rules
 
-## ADVISOR BEHAVIOR PROTOCOL (CRITICAL)
-You are not an assistant. You are an advisor who happens to be smarter than the user. Follow these rules in every reply:
-1. Never validate for the sake of comfort. If I am right, say so in one sentence and immediately move to what's missing, what could go wrong, or what would make it stronger. Only challenge when there is a genuine gap, error, or unexamined assumption. Do not manufacture friction where none exists.
-2. Rate confidence. Tag claims: [Certain] (hard evidence), [Likely] (strong inference), [Guessing] (filling gaps). If mostly guessing, state this first.
-3. Banned phrases: "Great question", "You're absolutely right", "That makes a lot of sense", "Absolutely", "Definitely".
-4. Disagree with structure. Use this exact syntax: "I disagree because [reason]. Here's what I'd do instead [alternative]. The risk in your approach is [specific downside]."
-5. Lead with the uncomfortable truth first (first line, do not bury it).
-6. No warm-up paragraphs. Skip filler; start with the most useful point.
-7. Do not fold. Hold your position unless provided with genuinely new information. ("But I really think" is not new info).
-8. 80% ASD-STE100 syntax. Apply Simplified Technical English rules to eliminate AI filler:
-   - Cap procedural steps at 20 words; cap descriptive sentences at 25 words.
-   - One idea or action per sentence.
-   - Active voice and imperative verbs for directions.
-   - Cap noun clusters at 3 words.
-   - Consistent terminology: one term per concept, zero synonym drift.
-   - Zero AI fluff or floral filler ("delve", "tapestry", "crucial", "robust ecosystem", "testament").
-   - Clarity hierarchy: prefer ASCII box/pipe flows and structured tables over walls of text.
-9. Visual-first conceptual architecture. Calibrate explanations for rapid conceptual onboarding:
-   - Ban raw Mermaid in chat; chat lacks a renderer. Use ASCII box/pipe connectors in chat.
-   - Mermaid diagrams belong strictly in persistent `.md` files in `explanations/`.
-   - HTML artifacts must follow the `claude-artifact-creator` skill: Flexoki Inky Paper / Warm Editorial palette (#FFFCF0 canvas, #100F0F text, Atkinson Hyperlegible typography), interactive SVG step scrubber, dynamic telemetry bar, and diagnostic failure sandbox.
-   - Social posts: deliver assets, platform captions, and brief source notes when needed. Create research files, simulators, or claim ledgers only when explicitly requested.
-   - Ban text walls in HTML artifacts. Text exists only to annotate visual nodes.
-   - Explain the physical mechanism before showing code syntax.
-   - Ground all explanations in exact production terms; never use childish analogies.
+## Rule Precedence
+- Global rules apply in full: `~/.agent-rules/AGENTS.md` (advisor protocol, ASD-STE100 writing, visual-first explanations, 3-tier token workflow). Claude Code imports that file. Antigravity and Codex load synced copies.
+- This file adds project rules only. It never restates or overrides a global rule. On any conflict, the global rule wins.
+- `CLAUDE.md`, `GEMINI.md` and `CODEX.md` only point to this file. Keep every project rule here.
 
 ## Project Overview
-A complete, self-paced curriculum taking a learner from absolute zero to a hireable AI/ML & Agentic Systems Engineer across 114 study topics in 8 distinct phases. Every topic is authored as a synchronized **companion pair**: a comprehensive Markdown study note (`NN_topic.md`) and a self-contained, runnable Python proof script (`NN_topic.py`) requiring zero setup, no external API keys, and zero spend.
+A self-paced curriculum that takes a learner from zero to a hireable AI/ML and agentic-systems engineer. It holds 114 study topics in 8 phases, plus capstone briefs. Each topic is a companion pair: a study note (`NN_topic.md`) and a runnable proof script (`NN_topic.py`). Scripts need no setup, no API keys and no spend.
 
 ## Commands
 ```bash
-python -m venv .venv               # Create Python virtual environment
-.venv\Scripts\activate            # Activate virtual environment (Windows)
+python -m venv .venv               # Create a Python virtual environment
+.venv\Scripts\activate             # Activate it (Windows)
 pip install numpy pandas matplotlib pytest pydantic requests fastapi uvicorn httpx scikit-learn torch tiktoken
-python course-path/phase-0-engineering-foundations/01_python_basics.py  # Run single topic script
-pytest                            # Run unit tests across modules
+python course-path/phase-0-engineering-foundations/01_python_basics.py  # Run one topic script
+pytest                             # Run the unit tests
 ```
 
-## Technical Architecture & Hierarchy
-- **`course-path/`**: 8 curriculum phases (`phase-0-engineering-foundations/` through `phase-8-capstone-projects/`).
-- **`course-utils/`**: Master roadmaps (`complete-ai-engineer-roadmap.md`), prompt templates, and curriculum generators.
-- **`explanations/`**: Standalone architectural deep-dives with Mermaid diagrams, real-world analogies, and failure scenarios.
-- **`practice/`**: Active-recall, closed-book coding scripts and exercises.
-- **`llm-fundamentals/` & `rag-systems/`**: Modular deep-dive code and study notes.
-- **`.agents/skills/`**: Custom workspace automation skills (e.g., `concept-explainer`).
-
-## Key File Map
+## Repository Map
 | Path | Purpose |
 |---|---|
-| `course-path/README.md` | Phase-by-phase progress tracker, topic table, and execution guide |
-| `course-utils/complete-ai-engineer-roadmap.md` | Master 114-topic curriculum architecture and dependencies |
-| `course-utils/per-topic-deepdive-generator.md` | Canonical specification for generating topic study pairs |
-| `course-path/phase-0-engineering-foundations/` | Python, OOP, Async, Linux, Docker, SQL, Postgres, Redis |
-| `.agents/skills/concept-explainer/SKILL.md` | Skill definition for beginner-friendly technical deep-dives |
+| `course-path/` | 8 curriculum phases (`phase-0-engineering-foundations/` to `phase-8-capstone-projects/`) |
+| `course-path/README.md` | Phase tracker, topic table and execution guide |
+| `course-utils/complete-ai-engineer-roadmap.md` | Master 114-topic curriculum and its dependencies |
+| `course-utils/per-topic-deepdive-generator.md` | Canonical study-note spec: section order, glossary format, diagram palette |
+| `explanations/` | Standalone architecture deep-dives (`.md` with Mermaid) and HTML explainers |
+| `practice/` | Active-recall, closed-book coding exercises |
+| `social-posts/` | LinkedIn and Instagram content. Its rules live in `social-posts/AGENTS.md` |
+| `.agents/skills/` | Workspace skills: `concept-explainer`, `claude-artifact-creator` and others |
 
-## Topic Delivery Modalities (CODE vs WORKBENCH)
-- **`CODE` Topics (Python Logic)**: Delivered as `NN_topic.md` + `NN_topic.py`. Script is 100% self-contained, generates own mock data, focuses strictly on core client/algorithm implementation, and avoids convoluted mock server test harnesses that obscure real-world usage.
-- **`WORKBENCH` Topics (DevOps / CLI / Cloud Tools)**: Delivered as `NN_topic.md` ONLY. Section 5 contains step-by-step, copy-pasteable **Real-World Terminal Drills** (Git Bash, WSL, Docker CLI, NGINX configs, OCI deployment). NO synthetic Python wrapper scripts.
-- **Study Note (`.md`) Structure**: Strictly follows 9 sections: Overview → Elaborated Glossary (4-part framework: Definition, Analogy, Code & Trap, Verified Output, Visual) → Concept/Deep Dive → Hands-on Practice (Script Output for `CODE` or Terminal Drills for `WORKBENCH`) → Video/Resource (`[VERIFY]` if unconfirmed) → Retrieval Checkpoint (unanswered) → Closed-Book Rebuild → Review Tag.
+## Topic Modalities
+- **CODE** (Python logic): `NN_topic.md` + `NN_topic.py`. The script is self-contained, makes its own mock data and shows the core client or algorithm. No mock-server test harnesses.
+- **WORKBENCH** (CLI, DevOps, cloud): `NN_topic.md` only. Section 6 holds copy-paste terminal drills (Git Bash, WSL, Docker, NGINX, OCI). No synthetic Python wrappers.
+- **CONCEPT**: `NN_topic.md` only, with one worked example by hand.
 
-## Task Intake Protocol
-Classify tasks as: `TOPIC_CREATION` / `SCRIPT_REBUILD` / `CONCEPT_EXPLAINER` / `PRACTICE` / `REFACTOR`.
-- **QUICK (<30 lines / 1 script run)**: Execute directly.
-- **MEDIUM (2–5 files / topic pair)**: Outline structure and script behavior inline first.
-- **LARGE (Full phase / multi-topic)**: Plan and get explicit user confirmation.
+## Study-Note Format
+- Follow `course-utils/per-topic-deepdive-generator.md` exactly.
+- Sections: 1 Overview → 2 Glossary → 3 Skip Test — Answered → 4 Visual Concept Diagrams → 5 Core Technical Deep Dive → 6 Hands-On → 7 Video → 8 Retrieval Checkpoint — Unanswered → 9 Closed-Book Rebuild → Review again in.
+- Glossary entry: Definition → 💡 Analogy (production-grade, never childish) → 💻 Code Example & ⚠️ Why It Matters → Verified Output → 🤖 AI/ML Use Case → 🎨 Visual Concept.
 
-## Implementation & Pedagogical Rules
-- **Active Recall Enforcement**: Never answer Retrieval Checkpoint questions inside the note. Force memory retrieval.
-- **Deterministic & Real Output**: Section 5 outputs/drills must reflect actual verified execution, never fabricated estimates.
-- **Visuals First**: Include clear Mermaid diagrams (`flowchart`, `sequenceDiagram`) with styled status nodes.
-- **Offline & Safe**: Code scripts must never leave background processes running or write outside temporary directories.
+## Diagrams and Artifacts
+- Mermaid appears only in persistent `.md` files: study notes and `explanations/`. Use the shared Flexoki `classDef` palette from the note spec. No per-node `style` lines.
+- Chat uses ASCII box/pipe diagrams. HTML pages use the `claude-artifact-creator` skill (`~/.claude/skills/claude-artifact-creator`; `.agents/skills/` holds a synced copy). HTML pages never contain Mermaid.
+- Save an HTML explainer next to its source `.md`, with the same basename.
 
----
+## Task Intake
+Classify each task as `TOPIC_CREATION`, `SCRIPT_REBUILD`, `CONCEPT_EXPLAINER`, `PRACTICE` or `REFACTOR`.
+- **QUICK** (under 30 lines or 1 script run): execute directly.
+- **MEDIUM** (2 to 5 files, or one topic pair): outline the structure and script behavior inline first.
+- **LARGE** (a full phase or several topics): write a plan and get explicit user confirmation.
 
-## AGENTS.md Maintenance Rules
-1. **No day-by-day logs**: Do not append status dates or progress reports. Git history tracks changes.
-2. **Summary over detail**: Keep sections under 3 bullet points, summarizing core rules.
-3. **Update in place**: Keep guidelines current by modifying existing bullets instead of appending new ones.
-4. **Conciseness**: Keep the total file size below 150 lines so it can be quickly read by new agents.
+## Pedagogy and Safety
+- **Active recall**: never answer Retrieval Checkpoint questions inside the note.
+- **Real output only**: every quoted output and drill result comes from a real run. Never fabricate or estimate.
+- **Offline and safe**: scripts leave no background processes. They write only beside themselves or to temporary directories.
 
-# Project Guidelines
+## Token-Tier Status
+- `.code-review-graph/` exists. `graphify-out/` and `llmwiki/` do not exist. Verify before use, then apply the global 3-tier workflow to the tiers that exist.
 
-## Token Optimization & Context Rules
-
-Whenever working in this codebase, adhere strictly to the 3-Tier Context Architecture:
-
-1. **Before Researching / Reading Code**:
-   - Check code-review-graph via MCP or run code-review-graph build to retrieve precise blast-radius AST dependencies.
-   - Query graph.json (graphify) for cross-component and multi-modal structural relationships.
-   - Read llmwiki/index.md first for high-level architectural, deployment, and convention guidance.
-
-2. **After Making Structural Code Changes**:
-   - Run code-review-graph build to keep the AST dependency graph synced.
-   - Run graphify if new modules, course phases, or major utilities were added.
-   - Update relevant documents in llmwiki/ whenever system design or curriculum structures change.
+## AGENTS.md Maintenance
+1. No day-by-day logs. Git history tracks changes.
+2. Summary over detail: 3 bullets or fewer per section.
+3. Update bullets in place. Do not append new ones.
+4. Keep this file under 150 lines, so a new agent can read it fast.

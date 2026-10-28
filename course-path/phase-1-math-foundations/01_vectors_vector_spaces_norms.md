@@ -8,13 +8,13 @@
 
 ## 1. Overview
 
-A vector is an ordered list of numbers. That is the whole definition, and it is deceptive, because the same object is doing completely different jobs all over this course. One row of a spreadsheet fed to linear regression in **2.3** is a vector. The output of a layer of a neural network in **3.1** is a vector. The 1536 numbers a model produces to represent a paragraph of text in **5.1** is a vector. Learn the object once and three later topics stop being separate things to memorise.
+In this note, a vector in `R^n` is an ordered list of `n` real numbers. Vector spaces can also contain other objects, such as functions. A data row in **2.3**, a neural-network layer output in **3.1**, and a text embedding in **5.1** can each be represented as vectors.
 
 The part that earns five hours rather than one is the **norm** — the answer to "how big is this vector?". There is more than one honest answer, and picking a different one changes what your model does. The L1 norm and the L2 norm are not two flavours of the same idea: L1 has a specific geometric feature, a **corner sitting exactly on each axis**, and L2 does not. That single difference is the entire mechanism behind Lasso deleting features while Ridge merely quietens them in **2.5**. The script does not describe that mechanism; it counts the coefficients that land on exactly `0.0` under each, and the count is the proof.
 
-There is also a payoff for **5.1**. Once a vector has been scaled to length 1, cosine similarity stops being a separate formula and becomes a plain dot product — verified here to within one unit of machine epsilon. That is why vector databases store normalised embeddings and why **1.4** can treat "angle" and "inner product" as the same measurement.
+For nonzero vectors, L2 normalisation makes their dot product equal to their cosine similarity. Demo 5 checks this identity within floating-point rounding error. A retrieval system can use this identity when it stores normalised embeddings and also normalises each query. See **1.4** and **5.1**.
 
-Finally, "high-dimensional space" gets measured instead of gestured at. In 2 dimensions the farthest of 2,000 random points is 139 times farther away than the nearest. In 5,000 dimensions it is 5.5% farther. When every point is roughly the same distance from every other point, "nearest neighbour" nearly stops meaning anything — which is the central engineering problem of **5.1**, and it is a number you can print, not a slogan.
+Demo 6 measures distance concentration for uniformly sampled points. It averages `(farthest - nearest) / nearest` across 200 queries. That average is `139.2063` in two dimensions and `0.0546` in 5,000 dimensions. These results depend on the sample distribution and do not establish that every high-dimensional dataset has the same behaviour.
 
 Depends on school algebra and nothing else; unlocks **1.4**, **2.3**, **2.5**, **3.1**, **5.1**.
 
@@ -27,8 +27,8 @@ Depends on school algebra and nothing else; unlocks **1.4**, **2.3**, **2.5**, *
 - **Vector**: An ordered list of numbers representing a point or direction in space.
 - **Vector Space**: A formal set of vectors closed under vector addition ($u + v$) and scalar multiplication ($c \cdot v$).
 
-#### 💡 The Beginner Analogy: Arrow Navigation Directions
-Imagine standing in a field. A **Vector** is a set of walking instructions: *"Walk 3 steps East, 4 steps North, and 12 steps Up a ladder"*. The **Vector Space** is the 3D grid of all possible locations you can reach using those directional movements.
+#### 💡 Analogy: A coordinate frame
+A motion controller records displacement as three ordered coordinates in a fixed frame. Adding displacement vectors and scaling them follow the same componentwise rules as `R^3`. The analogy stops at finite machine representation: mathematical `R^3` includes all real values.
 
 #### 💻 Code Example & ⚠️ Why It Matters
 ```python
@@ -59,8 +59,8 @@ flowchart TD
     B2["Basis Arrow e2 = [0, 1, 0] (North)"] --> COMP
     B3["Basis Arrow e3 = [0, 0, 1] (Up)"] --> COMP
     COMP --> VEC["Result Vector v = [3, 4, 12]"]
-
-    style VEC fill:#2d6a4f,stroke:#52b788,color:#fff
+    class VEC ok
+    classDef ok fill:#EDEECF,stroke:#66800B,color:#100F0F
 ```
 
 ---
@@ -77,10 +77,8 @@ A **Norm** $\|v\|$ is a function measuring the magnitude/length of a vector, sat
 - **$L_2$ Norm (Euclidean)**: $\|v\|_2 = \sqrt{\sum v_i^2}$
 - **$L_\infty$ Norm (Chebyshev)**: $\|v\|_\infty = \max |v_i|$
 
-#### 💡 The Beginner Analogy: Walking in Manhattan vs. Flying a Helicopter
-- **$L_1$ Norm**: Walking on city streets in Manhattan — you must walk around building blocks (Sum of absolute $X + Y$ distances).
-- **$L_2$ Norm**: A helicopter flying in a straight line directly from Point A to Point B (Straight-line distance).
-- **$L_\infty$ Norm**: Checking only your **longest single leg** of the journey.
+#### 💡 Analogy: Coordinate measurements
+For a displacement in an orthogonal coordinate frame, L1 sums the absolute coordinate displacements. L2 gives straight-line displacement, and L-infinity gives the largest absolute coordinate displacement. These are measurements of the same coordinates; they do not imply a physical path or travel time.
 
 #### 💻 Code Example & ⚠️ Why It Matters
 ```python
@@ -111,9 +109,10 @@ Vector normalization and loss functions. $L_2$ norm is used to unit-normalize te
 flowchart LR
     START["Point A (0,0)"] -->|"L1: Walk 3 East + 4 North"| L1["L1 Distance = 7.0"]
     START -->|"L2: Fly straight line sqrt(3² + 4²)"| L2["L2 Distance = 5.0"]
-
-    style L1 fill:#005f73,stroke:#0a9396,color:#fff
-    style L2 fill:#2d6a4f,stroke:#52b788,color:#fff
+    class L1 proc
+    classDef proc fill:#DDF1E4,stroke:#24837B,color:#100F0F
+    class L2 ok
+    classDef ok fill:#EDEECF,stroke:#66800B,color:#100F0F
 ```
 
 ---
@@ -124,10 +123,8 @@ flowchart LR
 - **$L_1$ Unit Ball (Diamond)**: Has sharp corners touching the coordinate axes.
 - **$L_2$ Unit Ball (Circle)**: A smooth, uniform sphere.
 
-#### 💡 The Beginner Analogy: Diamond Corners vs. Smooth Sphere
-Imagine expanding a loss contour balloon until it touches a boundary constraint.
-- **$L_1$ (Diamond)**: The balloon touches the diamond at its **sharp corners** on the axes where $x=0$ or $y=0$ (causing features to become exactly $0.0$, creating **sparsity**).
-- **$L_2$ (Circle)**: The balloon touches a smooth circle at arbitrary non-zero points, shrinking all features smoothly without forcing them to zero.
+#### 💡 Analogy: A constrained optimisation problem
+A feasible region constrains model coefficients, and loss contours show equal objective values. An L1 boundary has axis corners where a coordinate is zero; an L2 boundary is smooth. This geometric picture does not guarantee an L1 zero or rule out an L2 zero for every dataset.
 
 #### 💻 Code Example & ⚠️ Why It Matters
 ```python
@@ -152,7 +149,7 @@ L1 Output: 0.0
 L2 Output: 0.26666666666666666
 ```
 
-**Why It Matters**: Explains why Lasso ($L_1$) performs automatic feature selection by zeroing out useless variables, while Ridge ($L_2$) keeps all variables with shrunk weights.
+**Why It Matters**: Lasso can produce exact zero coefficients and thus select features. Ridge shrinks coefficients, but special data configurations can still yield a zero coefficient.
 
 #### 🤖 Real-Time AI/ML Use Case
 Regularization in high-dimensional ML models. Lasso ($L_1$) regularization zeroes out non-essential feature weights in tabular models (creating sparse interpretable models), while Weight Decay ($L_2$ regularization) in PyTorch neural networks prevents overfitting by shrinking weights toward 0 without making them exactly 0.
@@ -166,16 +163,60 @@ flowchart TD
 
     L1 --> SPARSE["Lasso (L1): Exact Zero Coefficients (Feature Selection!)"]
     L2 --> SMOOTH["Ridge (L2): Small Non-Zero Coefficients"]
-
-    style SPARSE fill:#2d6a4f,stroke:#52b788,color:#fff
-    style SMOOTH fill:#005f73,stroke:#0a9396,color:#fff
+    class SPARSE ok
+    classDef ok fill:#EDEECF,stroke:#66800B,color:#100F0F
+    class SMOOTH proc
+    classDef proc fill:#DDF1E4,stroke:#24837B,color:#100F0F
 ```
+
+---
+
+### 2.4 — Vector, Vector Space & Basis
+
+- **Vector**: An ordered sequence of $n$ numbers ($v \in \mathbb{R}^n$) where every position corresponds to a specific feature dimension.
+- **Vector Space**: A set of vectors closed under addition and scalar multiplication obeying 8 algebraic vector axioms.
+- **Basis**: A minimal set of linearly independent vectors whose linear combinations span the entire vector space.
+
+#### 💡 Analogy: A coordinate frame
+A position controller resolves displacement into components along three basis directions. Each component scales one basis vector; their sum gives the displacement. A physical controller has finite precision, unlike the real vector space.
+
+#### 🎨 Basis Vectors & Linear Combination
+
+```mermaid
+flowchart TD
+    B1["Basis Arrow e1 = [1, 0, 0] (East)"] --> COMP["Linear Combination: 3*e1 + 4*e2 + 12*e3"]
+    B2["Basis Arrow e2 = [0, 1, 0] (North)"] --> COMP
+    B3["Basis Arrow e3 = [0, 0, 1] (Up)"] --> COMP
+    COMP --> VEC["Result Vector v = [3, 4, 12]"]
+    class VEC ok
+    classDef ok fill:#EDEECF,stroke:#66800B,color:#100F0F
+```
+
+**Triangle inequality** — `N(u + v) <= N(u) + N(v)`. What makes a norm usable as a distance.
+
+**Dot product** — `u . v = sum_i u_i*v_i`. A single number; equals `||u|| * ||v|| * cos(theta)`.
+
+**Cosine similarity** — `(u . v) / (||u||_2 * ||v||_2)`. Measures direction alone, ignoring length. Geometry in **1.4**, deployed in **5.1**.
+
+**L2 normalisation** — replacing a nonzero `v` with `v / ||v||_2`. In exact arithmetic its length becomes 1. Floating-point results may differ slightly.
+
+**Soft thresholding** — `sign(z)*max(|z| - lam, 0)`. The L1 update. Its `max(..., 0)` collapses an interval of inputs onto exactly `0.0`.
+
+**Shrinkage** — `z / (1 + 2*lam)`. For positive `lam` and nonzero `z`, this update stays nonzero in exact arithmetic. Floating-point underflow can round the result to zero.
+
+**Machine epsilon** — about `2.220e-16` for float64: the smallest gap representable near 1.0. Differences of this size are rounding, not error.
+
+**Overflow / underflow** — a result too large or too small for float64, becoming `inf` or `0.0`. Squaring inside a norm is a common trigger.
+
+**Curse of dimensionality** — several effects that can make learning and search harder as dimension grows. Distance concentration occurs for some distributions; it is not universal.
+
+**Relative contrast** — `(dmax - dmin) / dmin`. The number that says whether a nearest neighbour is meaningfully nearer than anything else.
 
 ---
 
 ## 3. Skip Test — Answered
 
-> Gate **before** studying. Both correct from memory → skip. §7 withholds its answers deliberately.
+> Gate **before** studying. Both correct from memory → skip. §8 withholds its answers deliberately.
 
 **① Compute the L1 and L2 norms of `[3, -4, 0]` without a calculator.**
 
@@ -187,21 +228,21 @@ Worth carrying a third answer: **L-infinity = 4**, the largest absolute entry, `
 
 Demo 2 of the script does this arithmetic by hand and then cross-checks each result against `numpy.linalg.norm`. All three differences print as `0.0e+00` — not "close", identical. It also sweeps the exponent `p` on the same vector and shows the norm sliding monotonically from `7.000000` at `p = 1` down through `5.000000` at `p = 2`, `4.497941` at `p = 3`, `4.021974` at `p = 10`, and settling at `4.000000` by `p = 50`. Higher `p` weights the largest entry more heavily, until only the largest entry counts at all.
 
-**② Explain why L1 drives coefficients to exactly zero but L2 only shrinks them.**
+**② Explain why L1 can drive coefficients to exactly zero while L2 generally shrinks them.**
 
 Two answers, and they are the same answer seen from two sides.
 
 **The geometric answer: the L1 ball has corners on the axes and the L2 ball does not.** Constraining the size of a coefficient vector means confining it to a ball. In 2-D the L1 ball is a diamond with its four vertices at `(t, 0)`, `(0, t)`, `(-t, 0)`, `(0, -t)` — every vertex has a coordinate that is exactly zero. The L2 ball is a circle, perfectly smooth, with no distinguished points at all. The best solution under a budget sits where the loss contours first touch the ball, and a pointy corner is disproportionately likely to be the first thing an expanding contour hits. Demo 4 finds that touch point by **exhaustive search over 1,000,001 points on each boundary** — no optimiser, no tolerance — and at budget `t = 1.00` the L1 answer is `(1.000000, 0.000000)` while the L2 answer is `(0.816339, 0.577573)`. The L1 zero is the float `0.0`; the L2 solution has no zero at any budget tested.
 
-**The algebraic answer: look at what one update step actually computes.** The L1 update is soft-thresholding, `w = sign(z) * max(|z| - lam, 0)`. That `max(..., 0)` is a cliff: every coefficient with `|z| <= lam` is mapped to exactly zero, not to something small. The L2 update is `w = z / (1 + 2*lam)` — multiplication by a constant strictly between 0 and 1. A nonzero number times a nonzero number is nonzero, always, so an L2 update can shrink a coefficient forever and never reach zero.
+**The algebraic answer: inspect one update step.** Soft-thresholding uses `w = sign(z) * max(|z| - lam, 0)`. It maps every input with `|z| <= lam` to exactly zero. In exact arithmetic, the L2 update `w = z / (1 + 2*lam)` maps nonzero `z` to nonzero `w`. Finite-precision underflow and special model configurations require separate consideration.
 
 Demo 4 runs both on the **same** 2,000 random coefficients with `lam = 0.30`: L1 produces **495 exact zeros (24.8%)**, L2 produces **0**. On a real 30-feature regression where only 5 features matter, Lasso reaches **25 exact zeros** — the perfect answer — while keeping all `5 / 5` of the real features, and Ridge produces **0 zeros at every alpha tested**.
 
 ---
 
-## 3. Visual Concept Diagrams
+## 4. Visual Concept Diagrams
 
-### 3.1 — One vector, three honest answers, three different shapes
+### 4.1 — One vector, three honest answers, three different shapes
 
 Every number in this diagram is printed by Demos 2 and 3.
 
@@ -220,18 +261,17 @@ flowchart TD
     B1 --> U1["four corners sit ON the axes<br>→ Lasso, exact zeros, 2.5"]
     B2 --> U2["smooth everywhere, no corners<br>→ Ridge, and cosine in 1.4 / 5.1"]
     B3 --> U3["bounds the worst coordinate<br>→ clipping and robustness checks"]
-
-    style L1 fill:#9b2226,stroke:#ae2012,color:#fff
-    style B1 fill:#9b2226,stroke:#ae2012,color:#fff
-    style L2 fill:#005f73,stroke:#0a9396,color:#fff
-    style B2 fill:#005f73,stroke:#0a9396,color:#fff
-    style LI fill:#7f5539,stroke:#b08968,color:#fff
-    style B3 fill:#7f5539,stroke:#b08968,color:#fff
-    style U1 fill:#1b4332,stroke:#40916c,color:#fff
-    style U2 fill:#1b4332,stroke:#40916c,color:#fff
+    class L1,B1 err
+    classDef err fill:#FFE1D5,stroke:#AF3029,color:#100F0F
+    class L2,B2 proc
+    classDef proc fill:#DDF1E4,stroke:#24837B,color:#100F0F
+    class LI,B3 warn
+    classDef warn fill:#FFE7CE,stroke:#BC5215,color:#100F0F
+    class U1,U2 ok
+    classDef ok fill:#EDEECF,stroke:#66800B,color:#100F0F
 ```
 
-### 3.2 — The corner, with the measured optima that prove it
+### 4.2 — The corner, with the measured optima that prove it
 
 This is skip-test ②. The coordinates below come straight out of Demo 4's brute-force search.
 
@@ -248,25 +288,27 @@ flowchart TD
     C --> CR["measured at t = 1.00<br>w = 0.816339, 0.577573<br>exact zeros: 0"]
 
     DR --> DZ["the second coordinate is the float 0.0<br>the feature is DELETED — Lasso, 2.5"]
-    CR --> CZ["both coordinates merely shrink<br>nothing is ever deleted — Ridge, 2.5"]
+    CR --> CZ["both coordinates shrink in this example<br>Ridge, 2.5"]
 
     DR --> LOOSE["loosen the budget to t = 1.50<br>w = 1.425000, 0.075000<br>exact zeros: 0"]
     LOOSE --> WARN["weak regularisation slides the optimum<br>off the corner onto a flat edge<br>— sparsity is NOT automatic"]
-
-    style D fill:#9b2226,stroke:#ae2012,color:#fff
-    style DR fill:#9b2226,stroke:#ae2012,color:#fff
-    style DZ fill:#1b4332,stroke:#40916c,color:#fff
-    style C fill:#005f73,stroke:#0a9396,color:#fff
-    style CR fill:#005f73,stroke:#0a9396,color:#fff
-    style CZ fill:#6b705c,stroke:#a5a58d,color:#fff
-    style WARN fill:#7f5539,stroke:#b08968,color:#fff
+    class D,DR err
+    classDef err fill:#FFE1D5,stroke:#AF3029,color:#100F0F
+    class DZ ok
+    classDef ok fill:#EDEECF,stroke:#66800B,color:#100F0F
+    class C,CR proc
+    classDef proc fill:#DDF1E4,stroke:#24837B,color:#100F0F
+    class CZ note
+    classDef note fill:#FAEEC6,stroke:#AD8301,color:#100F0F
+    class WARN warn
+    classDef warn fill:#FFE7CE,stroke:#BC5215,color:#100F0F
 ```
 
-### 3.3 — L2-normalise once, and cosine becomes a dot product
+### 4.3 — L2-normalise once, and cosine becomes a dot product
 
 ```mermaid
 flowchart LR
-    RAW["raw vectors u, v<br>arbitrary lengths"]
+    RAW["nonzero vectors u, v<br>arbitrary lengths"]
 
     RAW --> BAD["score by raw dot product"]
     RAW --> NORM["divide each vector by its own L2 norm<br>u_hat = u / L2 norm of u"]
@@ -277,48 +319,49 @@ flowchart LR
     NORM --> ONE["every vector now has L2 norm 1<br>measured max deviation 3.331e-16"]
     ONE --> GOOD["cosine equals the plain dot product<br>measured max gap 2.220e-16 over 100,000 pairs"]
     GOOD --> GOOD2["squared distance equals 2 minus 2 cosine<br>measured max gap 8.882e-16"]
-    GOOD2 --> WIN["doc A and doc B both score 1.0000<br>dot-product search and distance search<br>return the IDENTICAL ranking — 5.1"]
-
-    style BAD fill:#9b2226,stroke:#ae2012,color:#fff
-    style BADR fill:#9b2226,stroke:#ae2012,color:#fff
-    style BADW fill:#9b2226,stroke:#ae2012,color:#fff
-    style NORM fill:#005f73,stroke:#0a9396,color:#fff
-    style GOOD fill:#005f73,stroke:#0a9396,color:#fff
-    style WIN fill:#1b4332,stroke:#40916c,color:#fff
+    GOOD2 --> WIN["doc A and doc B both score 1.0000<br>dot product and distance give equivalent<br>scores; tie ordering can vary — 5.1"]
+    class BAD,BADR,BADW err
+    classDef err fill:#FFE1D5,stroke:#AF3029,color:#100F0F
+    class NORM,GOOD proc
+    classDef proc fill:#DDF1E4,stroke:#24837B,color:#100F0F
+    class WIN ok
+    classDef ok fill:#EDEECF,stroke:#66800B,color:#100F0F
 ```
 
-### 3.4 — High dimensions, measured rather than asserted
+### 4.4 — High dimensions, measured rather than asserted
 
 ```mermaid
 flowchart TD
     SET["2,000 random points in the cube 0 to 1<br>200 queries · L2 distance to every point"]
 
-    SET --> D2["d = 2<br>nearest 0.0118 · farthest 1.0489<br>contrast max minus min over min = 139.2"]
+    SET --> D2["d = 2<br>mean nearest 0.0118 · mean farthest 1.0489<br>mean per-query contrast = 139.2"]
     SET --> D100["d = 100<br>nearest 3.2832 · farthest 4.8112<br>contrast = 0.4665"]
     SET --> D1000["d = 1000<br>nearest 12.1381 · farthest 13.6796<br>contrast = 0.1271"]
-    SET --> D5000["d = 5000<br>nearest 28.1039 · farthest 29.6386<br>contrast = 0.0546"]
+    SET --> D5000["d = 5000<br>mean nearest 28.1039 · mean farthest 29.6386<br>mean per-query contrast = 0.0546"]
 
-    D2 --> OK["a nearest neighbour clearly stands out"]
-    D5000 --> BAD["the farthest point is only 5.5% farther<br>than the nearest one"]
-    BAD --> WHY["every point is roughly equidistant<br>from every other point"]
-    WHY --> COST["exact nearest-neighbour search degrades<br>toward scanning everything — the reason<br>5.1 uses APPROXIMATE indexes"]
+    D2 --> OK["mean contrast is high<br>for these sampled queries"]
+    D5000 --> BAD["mean contrast is 5.46%<br>for these sampled queries"]
+    BAD --> WHY["for this sample, query distances<br>have low relative contrast"]
+    WHY --> COST["high dimensions can weaken pruning;<br>approximate indexes trade recall for speed"]
 
     D100 --> RATE["contrast times sqrt of d holds near 4<br>for d = 100, 1000, 5000<br>→ the predicted 1/sqrt(d) decay, measured"]
-
-    style OK fill:#1b4332,stroke:#40916c,color:#fff
-    style BAD fill:#9b2226,stroke:#ae2012,color:#fff
-    style WHY fill:#9b2226,stroke:#ae2012,color:#fff
-    style COST fill:#7f5539,stroke:#b08968,color:#fff
-    style RATE fill:#005f73,stroke:#0a9396,color:#fff
+    class OK ok
+    classDef ok fill:#EDEECF,stroke:#66800B,color:#100F0F
+    class BAD,WHY err
+    classDef err fill:#FFE1D5,stroke:#AF3029,color:#100F0F
+    class COST warn
+    classDef warn fill:#FFE7CE,stroke:#BC5215,color:#100F0F
+    class RATE proc
+    classDef proc fill:#DDF1E4,stroke:#24837B,color:#100F0F
 ```
 
 ---
 
-## 4. Core Technical Deep Dive
+## 5. Core Technical Deep Dive
 
 GitHub-flavoured markdown does not render mathematical typesetting, so every formula below is written in plain code notation. `sqrt(x)` is the square root, `x^2` is x squared, `sum_i` means "add up over every index i", and `|x|` is absolute value.
 
-### 4.1 What a vector is
+### 5.1 What a vector is
 
 A **vector** in `R^n` is an ordered list of `n` real numbers, written `v = [v_1, v_2, ..., v_n]`. The number `n` is the **dimension**. Each `v_i` is a **component** or **coordinate**.
 
@@ -333,7 +376,7 @@ Two operations are defined, and only two:
 
 There is no default way to multiply two vectors componentwise into "the product vector" that behaves like number multiplication. That absence is the point: the algebra is deliberately small so that everything built on it stays predictable.
 
-### 4.2 What makes it a *vector space*
+### 5.2 What makes it a *vector space*
 
 A **vector space** is not a shape. It is a set of objects plus those two operations, obeying eight rules. `R^n` obeys all eight, which is exactly the licence to do algebra on data.
 
@@ -350,11 +393,11 @@ A **vector space** is not a shape. It is a set of objects plus those two operati
 
 Demo 1 checks all eight on random vectors. The worst disagreement is `2.220e-16`, which is one unit of **machine epsilon** — the smallest gap float64 can represent near 1.0.
 
-**Be honest about what that means.** In `R^n` these are exact identities. In float64 they are not. Addition rounds after every step, and the rounding depends on the order of operations, so `(x + y) + z` and `x + (y + z)` genuinely differ. Demo 1 counts it: over 200,000 random triples, only **135,955 (68.0%)** came out bit-for-bit identical; **64,045 (32.0%)** did not, with a largest disagreement of `8.882e-16`. Nothing is broken — this is why two mathematically identical pipelines can print different last digits, and why comparing floats with `==` is a bug outside of the special cases in §4.6.
+**Be honest about what that means.** In `R^n` these are exact identities. In float64 they are not. Addition rounds after every step, and the rounding depends on the order of operations, so `(x + y) + z` and `x + (y + z)` genuinely differ. Demo 1 counts it: over 200,000 random triples, only **135,955 (68.0%)** came out bit-for-bit identical; **64,045 (32.0%)** did not, with a largest disagreement of `8.882e-16`. Nothing is broken — this is why two mathematically identical pipelines can print different last digits, and why comparing floats with `==` is a bug outside of the special cases in §5.6.
 
 **Linear combination, span, basis, dimension.** A **linear combination** of `v_1 ... v_k` is `a_1*v_1 + ... + a_k*v_k` for any scalars `a_i`. The **span** of a set of vectors is every linear combination you can build from it. A **basis** is a set that spans the whole space with no redundant member, and the number of vectors in a basis is the **dimension**. The standard basis of `R^3` is `[1,0,0]`, `[0,1,0]`, `[0,0,1]`, and writing `[3,-4,0]` as `3*[1,0,0] - 4*[0,1,0] + 0*[0,0,1]` is what "coordinates" means. A 1536-dimension embedding in **5.1** is 1536 coordinates against some basis the model chose.
 
-### 4.3 Norms: the definition
+### 5.3 Norms: the definition
 
 A **norm** is any function taking a vector to a single non-negative number that obeys three rules. Write it `N(v)`.
 
@@ -366,7 +409,7 @@ A **norm** is any function taking a vector to a single non-negative number that 
 
 The triangle inequality is what makes a norm usable as a distance: define `dist(u, v) = N(u - v)` and it behaves the way distance should. Demo 2 checks all three on 200,000 random pairs in `R^8`: triangle violations `0` for each of L1, L2 and L-infinity, and homogeneity agreeing to at most `7.105e-15`.
 
-### 4.4 The p-norm family
+### 5.4 The p-norm family
 
 One formula covers everything used in this course:
 
@@ -391,7 +434,7 @@ Three facts that follow, all checked in Demo 7 on 200,000 vectors in `R^25` with
 
 The norms can never differ by more than a factor of `sqrt(d)`. In `R^25` that ceiling is `5.0000` and the largest ratio actually observed was `4.6868`. In a 1536-dimension embedding space (**5.1**) the ceiling is about `39`, which is why the choice of metric on an index is a real decision and not a formality.
 
-### 4.5 Why L1 zeroes and L2 does not — the derivation
+### 5.5 Why L1 zeroes and L2 does not — the derivation
 
 Strip the problem down to one coefficient. You have a target value `z` and you must choose `w` to minimise `loss + penalty`.
 
@@ -425,7 +468,7 @@ There is no kink and no interval. Every `z` maps to a distinct output, and only 
 
 Both return in **2.5**, where these are called Lasso and Ridge and the same two formulas appear inside the solver.
 
-### 4.6 Normalisation, and why cosine becomes a dot product
+### 5.6 Normalisation, and why cosine becomes a dot product
 
 The **dot product** of two vectors is `u . v = sum_i u_i * v_i`, a single number. It relates to the L2 norm by `||v||_2 = sqrt(v . v)` and to the angle between the vectors by
 
@@ -449,7 +492,7 @@ Both are verified in Demo 5 across 100,000 random pairs in `R^64`, with maximum 
 
 The trap this removes is that a raw dot product rewards **length**. Demo 5's doc B is doc A copy-pasted ten times: raw dot `20.000` versus `2.000`, so B wins on magnitude alone, while cosine scores both exactly `1.0000`.
 
-### 4.7 Where the textbook L2 formula breaks
+### 5.7 Where the textbook L2 formula breaks
 
 `sqrt(sum(v_i^2))` is mathematically right and numerically fragile, because the intermediate `v_i^2` can leave the range float64 can represent. float64 holds numbers up to about `1.798e+308` and down to about `2.225e-308` before losing precision.
 
@@ -469,7 +512,7 @@ m = max_i |v_i|
 
 After dividing by `m`, every entry is at most 1 so no square can overflow, and the largest entry becomes exactly 1 so the sum can never underflow to zero. This is what the BLAS routine `dnrm2` does. It matters when a feature column in **2.3** was never scaled, or when an activation in **3.1** saturates.
 
-### 4.8 What high dimensions actually do
+### 5.8 What high dimensions actually do
 
 Two measured effects, both from Demo 3 and Demo 6.
 
@@ -477,11 +520,11 @@ Two measured effects, both from Demo 3 and Demo 6.
 
 **Distances concentrate.** With `n` points and a query, the useful summary is the **relative contrast** `(dmax - dmin) / dmin`. It collapses from `139.2063` at `d = 2` to `0.0546` at `d = 5000`. Multiply by `sqrt(d)` and the result sits near `4` for `d = 100, 1000, 5000` — the `1/sqrt(d)` decay theory predicts, showing up in a measurement.
 
-**Random directions become orthogonal.** For random unit vectors the cosine between two of them has mean `0` and variance `1/d`. Demo 6 measures the standard deviation and multiplies by `sqrt(d)`: `1.00607`, `0.99882`, `0.98450`, `1.00643`, `1.00567` for `d = 2, 10, 100, 1000, 10000`. In `R^10000` two unrelated embeddings sit within about `0.020` of orthogonal, which sets the noise floor: any cosine well above that is real signal (**1.4**).
+**Random directions become orthogonal.** For independent unit vectors sampled uniformly on the sphere, cosine has mean `0` and variance `1/d`. Demo 6 measures the standard deviation and multiplies by `sqrt(d)`: `1.00607`, `0.99882`, `0.98450`, `1.00643`, `1.00567` for `d = 2, 10, 100, 1000, 10000`. The roughly `0.020` range describes this synthetic distribution at `d = 10000`. Real embedding distributions can be anisotropic; a cosine score alone does not establish relevance or significance.
 
 ---
 
-## 5. Hands-On Script & Verified Output
+## 6. Hands-On Script & Verified Output
 
 Run: `python 01_vectors_vector_spaces_norms.py`. The output below is **actual, captured** on Windows 11 with CPython 3.14.4, numpy 2.4.4 and scikit-learn 1.9.0. Seed `1729`, so your run prints these digits too.
 
@@ -716,6 +759,8 @@ done - no network, no state changed, one PNG written beside this script
 ======================================================================
 ```
 
+Verified with: Python 3.14.4 · NumPy 2.4.4 · Matplotlib 3.11.1 · scikit-learn 1.9.0 · 2026-10-28.
+
 **Demo 4 is the whole point of the topic, and the zeros column is the evidence.** At budget `t = 1.00` the L1-constrained optimum is `(1.000000, 0.000000)` and the L2-constrained optimum is `(0.816339, 0.577573)`. Those coordinates were not produced by an optimiser that might have snapped a tiny value to zero — they came from evaluating the loss at 1,000,001 points along each boundary and taking the smallest. The L1 answer sits on a corner, so one coordinate is the float `0.0`. The L2 answer sits on a smooth arc, and a smooth arc touches an axis at exactly one point out of infinitely many, so it essentially never happens. Then the same fact appears as an update rule: on the **same** 2,000 coefficients with `lam = 0.30`, soft-thresholding produced **495 exact zeros (24.8%)** and ridge shrinkage produced **0**, with every coefficient multiplied by `0.625000` instead. That contrast, `495` against `0`, is skip-test ② as a measurement.
 
 **The honest wrinkle in the same table is worth more than the headline.** At `t = 1.50` the L1 optimum is `(1.425000, 0.075000)` — zeros: `0`. The corner stopped winning. L1 does not hand you sparsity for free; it hands you sparsity **when the penalty is strong enough to pull the solution onto a corner**. That is exactly what the regression sweep shows: at `alpha = 0.02` Lasso zeroes only `10` of 30 features, and it takes `alpha = 0.20` to reach the correct `25`. Anyone who reports "Lasso does feature selection" without mentioning that the strength has to be tuned has skipped the interesting half. Ridge, meanwhile, prints `0` zeros on every single row.
@@ -724,7 +769,11 @@ done - no network, no state changed, one PNG written beside this script
 
 **Demo 5's three numbers are identities, not approximations.** `2.220e-16`, `3.331e-16` and `8.882e-16` are one, one-and-a-half and four units of machine epsilon across 100,000 random pairs in `R^64`. Cosine similarity and the dot product of normalised vectors are the same computation; squared Euclidean distance between unit vectors and `2 - 2*cos` are the same computation. The practical consequence sits underneath the worked example: raw dot product crowns doc B at `20.000`, and doc B is doc A copy-pasted ten times. Cosine gives A and B the same `1.0000`. Normalise once when you write to the index in **5.1**, not on every query.
 
-**Demo 6 replaces a metaphor with two columns.** At `d = 2` the nearest of 2,000 points is `0.0118` away and the farthest is `1.0489` — a relative contrast of `139.2063`, so "nearest" is obviously meaningful. At `d = 5000` the nearest is `28.1039` and the farthest `29.6386`, a contrast of `0.0546`: the farthest point in the entire dataset is `5.5%` farther away than the closest one. Every point is roughly equidistant from every other point, which is precisely why exact nearest-neighbour search degrades toward a full scan and why **5.1** reaches for approximate indexes. The `x sqrt(d)` column is worth reading sceptically: it is **not** flat at `d = 2` or `d = 10` — `196.8674` and `10.2974` — because 2,000 points genuinely do fill a small space. From `d = 100` onward it settles at `4.6648`, `4.0177`, `3.8619`, which is the `1/sqrt(d)` law arriving.
+**Demo 6 measures one synthetic distribution.** The nearest and farthest columns are averages across queries. The contrast column averages each query's ratio; it is not the ratio of those two averages. At `d = 2`, those values are `0.0118`, `1.0489`, and `139.2063`. At `d = 5000`, they are `28.1039`, `29.6386`, and `0.0546`.
+
+The script's wording that the farthest point is 5.5% farther describes the mean per-query contrast, not every query. Its claim that a cosine above `0.020` proves signal also applies only to its synthetic model. Real embeddings require evaluation against an appropriate baseline. High dimensionality can reduce index pruning, but the data distribution and index determine actual search performance.
+
+The `x sqrt(d)` column is not flat at `d = 2` or `d = 10`: it gives `196.8674` and `10.2974`. From `d = 100` onward, the observed values are `4.6648`, `4.0177`, and `3.8619`. This experiment is consistent with decreasing contrast at high dimension; it does not establish a universal rate for every dataset.
 
 **Demo 7 closes the loop: the norm is a modelling choice with consequences.** In `R^2` the L1 and L2 nearest neighbours disagree on `10 / 100` queries. In `R^100` they disagree on `66 / 100`, and L2 versus L-infinity disagree on `91 / 100`. "Nearest" is not a property of the data; it is a property of the norm you selected. The bound is reassuring only in a narrow sense — the chain `||v||_inf <= ||v||_2 <= ||v||_1 <= sqrt(d)*||v||_2` held with `0` violations across 200,000 vectors, largest observed ratio `4.6868` against a ceiling of `5.0000` — but that factor grows as `sqrt(d)`, reaching about `39` at 1536 dimensions.
 
@@ -737,17 +786,17 @@ done - no network, no state changed, one PNG written beside this script
 
 ---
 
-## 6. Video
+## 7. Video
 
 **"Vectors | Chapter 1, Essence of linear algebra"** — *3Blue1Brown* — [youtube.com/watch?v=fNk_zzaMoSs](https://www.youtube.com/watch?v=fNk_zzaMoSs). Verified live: fetched `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=fNk_zzaMoSs&format=json`, which returned exactly `"title": "Vectors | Chapter 1, Essence of linear algebra"` and `"author_name": "3Blue1Brown"`. About 10 minutes, and it makes "a vector is a list of numbers" and "a vector is an arrow" click as the same idea.
 
-Follow it with **"Linear combinations, span, and basis vectors | Chapter 2, Essence of linear algebra"** — *3Blue1Brown* — [youtube.com/watch?v=k7RM-ot2NWY](https://www.youtube.com/watch?v=k7RM-ot2NWY), verified the same way (oembed returned that exact title and `"author_name": "3Blue1Brown"`). It covers §4.2's span and basis visually.
+Follow it with **"Linear combinations, span, and basis vectors | Chapter 2, Essence of linear algebra"** — *3Blue1Brown* — [youtube.com/watch?v=k7RM-ot2NWY](https://www.youtube.com/watch?v=k7RM-ot2NWY), verified the same way (oembed returned that exact title and `"author_name": "3Blue1Brown"`). It covers §5.2's span and basis visually.
 
 Neither video covers norms beyond L2. For that, the named reference is **Boyd and Vandenberghe, *Introduction to Applied Linear Algebra*, Chapter 3 ("Norm and distance")** — free PDF from the authors — and for the corner argument behind Lasso, **Hastie, Tibshirani and Friedman, *The Elements of Statistical Learning*, Section 3.4.2**, which contains the diamond-versus-circle figure this topic reconstructs numerically in Demo 4.
 
 ---
 
-## 7. Retrieval Checkpoint — Unanswered
+## 8. Retrieval Checkpoint — Unanswered
 
 > Close this file. No notes. Answers deliberately withheld.
 
@@ -759,52 +808,9 @@ Neither video covers norms beyond L2. For that, the named reference is **Boyd an
 
 ---
 
-## 8. Closed-Book Rebuild
+## 9. Closed-Book Rebuild
 
 With this file **and** the script closed, from a blank editor: write a function that computes the L1, L2 and L-infinity norms of a vector without calling `numpy.linalg.norm`, and make it survive an input of `[3e200, -4e200]`. Then verify the three norm axioms on random data and print the violation counts. Then write soft-thresholding and ridge shrinkage as two one-line functions, run both over the same 1,000 random coefficients, and print how many land on exactly `0.0` under each. Then take 100 random vectors, L2-normalise them, and show that their pairwise cosine similarities equal their pairwise dot products to within a few units of machine epsilon. Finally, sample 1,000 points in `d` dimensions for `d = 2, 10, 100, 1000`, and print `(max - min) / min` over the distances from a query to all of them. State, before running it, roughly what that last column should do.
-
----
-
-### 9.1 — Vector, Vector Space & Basis
-
-- **Vector**: An ordered sequence of $n$ numbers ($v \in \mathbb{R}^n$) where every position corresponds to a specific feature dimension.
-- **Vector Space**: A set of vectors closed under addition and scalar multiplication obeying 8 algebraic vector axioms.
-- **Basis**: A minimal set of linearly independent vectors whose linear combinations span the entire vector space.
-
-#### 💡 The Beginner Analogy: City Grid Directions
-Think of a 3D vector $[x, y, z] = [3, 4, 12]$ as **directions to a house**: 3 blocks East, 4 blocks North, 12 floors Up. The **Basis** is the set of 3 fundamental direction arrows: East ($\mathbf{e}_1$), North ($\mathbf{e}_2$), and Up ($\mathbf{e}_3$).
-
-#### 🎨 Basis Vectors & Linear Combination
-
-```mermaid
-flowchart TD
-    B1["Basis Arrow e1 = [1, 0, 0] (East)"] --> COMP["Linear Combination: 3*e1 + 4*e2 + 12*e3"]
-    B2["Basis Arrow e2 = [0, 1, 0] (North)"] --> COMP
-    B3["Basis Arrow e3 = [0, 0, 1] (Up)"] --> COMP
-    COMP --> VEC["Result Vector v = [3, 4, 12]"]
-
-    style VEC fill:#2d6a4f,stroke:#52b788,color:#fff
-```
-
-**Triangle inequality** — `N(u + v) <= N(u) + N(v)`. What makes a norm usable as a distance.
-
-**Dot product** — `u . v = sum_i u_i*v_i`. A single number; equals `||u|| * ||v|| * cos(theta)`.
-
-**Cosine similarity** — `(u . v) / (||u||_2 * ||v||_2)`. Measures direction alone, ignoring length. Geometry in **1.4**, deployed in **5.1**.
-
-**L2 normalisation** — replacing `v` with `v / ||v||_2`, giving length exactly 1. Turns cosine into a plain dot product.
-
-**Soft thresholding** — `sign(z)*max(|z| - lam, 0)`. The L1 update. Its `max(..., 0)` collapses an interval of inputs onto exactly `0.0`.
-
-**Shrinkage** — `z / (1 + 2*lam)`. The L2 update. Multiplication by a constant below 1; never reaches zero.
-
-**Machine epsilon** — about `2.220e-16` for float64: the smallest gap representable near 1.0. Differences of this size are rounding, not error.
-
-**Overflow / underflow** — a result too large or too small for float64, becoming `inf` or `0.0`. Squaring inside a norm is a common trigger.
-
-**Curse of dimensionality** — as dimension grows, volume flees to the corners and all pairwise distances converge, so "nearest" loses meaning. Measured here, not asserted.
-
-**Relative contrast** — `(dmax - dmin) / dmin`. The number that says whether a nearest neighbour is meaningfully nearer than anything else.
 
 ---
 

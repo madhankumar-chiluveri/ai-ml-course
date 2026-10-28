@@ -1,6 +1,6 @@
 # 📌 OpenAPI Specification in FastAPI
 
-> **Reference / Context**: [03_async_typehints_pydantic.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/03_async_typehints_pydantic.md) | [08_consuming_rest_apis.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/08_consuming_rest_apis.md) | [09_building_apis_with_fastapi.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | [`09_building_apis_with_fastapi.py`](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.py)
+> **Reference / Context**: [03_async_typehints_pydantic.html](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/03_async_typehints_pydantic.html) | [08_consuming_rest_apis.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/08_consuming_rest_apis.md) | [09_building_apis_with_fastapi.md](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.md) | [`09_building_apis_with_fastapi.py`](file:///d:/Madhan_Utils/learning/courses/ai-ml-course/course-path/phase-0-engineering-foundations/09_building_apis_with_fastapi.py)
 
 ---
 

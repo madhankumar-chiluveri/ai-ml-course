@@ -2,6 +2,7 @@
 
 Checked on 27 October 2026. Recheck service capabilities, limits, and timing evidence before making new recommendations.
 This file supports the reusable workflow; it is not a per-post research report.
+The current day-by-day timing guide is [posting-times.md](../../../strategy/posting-times.md). The Wednesday slots below remain comparison hypotheses.
 
 ## Timing hypothesis
 
@@ -20,9 +21,7 @@ The saved account audit lacks posting times and audience geography, so it cannot
 Keep four editions at the initial slots. Compare equivalent 24-hour and 72-hour snapshots using existing metric definitions.
 Prioritize qualified response and useful actions over raw impressions. A small sample supports a next test, not a proven winner.
 
-The 28 October 2026 humour post is already scheduled by the user at 10 AM IST.
-Do not replace or reschedule it. LI-014 is the proposed 29 October follow-up, with assets in review.
-The active weekly plan owns proposed dates; these are not platform schedules or publication commitments.
+The active weekly plan owns dates and publication status. Consult it before changing an existing schedule.
 
 ## Smallest useful toolset
 

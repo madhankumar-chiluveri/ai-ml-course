@@ -1,17 +1,19 @@
 ---
 name: concept-explainer
-description: Explains any technical concept, keyword, or query with a simple, beginner-friendly explanation and real-world analogy. For short explanations, terminology, or meanings, responds directly in chat; for comprehensive architectural deep dives or explicit note requests, writes to a dedicated .md file with Mermaid flowcharts and bidirectional links.
+description: Explains any technical concept, keyword, or query mechanism-first, in exact production terms, with a production-grade analogy only when it maps 1:1 onto the mechanism. For short explanations, terminology, or meanings, responds directly in chat with ASCII box/pipe diagrams; for comprehensive architectural deep dives or explicit note requests, writes to a dedicated .md file with Mermaid flowcharts and bidirectional links.
 ---
 
-# Beginner Concept Explainer Skill
+# Concept Explainer Skill
 
-Use this skill whenever the user asks to explain a concept, keyword, architecture pattern, query, or technical topic, or when asked for beginner-friendly breakdowns with analogies and diagrams.
+Use this skill whenever the user asks to explain a concept, keyword, architecture pattern, query, or technical topic, or asks for a first-principles breakdown with diagrams. Global rules (`~/.agent-rules/AGENTS.md`) apply in full; this skill adds the explainer workflow only.
 
 ## Core Directives
 
-1. **Keep it Beginner-Friendly & Intuitive**:
-   - Strip away unnecessary academic jargon.
-   - Ground the concept with an everyday, real-world physical analogy (e.g., restaurants, libraries, traffic, power sockets).
+1. **Mechanism First, Exact Terms** (global rules 8 and 9):
+   - Explain the physical or runtime mechanism before any code syntax.
+   - Use exact production terms. Define each term once and reuse it with no synonym drift.
+   - Use an analogy only when it maps 1:1 onto the real mechanism, and say where it breaks. Never use childish analogies.
+   - Write in ASD-STE100: sentences of 25 words or fewer, one idea each, active voice. Prefer ASCII box/pipe flows and tables over text walls.
 
 2. **Proportional Depth (Don't Overcomplicate Small Concepts)**:
    - **Small/Single Concepts** (e.g., *pool max size*, *foreign key*, *memoization*, *debounce*, *ReLU*): Keep the explanation brief, crisp, and focused. Do not go unnecessarily deep into assembly, compiler internals, or advanced edge cases.
@@ -50,15 +52,15 @@ Use this skill whenever the user asks to explain a concept, keyword, architectur
 
 ---
 
-### 1. 🎯 What is it? (In Plain English)
-A 1-2 sentence crystal-clear explanation without buzzwords.
+### 1. 🎯 What is it? (The Mechanism)
+1-2 sentences that state the mechanism in exact production terms.
 
 ---
 
-### 2. 💡 The Real-World Analogy
-An intuitive, relatable real-world comparison that instantly clicks.
+### 2. 💡 The Analogy
+A real physical or production system that maps 1:1 onto the mechanism. Say where it breaks. Never childish.
 
-*Example*: "Think of connection pooling like a taxi stand at an airport..."
+*Example*: "A connection pool works like an airport taxi rank with a fixed number of licensed taxis. Passengers queue when every taxi is out. The analogy breaks on reuse: a taxi never keeps state from the last passenger, but a pooled connection can."
 
 ---
 
@@ -68,12 +70,13 @@ A clean, visual Mermaid diagram (`flowchart TD`, `flowchart LR`, or `sequenceDia
 ```mermaid
 flowchart TD
     A["Request Arrives"] --> B{"Is Resource Available?"}
-    B -->|Yes| C["Use Existing Resource (Fast)"]
-    B -->|No| D["Queue or Create New (Bounded by Limit)"]
-    
-    style C fill:#2d6a4f,stroke:#52b788,color:#fff
-    style D fill:#d4a373,stroke:#ccd5ae,color:#000
+    B -->|Yes| C["Use Existing Resource (Fast)"]:::ok
+    B -->|No| D["Queue or Create New (Bounded by Limit)"]:::warn
+
+    classDef ok fill:#EDEECF,stroke:#66800B,color:#100F0F
+    classDef warn fill:#FFE7CE,stroke:#BC5215,color:#100F0F
 ```
+Color only through the shared Flexoki `classDef` palette in `course-utils/per-topic-deepdive-generator.md`. No per-node `style` lines.
 
 ---
 
@@ -91,7 +94,7 @@ A short, practical snippet or table showing how it looks in code or configuratio
 ## Execution Workflows
 
 ### Mode A: Short Explanations & Terminology Meanings (In-Chat Only)
-1. Provide the direct, beginner-friendly explanation and analogy **directly in the chat**.
+1. Provide the direct, mechanism-first explanation **directly in the chat**. Add an analogy only when it maps 1:1 onto the mechanism.
 2. **Visuals in Chat**: **Never use Mermaid code blocks in chat responses** (the chat UI does not render Mermaid). Instead, use:
    - **Unicode/ASCII Box Diagrams** (`┌─┐`, `└─┘`, `│`, `──>`) for architecture and state transitions.
    - **Text-Tree Hierarchies** (`├──`, `└──`, `│`) for parent-child or file structures.

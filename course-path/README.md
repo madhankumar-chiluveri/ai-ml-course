@@ -17,17 +17,17 @@ Every topic in the curriculum is delivered under one of two practical modalities
 | **`CODE` Topic** | Python implementation: algorithms, API clients, FastAPI services, PyTorch models, RAG pipelines, AI agents. | `NN_topic.md` + `NN_topic.py` (Runnable companion proof script) |
 | **`WORKBENCH` Topic** | Terminal & DevOps tooling: Git, GitHub PRs, Linux CLI, Docker, NGINX configs, Cloud VMs. | `NN_topic.md` with **Real-World Terminal Drills** (No synthetic `.py` wrappers) |
 
-Each note follows the structured pedagogical framework:
+Each note follows the canonical spec in [`../course-utils/per-topic-deepdive-generator.md`](../course-utils/per-topic-deepdive-generator.md):
 
 1. **Overview** — what the topic is, and which topics it connects to upstream and downstream
-2. **Skip Test — Answered** — a gate *before* studying. Both correct from memory → skip the topic entirely
-3. **Visual Concept Diagrams** — rendered Mermaid diagrams, not descriptions of diagrams
-4. **Core Technical Deep Dive** — the mechanics, in tables you can revisit
-5. **Hands-On Section** — For `CODE`: runnable `.py` script output. For `WORKBENCH`: step-by-step terminal execution drills
-6. **Video** — one vetted video where a good one was confirmed live, otherwise **[VERIFY]**
-7. **Retrieval Checkpoint — Unanswered** — a gate *after* studying. Answers deliberately withheld
-8. **Closed-Book Rebuild** — what to reproduce from scratch with everything closed
-9. **Glossary** — every term the note introduced
+2. **Glossary** — every term the note introduces: definition, analogy, code, verified output, AI/ML use case, diagram
+3. **Skip Test — Answered** — a gate *before* studying. Both correct from memory → skip the topic entirely
+4. **Visual Concept Diagrams** — rendered Mermaid diagrams, not descriptions of diagrams
+5. **Core Technical Deep Dive** — the mechanics, in tables and box/pipe flows you can revisit
+6. **Hands-On Section** — For `CODE`: runnable `.py` script output. For `WORKBENCH`: step-by-step terminal execution drills
+7. **Video** — one vetted video where a good one was confirmed live, otherwise **[VERIFY]**
+8. **Retrieval Checkpoint — Unanswered** — a gate *after* studying. Answers deliberately withheld
+9. **Closed-Book Rebuild** — what to reproduce from scratch with everything closed
 
 ---
 
@@ -56,9 +56,9 @@ Each note follows the structured pedagogical framework:
 
 | # | Topic | Track | Hours | Focus / What it Proves |
 |---|---|---|---|---|
-| 0.1 | [Python Basics](phase-0-engineering-foundations/01_python_basics.md) | `CODE` | 25 | `.get()` never fires on CSV data — a missing column is `''`, not absent |
-| 0.2 | [OOP, Modules, venvs](phase-0-engineering-foundations/02_oop_modules_virtualenvs.md) | `CODE` | 10 | Mutable class attribute is shared across every instance |
-| 0.3 | [Async, Type Hints, Pydantic](phase-0-engineering-foundations/03_async_typehints_pydantic.md) | `CODE` | 12 | 3.02x speedup from `gather`; reducer merge vs clobber |
+| 0.1 | [Python Basics](phase-0-engineering-foundations/01_python_basics.html) | `CODE` | 25 | `.get()` never fires on CSV data — a missing column is `''`, not absent |
+| 0.2 | [OOP, Modules, venvs](phase-0-engineering-foundations/02_oop_modules_virtualenvs.html) | `CODE` | 10 | Mutable class attribute is shared across every instance |
+| 0.3 | [Async, Type Hints, Pydantic](phase-0-engineering-foundations/03_async_typehints_pydantic.html) | `CODE` | 12 | 3.02x speedup from `gather`; reducer merge vs clobber |
 | 0.4 | [Git and GitHub](phase-0-engineering-foundations/04_git_and_github.md) | `WORKBENCH` | 5 | Git Bash drills: branches, PRs, interactive rebase, secret purging |
 | 0.5 | [Testing with pytest](phase-0-engineering-foundations/05_testing_with_pytest.md) | `CODE` | 8 | Fixture scope, shown by observation; one deliberate failure |
 | 0.6 | [NumPy, Pandas, Matplotlib](phase-0-engineering-foundations/06_numpy_pandas_matplotlib.md) | `CODE` | 14 | 17.2x vectorization; `.loc[3]` and `.iloc[3]` return different rows |
