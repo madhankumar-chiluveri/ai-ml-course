@@ -45,11 +45,12 @@ Apply [style-ref-editorial](../style-ref-editorial/SKILL.md) for the default pap
 Let the scenario determine the illustration: a queue, conversation, timeline, stale response, expectation split, or escalating sequence.
 
 One joke often fits one image. Several panels within one image are still a single-image format.
+For two equal, filled top and bottom halves with setup and punchline inside their scenes, use [two-panel-meme](../two-panel-meme/SKILL.md).
 Use a carousel only when revealing successive beats across pages materially improves the joke.
 Do not turn every humorous post into the same four-panel grid or the previous technical carousel.
 
-Use deterministic text and diagram rendering for exact labels. Use image generation when original characters, expressions, or illustrative scenes materially carry the joke.
-When image generation applies, use the available imagegen workflow and preserve technical text through exact labels or a deterministic text layer.
+Default to image generation for complete social humour artwork, including integrated scenes and text. Specify exact wording and readable letter and word spacing; verify the final image.
+Use deterministic rendering selectively for exact technical geometry, measured charts, editable diagrams, or precise text correction when suitable.
 
 ## Match the requested mode
 

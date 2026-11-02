@@ -30,8 +30,9 @@ If a queue is the joke, draw a queue. If timing is the joke, show timing.
 
 | Visual need | Preferred method |
 |---|---|
-| Exact code, HTTP status, test result, timeline, or diagram | SVG or HTML/CSS with deterministic labels |
-| Original characters, gestures, expressions, or surreal scene | Image generation, with exact labels composed separately where necessary |
+| Complete illustrated meme, including its dialogue and labels | Image generation by default; inspect exact text, anatomy, and layout |
+| Precise chart, editable technical diagram, or difficult exact label | SVG or HTML/CSS when it materially suits the content |
+| Original characters, gestures, expressions, or surreal scene | Image generation, with characters integrated into the story |
 | A real failure whose actual output is the joke | Approved, sanitised capture of that actual output |
 | A supplied image that the user wants edited | The available image editing workflow |
 

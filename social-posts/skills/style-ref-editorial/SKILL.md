@@ -1,7 +1,7 @@
 ---
 name: style-ref-editorial
 description: >-
-  Create original LinkedIn and Instagram carousels or technical cards using Madhan's saved style-ref treatment: warm paper, oversized black headlines, pastel diagrams, and blue handwritten annotations. Use for social visuals in this workspace or an explicit style-ref request.
+  Create original LinkedIn and Instagram carousels or technical cards using Madhan's saved style-ref treatment: warm paper, oversized black headlines, pastel diagrams, and readable blue annotations. Use for social visuals in this workspace or an explicit style-ref request.
 ---
 
 # Style Ref Editorial
@@ -25,10 +25,19 @@ Bundled OFL fonts and their licenses live in `assets/fonts/` for reproducible of
 1. Take the topic, evidence, platform, and chosen format from the post brief. This skill controls visual treatment.
 2. Identify the physical mechanism or engineering decision. Make that the dominant diagram.
 3. Use warm paper, a heavy black headline, pastel surfaces, thin ink strokes, and restrained blue notes.
-4. Keep technical labels exact. Use SVG, HTML/CSS, or another deterministic renderer for text and diagrams.
-5. Use handwriting for short annotations. Keep body text, code, figures, and essential labels in a readable sans-serif.
+4. Use image generation as the default for social images and carousel artwork. Generate a complete, cohesive slide when that serves the story. Use SVG, HTML/CSS, or another deterministic renderer selectively when exact charts, technical geometry, editable diagrams, or precise text correction make it suitable. Verify every word and technical relationship in the final result.
+5. Use a readable sans-serif with clear gaps between letters and words. Choose normal-width type, open counters, and moderate weight. Avoid negative tracking, touching glyphs, compressed heavy headlines, and handwriting fonts unless explicitly requested. Inspect at feed size and regenerate cramped type.
 6. Vary composition with the information: a causal path, aligned comparison, timeline, branching decision, or trace.
-7. Use `madvibe.ai` as the public visual credit. Export the chosen assets and inspect their mobile readability and rendered boundaries.
+7. Use `madvibe.ai` as the public visual credit. Omit publication and edition dates from artwork and public captions unless explicitly requested; keep source dates and verification timestamps in internal source notes. Export the chosen assets and inspect their mobile readability and rendered boundaries.
+
+## Mad character
+
+- When the post benefits from a personal character, use [Mad's original portrait](../../assets/mad-character.png) or the [alternate mascot](../../assets/mad-mascot.png), according to the brief. Make Mad a participant in the story: give him a role and a visible action tied to the slide's idea. Avoid detached corner portraits or decorative stickers.
+- Keep character appearances below 50% of carousel pages, counting both Mad and supporting characters. A five-page carousel may use characters on at most two pages. Reserve those scenes for moments that benefit from human action or reaction.
+- Adapt Mad's outfit to the post when useful. Preserve his recognizable hair, skin tone, facial hair, and identity using the existing character as a reference.
+- Plan each appearance around the situation: what Mad sees, does, says, or reacts to. Match his gaze, facial expression, gesture, and pose to that action. Generate a suitable variation when the existing pose does not fit. Check facial features, hands, prop contact, and readability at feed size.
+- Add original supporting characters when the story needs another participant, such as a teammate, reviewer, or clearly labeled agent. Give each one a useful role; omit characters that add no meaning. Compose characters, props, speech bubbles, and diagrams as one scene, with clear reading order and no text collisions. Keep labels and dialogue exact and readable.
+- Inspect anatomy before accepting a scene: trace each visible arm from shoulder through elbow and wrist to its hand; reject duplicate, detached, reversed, or implausibly placed limbs. Check fingers, gaze, prop contact, bubble tails, connector paths, and card alignment. Regenerate faulty artwork rather than disguising an error with layout.
 
 ## Carousel guidance
 
@@ -37,13 +46,13 @@ Bundled OFL fonts and their licenses live in `assets/fonts/` for reproducible of
 - Maintain typography, margins, color meanings, and author placement across the sequence. Vary the diagrams to avoid repeated card layouts.
 - End with a usable decision rule or specific practitioner question. Use the goal from the post brief.
 - Design on a logical 1080 × 1350 canvas. Render final PNG pages at 2160 × 2700 from editable source at 2× scale.
-- Retain vector text and diagrams when packaging the sequence as a LinkedIn PDF. Keep one final PNG per page, without redundant lower-resolution copies.
+- Package generated slide artwork as an image-based LinkedIn PDF. Preserve vectors when a code-native diagram is selected. Keep native generated source, prompts, and one final PNG per page, without redundant lower-resolution copies.
 - Keep editable source and accessible text beside the exports. Include page-specific alt text in the post file.
 
 ## Boundaries
 
 - Do not reproduce another creator's handle, distinctive composition, signature badges, people, or proprietary artwork.
-- Preserve meaningful detail from the references: pastel groupings, illustrated connectors, ink hierarchy, and short handwritten explanations.
+- Preserve meaningful detail from the references: pastel groupings, illustrated connectors, ink hierarchy, and short blue annotations in readable type.
 - Do not reduce this treatment to plain corporate cards or add unrelated decorative AI imagery.
 - Label simulations and illustrative data. Never draw a fake terminal capture, benchmark, or production incident.
 - Keep delivery to the selected assets and captions. Add source notes in the post only when useful; separate study artifacts require explicit request.
@@ -69,4 +78,4 @@ The image remains AI-generated; metadata cleanup does not establish a different 
 
 ## Reusable prompt
 
-> Apply the style-ref-editorial skill to this approved brief. Use warm paper, oversized black editorial type, pastel technical diagrams, thin ink outlines, and a few blue handwritten notes. Preserve exact technical labels and the evidence boundary. Use madvibe.ai as the public credit. Return 2160 × 2700 PNGs, vector carousel PDFs when selected, editable source, and page-specific alt text.
+> Apply the style-ref-editorial skill to this approved brief. Default to image generation for cohesive social artwork; use SVG only when it suits the content. Use warm paper, clearly spaced normal-width editorial type, pastel diagrams, thin ink outlines, and readable blue notes. Preserve exact labels and the evidence boundary. Use madvibe.ai as the public credit. Return 2160 × 2700 PNGs, the selected carousel PDF, native source and prompts, and page-specific alt text.

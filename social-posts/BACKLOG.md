@@ -23,11 +23,14 @@ deferred means the topic is valid but outside the active course phase.
 | LI-012 | NGINX can make token streaming arrive all at once | Build proof | Proxy buffering is mistaken for model latency | Before/after streaming trace | Phase 0.12 | 3 | idea |
 | LI-013 | AI says Fixed; pytest asks for a word | Community | A confident completion message arrives before executable checks | Fictional comic grounded in the testing lesson | Phase 0.5 | 1 | scheduled |
 
+| LI-017 | One prompt, then the AI roadmap | Community | Initial confidence meets an expanding learning scope | Fictional two-panel comic inspired by a supplied reference | User-requested learning humour | 1 | draft |
+
 ## AI Update candidates
 
 | ID | Working idea | Pillar | Audience angle | Source | Status |
 |---|---|---|---|---|---|
 | LI-014 | Before you add another agent, check what it adds | Authority | Follow the testing comic with a sourced comparison of handoffs, shared context, and useful agent boundaries | Anthropic guide, 22 October 2026 | review |
+| LI-016 | DeepSeek Super-agent: when can an agent act? | Authority | Explain proactive coding work and team-defined permission boundaries | DeepSeek prototype, 31 October 2026 | review |
 
 ## Deferred until their course phase is active
 

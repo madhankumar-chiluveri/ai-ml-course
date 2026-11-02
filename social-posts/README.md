@@ -55,11 +55,11 @@ For each proposed publishing date, consult the [posting-time guide](strategy/pos
 
 ### Format rules
 
-- **Public credit and export quality:** use `madvibe.ai` on new social visuals. Render 4:5 PNGs at **2160 × 2700** from the editable 1080 × 1350 layout at 2× scale. Keep text and diagrams as vectors in carousel PDFs. Retain one final PNG per page; create lower-resolution copies only when requested. Enlarging a bitmap does not add image detail.
-- **Visual treatment:** use the local [style-ref-editorial skill](skills/style-ref-editorial/SKILL.md) for warm paper, bold headlines, pastel technical diagrams, and blue handwritten notes. It includes saved internal reference images.
+- **Public credit and export quality:** use `madvibe.ai` on new social visuals. Export exact 4:5 PNGs at **2160 × 2700**. Keep native generated source and prompts; preserve vectors when code-native diagrams are selected. Generated artwork can use image-based carousel PDFs. Retain one final PNG per page; create lower-resolution copies only when requested. Enlarging a bitmap does not add image detail.
+- **Visual treatment:** use the local [style-ref-editorial skill](skills/style-ref-editorial/SKILL.md). Default to image generation; use SVG when precise charts, geometry, or editable diagrams make it suitable. Use warm paper, clearly spaced readable type, pastel diagrams, and blue notes. It includes saved internal reference images.
 - **Generated PNG uploads:** apply the style skill's metadata-only preparation to every generated single-image post. Verify unchanged pixels, replace the older workspace copy, and keep one final PNG plus its prompt. Inspect the platform preview; labels and upload IDs cannot be guaranteed.
 - **Humour treatment:** use [engineering-humour](skills/engineering-humour/SKILL.md) for relatable technical frustrations and original visual punchlines. Choose the scene before the layout; use one image when the joke fits.
-- **AI update treatment:** use [ai-news-carousel](skills/ai-news-carousel/SKILL.md). Retain the editorial identity with a dated AI UPDATE label. Choose the narrative, page count, and main visuals for the topic; there is no fixed slide sequence or required verdict.
+- **AI update treatment:** use [ai-news-carousel](skills/ai-news-carousel/SKILL.md). Retain the editorial identity with an AI UPDATE label. Omit publication and edition dates from artwork and public captions unless explicitly requested; keep source dates and verification timestamps in internal source notes. Choose the narrative, page count, and main visuals for the topic; there is no fixed slide sequence or required verdict.
 - **Single image:** default for one mental model, measured result, comparison, or architecture card.
 - **Document/carousel:** use for a sequence, explanation, comparison, visual story, roundup, or another topic that benefits from multiple pages.
 - **Text:** timely point of view, a personal learning narrative, or a concise field note.
@@ -152,7 +152,7 @@ Phase 0 topic or verified AI update → Chosen angle → LinkedIn + Instagram ca
 
 ## Current references
 
-- [Current week: 2026-10-26 to 2026-11-01](weeks/2026-10-26_to_2026-11-01/plan.md)
+- [Current week: 2026-11-02 to 2026-11-08](weeks/2026-11-02_to_2026-11-08/plan.md)
 - [Course-to-AI content map](strategy/course-to-ai-content-map.md)
 - [Metrics framework](strategy/metrics-framework.md)
 - [2026-09-27 account baseline](audits/2026-09-27-linkedin-baseline.md)

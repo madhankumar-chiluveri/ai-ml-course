@@ -59,6 +59,8 @@ Read [references/topic-theme-router.md](references/topic-theme-router.md) before
 - Choose one default native format from the information shape: finding, sequence, behavior, point of view, or meaningful choice.
 - Generate a visual only when it improves understanding or proves the claim.
 - Prefer a real result card, chart, code/trace screenshot, annotated product screen, or architecture boundary over generic generated imagery.
+- For a character-led visual, specify who each character represents, their action and expression, and how they interact with the story's props or diagram. Use Mad and supporting characters when they clarify the idea; a decorative avatar is not a reason to add a visual.
+- In this workspace, default social artwork to image generation and use SVG selectively when it suits precise diagrams or charts. Specify clear letter and word spacing; reject touching glyphs and overly compressed headings at mobile feed size.
 - If an asset is appropriate, read [references/visual-brand-system.md](references/visual-brand-system.md). Preserve a consistent personal design system while varying only the topic treatment.
 
 ## Execute the requested task

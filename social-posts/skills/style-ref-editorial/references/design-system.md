@@ -2,7 +2,7 @@
 
 The visual field behaves like carefully prepared technical paper. Broad empty areas separate concepts. Thin ink boundaries show ownership and direction. Meticulous alignment makes the mechanism visible before the reader studies the labels.
 
-Heavy editorial type establishes the question. Readable sans-serif labels explain the mechanism. Short blue handwritten notes supply a human reading cue. Painstaking control of line length and spacing preserves clarity at feed size.
+Heavy editorial type establishes the question. Readable sans-serif labels explain the mechanism. Short blue notes supply a reading cue. Careful line length and spacing preserve clarity at feed size.
 
 Pastel surfaces group information without competing with the black headline. Mint marks a verified or safe outcome. Rose marks failure or risk. Butter marks a decision, lilac a transformation, and sky an input or transport boundary.
 
@@ -29,10 +29,11 @@ These are production tokens inferred from the reference family. They are not sam
 
 Measurements below use the logical 1080 × 1350 layout. Render source text and vectors at 2× scale for 2160 × 2700 PNGs.
 
-- Bundled defaults: Bricolage Grotesque Bold for headlines, Work Sans for labels, Nothing You Could Do for notes, and JetBrains Mono for payloads.
-- Headline: a heavy sans-serif, usually 84–116 px on a 1080 px canvas. Use short deliberate line breaks.
+- Bundled defaults: Bricolage Grotesque Bold for headlines, Work Sans for labels and notes, and JetBrains Mono for payloads.
+- Headline: a normal-width bold sans-serif, usually 72–96 px on a 1080 px canvas. Use short deliberate line breaks and keep letterforms distinct.
 - Body: a readable sans-serif, usually 34–42 px. Use a monospaced face for payloads and trace values.
-- Annotation: a casual handwritten face, usually 34–42 px. Keep it short and high contrast.
+- Annotation: Work Sans or a similarly readable sans-serif, usually 34–42 px. Keep it short and high contrast. Avoid handwriting fonts in carousel text unless explicitly requested.
+- Letter and word spacing: preserve visible separation and open counters. Avoid negative tracking, condensed faces, or excessive weight that makes letters appear attached. Inspect at roughly 360 px width; regenerate cramped generated text rather than accepting it.
 - Secondary labels: normally 28 px or larger. Put essential source context in a short post note.
 - Start with 64–76 px outer margins. Leave deliberate space between the headline, diagram, takeaway, and footer.
 - Use 2–3 px outlines, rounded pastel panels, a few curved arrows, and open line icons.

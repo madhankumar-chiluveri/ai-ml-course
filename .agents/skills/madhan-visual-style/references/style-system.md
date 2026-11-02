@@ -2,7 +2,7 @@
 
 ## Design intent
 
-Make dense technical ideas feel obvious at first glance. Combine editorial hierarchy with human annotation, while keeping every diagram deterministic and exact.
+Make dense technical ideas feel obvious at first glance. Combine editorial hierarchy with readable annotation and accurate technical relationships. Default to image generation for social visual assets; use code-native output when exact charts, diagrams, or editable UI benefit from it.
 
 The source references in `C:\Users\madhankumar.ch\Downloads\style-ref` contribute only broad traits: an off-white paper field, oversized black headlines, pastel explanatory cards, thin ink outlines, and occasional handwritten notes. Do not copy their creator identity, handle, slide numbering pattern, exact compositions, or proprietary illustrations.
 
@@ -25,11 +25,11 @@ Preserve semantic meaning when another project system already assigns colors. Us
 
 ## Typography
 
-- Headline: Arial Black, Inter Black, or system heavy sans; tight line height around `0.92-1.00`.
-- Technical labels: Inter, Arial, or system sans, weights 600-800.
+- Headline: normal-width Inter, Work Sans, Arial, or a similarly readable sans-serif, usually bold with line height around `1.05-1.15`. Avoid compressed heavy faces that close counters or fuse adjacent glyphs.
+- Technical labels: Inter, Work Sans, Arial, or system sans, weights 600-700.
 - Body: Inter, Arial, or system sans, weights 400-600 and line height `1.25-1.4`.
-- Annotation: Segoe Print or a restrained handwritten fallback, used only for short clarifiers.
-- Never use handwriting for data, code, long paragraphs, or accessibility-critical labels.
+- Annotation: a readable normal-width sans-serif. Use handwriting only when explicitly requested.
+- Keep clear separation between every letter and word. Avoid negative tracking, touching glyphs, overlapping text, and artificially compressed word spaces. Shorten or reflow copy instead of squeezing it to fit.
 
 ## Composition
 
@@ -65,11 +65,11 @@ Use three to five numbered stages. Keep arrows simple and avoid crossing connect
 - Keep a single-image card near 25-45 visible words; exceed this only for essential evidence.
 - Use at least 34 px body text and 28 px secondary text on a 1080 x 1350 canvas.
 - Check that no card contains more than three short lines beneath its label.
-- Treat 1080 x 1350 as the logical layout. Render editable source at device scale 2 for final 2160 x 2700 PNGs.
-- Retain vector text and diagrams in carousel PDFs. Keep one final PNG per page; add lower-resolution copies only when requested.
-- Preserve bitmap illustrations at supported native quality. Enlarging existing pixels does not add detail; render text and vector diagrams at the final scale.
-- Inspect the final PNG, not only the HTML source.
+- For code-native assets, treat 1080 x 1350 as the logical layout and render at device scale 2 for final 2160 x 2700 PNGs. For generated social assets, request the strongest suitable native detail and retain the generation source and prompt.
+- Preserve vector text and diagrams in carousel PDFs when the selected source is code-native. Keep one final PNG per page; add lower-resolution copies only when requested.
+- Preserve generated artwork at supported native quality. Enlarging existing pixels does not add detail; verify text in the final export.
+- Inspect the final PNG at full size and roughly 360 px width. Check word boundaries, letter separation, open counters, line spacing, and reading order without zooming.
 
 ## Rejection conditions
 
-Reject the asset if it contains clipped text, generated gibberish, more than one primary idea, decorative AI brains or robots, neon gradients, unclear arrows, borrowed handles, or a composition close enough to a reference that it could be mistaken for that creator's work.
+Reject the asset if it contains clipped text, generated gibberish, touching or overlapping letters, merged words, unreadable counters, more than one primary idea, decorative AI brains or robots, neon gradients, unclear arrows, borrowed handles, or a composition close enough to a reference that it could be mistaken for that creator's work.

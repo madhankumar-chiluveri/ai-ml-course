@@ -58,7 +58,7 @@ Resolve contradictory sources or narrow the claim. Hold unsupported central clai
 Read an available transcript before citing video content. Do not claim to have watched inaccessible footage.
 Video commentary can explain interest or supply an attributed perspective. Primary technical sources must support product behavior.
 
-Keep decisive source links, their dates, and a verification timestamp in the canonical post file. Two to four usually suffice.
+Keep decisive source links, their dates, and a verification timestamp in the canonical post file's internal source notes. Two to four usually suffice.
 Place material limitations beside the affected slide claim. Link sources in the PDF and in the post's source notes.
 Recheck volatile claims within 24 hours before the intended publication. Mark older exports for refresh before use.
 Create no separate research files, simulators, evidence dashboards, or claim ledgers unless requested.
@@ -88,14 +88,14 @@ Use a question only when it helps conversation. Avoid engagement bait.
 
 Read [style-ref-editorial](../style-ref-editorial/SKILL.md) and its design-system reference before production.
 Use the existing warm-paper treatment by default; apply a different design system when the user selects one.
-Use a quiet `AI UPDATE` series label, edition date, page count, and the exact public credit `madvibe.ai`.
+Use a quiet `AI UPDATE` series label, page count, and the exact public credit `madvibe.ai`. Omit publication and edition dates from artwork and public captions unless explicitly requested.
 Keep the series recognizable through typography and spacing; choose illustrations, examples, photos, charts, or diagrams for the story.
 
 Design on a logical 1080 x 1350 canvas and render final PNGs at 2160 x 2700 from editable source at 2× scale.
 Use the bundled fonts unless another treatment is selected. At logical size, use approximately 35–55 words per interior page, 34–42 px body text, and generous margins.
 Keep essential caveats legible at mobile feed width. Do not hide qualifications in tiny footnotes.
-Render labels, figures, and diagrams deterministically with SVG/HTML/CSS or equivalent tools.
-Use generated artwork when it suits the story; retain exact labels as rendered type and identify illustrative examples where needed.
+Default to image generation for complete social slides, with exact text and coherent scenes. Use SVG/HTML/CSS selectively for precise charts, technical geometry, editable diagrams, or suitable text corrections.
+Specify normal-width type, clear letter and word gaps, open counters, and comfortable line spacing. Reject touching glyphs and cramped heavy headings at mobile size. Verify generated labels, figures, and relationships; identify illustrative examples where needed.
 Do not fabricate product screenshots, benchmark charts, terminal output, or supplier endorsements.
 Inspect every exported page at full size and roughly 360 px width for clipping and reading order.
 
@@ -103,9 +103,9 @@ Inspect every exported page at full size and roughly 360 px width for clipping a
 
 A request to plan or recommend returns a brief. A request to create the edition produces:
 
-- One LinkedIn PDF retaining vector text and diagrams, plus ordered 2160 x 2700 Instagram PNGs with the same claim and sequence.
+- One LinkedIn PDF plus ordered 2160 x 2700 Instagram PNGs with the same claim and sequence. Use image-based PDF pages for generated artwork; preserve vectors when a code-native diagram is selected.
 - One final PNG per page; add lower-resolution copies only when requested.
-- Editable production source and page-specific alt text beside the chosen assets.
+- Native generated source and prompts, any selected editable diagram source, and page-specific alt text beside the chosen assets.
 - One post file with separate canonical LinkedIn and Instagram captions plus the brief source notes.
 
 Use the next unused `LI-###` ID. Set `format: document`, `instagram_format: carousel`, and `status: review` after validation.
