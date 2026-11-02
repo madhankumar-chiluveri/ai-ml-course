@@ -10,7 +10,7 @@ theme: AI agents and engineering judgment
 
 | Day | Post | Pillar | LinkedIn / Instagram | Goal | Status |
 |---|---|---|---|---|---|
-| Tue | [LI-016: DeepSeek Super-agent](posts/01-tue-deepseek-superagent.md) | Authority | Document / carousel | Discussion / saves | Approved; Buffer scheduling pending |
-| Fri | [LI-017: One prompt, then the AI roadmap](posts/02-ai-learning-meme.md) | Community | Single image / single image | Shares | Approved; Buffer scheduling pending |
+| Tue | [LI-016: DeepSeek Super-agent](posts/01-tue-deepseek-superagent.md) | Authority | Document / carousel | Discussion / saves | Buffer scheduled: LinkedIn 4 PM / Instagram 7 PM IST |
+| Fri | [LI-017: One prompt, then the AI roadmap](posts/02-ai-learning-meme.md) | Community | Single image / single image | Shares | Buffer scheduled: LinkedIn 3 PM / Instagram 7 PM IST |
 
 Approved slots: Tuesday LinkedIn 4 PM / Instagram 7 PM; Friday LinkedIn 3 PM / Instagram 7 PM IST. These follow the saved timing guide, not measured personal bests.

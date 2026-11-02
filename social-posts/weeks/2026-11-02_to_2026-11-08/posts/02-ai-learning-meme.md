@@ -1,9 +1,13 @@
 ---
 post_id: LI-017
-status: review
+status: scheduled
+instagram_status: scheduled
 scheduled_at: 2026-11-06T15:00:00+05:30
 instagram_scheduled_at: 2026-11-06T19:00:00+05:30
-schedule_note: User approved scheduling; Buffer creation pending.
+schedule_note: Scheduled through Buffer for automatic publication on both platforms.
+buffer_linkedin_post_id: 6ae8c440f7f868563feb992b
+buffer_instagram_post_id: 6ae8c44d16eeb393286c51f1
+media_commit: e16f1f5316eb8a32af95eeff83fdc8b9c94cc0f1
 timezone: Asia/Kolkata
 pillar: community
 format: single_image
@@ -24,6 +28,7 @@ instagram_published_url:
 
 - [Final two-panel meme](../assets/LI-017-ai-learning-meme/LI-017-ai-learning-meme.png).
 - [Generation prompt](../assets/LI-017-ai-learning-meme/source/prompt.txt).
+- **Upload verification:** final PNG is 2160 × 2700 with no parsed `caBX` Content Credentials chunk. Metadata preparation preserved decoded pixels. Buffer uses the byte-verified GitHub asset pinned to the media commit above; this URL has no configured expiry. Platform labels remain controlled by the platforms.
 - **Alt text:** In the top half, Mad relaxes at his laptop with a tiny friendly AI helper and says, One prompt. I've got this. In the bottom half, the helper has become enormous and drops a mountain of AI-topic books onto the desk. Mad recoils with a book on his head and says, I just wanted to try one prompt. Topic labels include RAG, MCP, AI agents, evals, context engineering, and fine-tuning.
 
 ## Source note

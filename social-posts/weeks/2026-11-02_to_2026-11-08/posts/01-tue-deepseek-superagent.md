@@ -1,9 +1,13 @@
 ---
 post_id: LI-016
-status: review
+status: scheduled
+instagram_status: scheduled
 scheduled_at: 2026-11-03T16:00:00+05:30
 instagram_scheduled_at: 2026-11-03T19:00:00+05:30
-schedule_note: User approved scheduling; Buffer creation pending.
+schedule_note: Scheduled through Buffer for automatic publication on both platforms.
+buffer_linkedin_post_id: 6ae8c423948a9655f41a1828
+buffer_instagram_post_id: 6ae8c43216eeb393286c411c
+media_commit: e16f1f5316eb8a32af95eeff83fdc8b9c94cc0f1
 timezone: Asia/Kolkata
 pillar: authority
 content_series: ai_update
