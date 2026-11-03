@@ -85,7 +85,7 @@ For humour, answer the technical and audience questions in the brief. Keep the p
 ### Distribution rules
 
 - Publish from the personal profile; tag Nalsoft only for genuinely relevant, publicly shareable company work.
-- Prepare native LinkedIn and Instagram packages. The user handles posting and scheduling manually; preparing an asset does not authorize account actions.
+- Prepare native LinkedIn and Instagram packages. Schedule through the Buffer MCP when the user explicitly requests it; preparing an asset does not authorize account actions. Follow [social content instructions](AGENTS.md) for media hosting and verification.
 - On posting days, leave 10–15 substantive comments: approximately 70% peers, 20% aspirational practitioners, and 10% relevant opportunities.
 - Reply to every genuine comment and convert useful questions into backlog candidates.
 - Use a soft follow CTA at most once per week.

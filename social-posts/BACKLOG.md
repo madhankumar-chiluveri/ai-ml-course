@@ -23,6 +23,7 @@ deferred means the topic is valid but outside the active course phase.
 | LI-012 | NGINX can make token streaming arrive all at once | Build proof | Proxy buffering is mistaken for model latency | Before/after streaming trace | Phase 0.12 | 3 | idea |
 | LI-013 | AI says Fixed; pytest asks for a word | Community | A confident completion message arrives before executable checks | Fictional comic grounded in the testing lesson | Phase 0.5 | 1 | scheduled |
 
+| LI-015 | One small change and a very large rollback | Community | AI-assisted changes can exceed the requested scope | Fictional visual joke, grounded in version control | Phase 0.4 | 1 | scheduled |
 | LI-017 | One prompt, then the AI roadmap | Community | Initial confidence meets an expanding learning scope | Fictional two-panel comic inspired by a supplied reference | User-requested learning humour | 1 | scheduled |
 
 ## AI Update candidates

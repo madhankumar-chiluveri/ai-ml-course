@@ -14,6 +14,8 @@ theme: Reliable foundations and debugging humour
 | Wed | [LI-013: AI said Fixed; pytest disagrees](posts/02-wed-ai-fix-pytest.md) | Community | Single image / single image | Comments / shares | LinkedIn scheduled |
 | Thu | [LI-014: Before you add another agent](posts/03-thu-another-agent.md) | Authority | Document / carousel | Technical comments / saves | scheduled; 29 Oct, LinkedIn 3:20 PM / Instagram 10:45 AM IST |
 
+| Fri | [LI-015: One small change](posts/04-fri-one-small-change.md) | Community | Single image / single image | Shares | Buffer scheduled; LinkedIn 3 PM / Instagram 7 PM IST |
+
 User confirmed LI-013 is scheduled on LinkedIn for 28 October 2026 at 10:00 AM IST.
 LI-014 is scheduled through Buffer for automatic publication on both platforms. The times use the Thursday queue slots for each channel.
 
@@ -22,6 +24,8 @@ LI-014 is scheduled through Buffer for automatic publication on both platforms. 
 - [LI-009 carousel](assets/LI-009-retry-carousel/LI-009-retry-decisions.pdf).
 - [LI-013 comic](assets/LI-013-ai-fix-pytest.png) and [paired captions](posts/02-wed-ai-fix-pytest.md).
 - [LI-014 carousel](assets/LI-014-agent-design/LI-014-another-agent.pdf), [Instagram pages](assets/LI-014-agent-design/LI-014-instagram-carousel.zip), and [paired captions](posts/03-thu-another-agent.md).
+
+- [LI-015 meme](assets/LI-015-one-small-change.png) and [paired captions](posts/04-fri-one-small-change.md).
 
 ## Retrospective
 
