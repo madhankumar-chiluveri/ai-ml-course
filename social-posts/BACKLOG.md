@@ -37,7 +37,7 @@ deferred means the topic is valid but outside the active course phase.
 
 | ID | Working idea | Pillar | Audience problem | Source / evidence | Status |
 |---|---|---|---|---|---|
-| LI-018 | The model fits. Why is it still slow? | Authority | Memory capacity is mistaken for inference speed | User-selected GPU explainer, NVIDIA memory hierarchy and inference guides; source analysis, no benchmark | review |
+| LI-018 | The model fits. Why is it still slow? | Authority | Memory capacity is mistaken for inference speed | User-selected GPU explainer, NVIDIA memory hierarchy and inference guides; source analysis, no benchmark | scheduled |
 
 ## Deferred until their course phase is active
 

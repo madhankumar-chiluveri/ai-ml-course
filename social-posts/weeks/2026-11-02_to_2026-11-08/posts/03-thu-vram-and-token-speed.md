@@ -1,10 +1,13 @@
 ---
 post_id: LI-018
-status: review
-instagram_status: review
+status: scheduled
+instagram_status: scheduled
 scheduled_at: 2026-11-05T17:00:00+05:30
 instagram_scheduled_at: 2026-11-05T09:00:00+05:30
-schedule_note: Proposed planning slots only. Neither platform is scheduled.
+schedule_note: Scheduled through Buffer for automatic publication on both platforms. Captions, media, times, accounts and publishing mode verified by reading both posts back.
+buffer_linkedin_post_id: 6aeb7854ff365be0286bd838
+buffer_instagram_post_id: 6aeb78617631b8ab98be72d8
+media_commit: 26f9dbbd49b1b4e9b7f2d49e9090f1a290ac06b8
 timezone: Asia/Kolkata
 pillar: authority
 content_series: systems_explained
@@ -36,6 +39,7 @@ instagram_published_url:
 - **Production source:** [Generation prompts](../assets/LI-018-vram-and-token-speed/source/direct-slides.prompts.txt), [page assembly](../assets/LI-018-vram-and-token-speed/source/index.html), and [packaging builder](../assets/LI-018-vram-and-token-speed/source/build.py). Native generated pages remain beside the builder as `direct-slide-01.png` through `direct-slide-05.png`.
 - **Treatment:** Complete pages generated with the built-in image tool. The corrected cover retains Mad's established identity and clearly connected left and right arms. Pages 2–5 use smaller hardware illustrations with full explanatory sentences. The teaching sequence is storage → one token → repeated reads → worked arithmetic. The illustrations are conceptual, not product captures or performance traces.
 - **Export:** Five 2160 × 2700 PNGs, packaged from native 1122 × 1402 artwork without cropping. Export scaling does not add image detail. The PDF contains raster page artwork; supporting source links are also available in its outline. Public credit: `madvibe.ai`.
+- **Upload verification:** Buffer uses public GitHub URLs pinned to the media commit above. Anonymous downloads matched the final PDF and all five PNGs byte for byte. The URLs have no configured expiry. LinkedIn has the document and cover thumbnail; Instagram has the five images in order with their alt text. Both use automatic publishing.
 
 ## Source notes
 
