@@ -12,7 +12,7 @@ Create original, mobile-legible technical visuals with a clear editorial headlin
 1. Read [references/style-system.md](references/style-system.md) before designing.
 2. Identify the information shape: one result, comparison, architecture, sequence, failure, or takeaway.
 3. Reduce the asset to one claim and the smallest supporting structure.
-4. Default to image generation for complete social visual assets, including slide scenes and typography. Specify exact text and readable letter and word spacing; verify every word and technical relationship in the result.
+4. For each social post, follow the `linkedin-content-system` decision between image-generated character scenes and SVG cartoons and diagrams. Choose from the topic's storytelling and precision needs; announce and record the rationale before production. Specify exact text and readable spacing; verify every word and technical relationship.
 5. Use HTML/CSS/SVG from [assets/base-card.html](assets/base-card.html) when exact charts, technical diagrams, or editable UI make a code-native approach suitable. Choose the medium for the asset's accuracy and editing needs.
 6. Inspect every final PNG at full size and roughly 360 px feed width. Reject touching letters, merged words, closed counters, clipping, or ambiguous text. For code-native assets, use [scripts/render-card.ps1](scripts/render-card.ps1) at its default 2× scale.
 

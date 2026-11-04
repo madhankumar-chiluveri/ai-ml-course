@@ -25,7 +25,7 @@ Bundled OFL fonts and their licenses live in `assets/fonts/` for reproducible of
 1. Take the topic, evidence, platform, and chosen format from the post brief. This skill controls visual treatment.
 2. Identify the physical mechanism or engineering decision. Make that the dominant diagram.
 3. Use warm paper, a heavy black headline, pastel surfaces, thin ink strokes, and restrained blue notes.
-4. Use image generation as the default for social images and carousel artwork. Generate a complete, cohesive slide when that serves the story. Use SVG, HTML/CSS, or another deterministic renderer selectively when exact charts, technical geometry, editable diagrams, or precise text correction make it suitable. Verify every word and technical relationship in the final result.
+4. Follow the per-post visual decision from `linkedin-content-system`: image-generated character scenes or SVG cartoons and diagrams. Choose expressive generated scenes when human action carries the story; choose SVG when exact labels, geometry, or data paths carry the explanation. Reassess for each post and verify every word and technical relationship.
 5. Use a readable sans-serif with clear gaps between letters and words. Choose normal-width type, open counters, and moderate weight. Avoid negative tracking, touching glyphs, compressed heavy headlines, and handwriting fonts unless explicitly requested. Inspect at feed size and regenerate cramped type.
 6. Vary composition with the information: a causal path, aligned comparison, timeline, branching decision, or trace.
 7. Use `madvibe.ai` as the public visual credit. Omit publication and edition dates from artwork and public captions unless explicitly requested; keep source dates and verification timestamps in internal source notes. Export the chosen assets and inspect their mobile readability and rendered boundaries.
@@ -33,16 +33,18 @@ Bundled OFL fonts and their licenses live in `assets/fonts/` for reproducible of
 ## Mad character
 
 - When the post benefits from a personal character, use [Mad's original portrait](../../assets/mad-character.png) or the [alternate mascot](../../assets/mad-mascot.png), according to the brief. Make Mad a participant in the story: give him a role and a visible action tied to the slide's idea. Avoid detached corner portraits or decorative stickers.
+- Preserve the established character's illustration quality and identity. Do not substitute a crude geometric likeness merely because the surrounding diagram uses SVG. Choose direct image generation when it better preserves the character and integrates the scene.
 - Keep character appearances below 50% of carousel pages, counting both Mad and supporting characters. A five-page carousel may use characters on at most two pages. Reserve those scenes for moments that benefit from human action or reaction.
 - Adapt Mad's outfit to the post when useful. Preserve his recognizable hair, skin tone, facial hair, and identity using the existing character as a reference.
 - Plan each appearance around the situation: what Mad sees, does, says, or reacts to. Match his gaze, facial expression, gesture, and pose to that action. Generate a suitable variation when the existing pose does not fit. Check facial features, hands, prop contact, and readability at feed size.
 - Add original supporting characters when the story needs another participant, such as a teammate, reviewer, or clearly labeled agent. Give each one a useful role; omit characters that add no meaning. Compose characters, props, speech bubbles, and diagrams as one scene, with clear reading order and no text collisions. Keep labels and dialogue exact and readable.
-- Inspect anatomy before accepting a scene: trace each visible arm from shoulder through elbow and wrist to its hand; reject duplicate, detached, reversed, or implausibly placed limbs. Check fingers, gaze, prop contact, bubble tails, connector paths, and card alignment. Regenerate faulty artwork rather than disguising an error with layout.
+- Inspect anatomy before accepting a scene: trace each visible arm from its own shoulder through elbow and wrist to its hand. Verify one anatomical left hand and one right hand, not just a count of two hands. Reject both hands appearing to emerge from the same side, duplicated handedness, detached wrists, or implausible connections. Prefer a simple pose with both arm chains visible when occlusion makes the anatomy ambiguous. Check fingers, gaze, prop contact, bubble tails, connectors, and alignment; regenerate faulty artwork rather than hiding it.
 
 ## Carousel guidance
 
 - Use a sequence when the reader must follow diagnosis, evidence, mechanism, decision, and prevention. Do not force a fixed page count.
 - Start with a concrete tension. Give each interior page one engineering question and one primary evidence object.
+- Make explanatory pages self-contained: define new terms, annotate the causal steps with readable sentences, and show repetition or a worked example when needed. Increase text or page count when clarity requires it; do not reduce an explanation to hardware labels or rely on the caption to fill its gaps.
 - Maintain typography, margins, color meanings, and author placement across the sequence. Vary the diagrams to avoid repeated card layouts.
 - End with a usable decision rule or specific practitioner question. Use the goal from the post brief.
 - Design on a logical 1080 × 1350 canvas. Render final PNG pages at 2160 × 2700 from editable source at 2× scale.
@@ -78,4 +80,4 @@ The image remains AI-generated; metadata cleanup does not establish a different 
 
 ## Reusable prompt
 
-> Apply the style-ref-editorial skill to this approved brief. Default to image generation for cohesive social artwork; use SVG only when it suits the content. Use warm paper, clearly spaced normal-width editorial type, pastel diagrams, thin ink outlines, and readable blue notes. Preserve exact labels and the evidence boundary. Use madvibe.ai as the public credit. Return 2160 × 2700 PNGs, the selected carousel PDF, native source and prompts, and page-specific alt text.
+> Apply the style-ref-editorial skill to this approved brief. Honor its recorded choice of image-generated character scenes or SVG cartoons and diagrams; decide and explain the treatment first if missing. Use warm paper, clearly spaced normal-width editorial type, pastel diagrams, thin ink outlines, and readable blue notes. Preserve exact labels and the evidence boundary. Use madvibe.ai as the public credit. Return 2160 × 2700 PNGs, the selected carousel PDF, selected production source, and page-specific alt text.

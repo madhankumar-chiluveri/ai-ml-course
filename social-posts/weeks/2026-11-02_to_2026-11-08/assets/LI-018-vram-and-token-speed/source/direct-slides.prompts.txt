@@ -1,0 +1,116 @@
+Built-in image generation. Corrected cover retained. Revised interior pages define terms, trace one token, show repeated weight reads, and work through illustrative bandwidth arithmetic.
+
+
+SLIDE-01
+Final pose correction with the built-in image edit tool.
+
+Edit the supplied complete carousel cover. Correct ONLY Mad's pose and the nearby desk/laptop placement necessary to make his two arms anatomically unambiguous. Keep the exact headline, all other text, GPU artwork, warm-paper palette, illustration quality, face identity, navy suit, typography, footer and 4:5 composition.
+
+The current image has a faulty pose. REMOVE the hand at the chin and its raised forearm completely. Do not reuse that pose.
+
+Replace it with an anatomically clear, simple seated pose:
+Mad's torso faces mostly forward so BOTH shoulders are visible. His head can turn toward the GPU with a thoughtful expression. BOTH arms hang naturally from their respective shoulders, then bend at their own elbows to rest on the desk. Keep the upper arms, elbows, forearms, wrists and hands visually traceable with no crossing or ambiguous occlusion.
+On IMAGE-LEFT: his anatomical RIGHT shoulder connects to his RIGHT upper arm, RIGHT elbow, RIGHT forearm, RIGHT wrist and RIGHT hand. This hand rests palm-down on the desk to the image-left side of his torso.
+On IMAGE-RIGHT: his anatomical LEFT shoulder connects to his LEFT upper arm, LEFT elbow, LEFT forearm, LEFT wrist and LEFT hand. This hand rests palm-down on the desk to the image-right side of his torso, beside the laptop.
+There must be exactly TWO arms and exactly TWO hands, one LEFT hand and one RIGHT hand, one on each side of his body. Each hand has one thumb and four fingers with natural anatomy. No duplicated right hands, no duplicated left hands, no extra arm or wrist, no crossed arms, no chin-touching hand.
+Place the two hands well apart so the silhouette is obvious at thumbnail size. Move the laptop slightly to the right and keep it low enough that it does not hide the elbow-to-wrist connections. Move the cup or plant only if necessary to prevent hiding an arm. Do not crop out a defective limb or cover it with a prop; redraw the pose correctly.
+Preserve Mad's recognizable face, hair, beard and outfit. Preserve every printed word exactly as in the target, including "The model fits.", "Why is it still slow?", "Capacity is only one check.", "VRAM", "FITS", "COMPUTE", "Capacity. Bandwidth. Compute.", "madvibe.ai", and "01 / 05". Add no new text.
+Create a single complete corrected cover, portrait 4:5, with the same polished dimensional editorial illustration.
+
+SLIDE-02
+Reference 1 is the corrected cover for palette and illustration style. Reference 2 is the newly inspected explanatory page for body-text size, spacing and information density. Match reference 2's readability; do not copy text from either reference.
+
+Create ONE complete educational carousel page, portrait 4:5, ideally 2160x2700. Use the supplied corrected cover ONLY as a reference for warm #FFFCF0 paper, polished blue/lilac hardware illustration, black editorial headings and #2246A8 accents. This new page must TEACH the mechanism with readable explanatory sentences, not just name components.
+
+Important layout change: use a smaller headline and smaller hardware illustrations so the explanatory body text has generous room. Normal-width readable sans-serif body, regular/medium weight, around 36-42px on a logical 1080x1350 canvas, comfortable 1.2-1.3 line spacing. Headline around 68-80px, not an enormous poster headline. Preserve visible gaps between letters and words. Short paragraphs must be visibly separate. At least 6% outer margins. No text on top of hardware, no connector crossing text, no microcopy. Text should be comfortably readable at a 360px feed width.
+
+No people, hands, faces, robots or mascots. Use restrained dimensional hardware illustrations and simple causal diagrams. Avoid decorative circuitry, excessive neon, or hardware taking most of the page. This page is a standalone explanation in a sequence. Render the exact text supplied, without extra jargon, numbers or unrequested words. No date, no benchmark screenshots, no fabricated measurement. Single page only.
+Page 2 explains what loading a model actually means.
+Arrange two short explanatory paragraphs at the top, a compact central model-weights-to-VRAM diagram, and a short paragraph plus takeaway below. Use a small blue memory-bank illustration alongside the storage diagram. The diagram must show learned numbers being placed in GPU memory; it must not imply that loading has already completed token generation.
+Exact text:
+Eyebrow: "AI SYSTEMS"
+Headline: "What does" / "'the model fits' mean?"
+Paragraph 1: "Model weights are the learned numbers the model uses to make predictions."
+Paragraph 2: "Loading the model puts these numbers into VRAM: the GPU's main memory."
+Diagram start label: "MODEL WEIGHTS"
+Diagram end label: "GPU MEMORY (VRAM)"
+Paragraph 3: "The workload also needs room for saved context and calculation buffers. If all of that fits, you have passed a storage check."
+Unit note: "Capacity is measured in GB (gigabytes)."
+Takeaway: "Storage capacity answers: is there enough room?"
+Footer left: "madvibe.ai"
+Footer right: "02 / 05"
+
+SLIDE-03
+Reference 1 is the corrected cover for palette and illustration style. Reference 2 is the newly inspected explanatory page for body-text size, spacing and information density. Match reference 2's readability; do not copy text from either reference.
+
+Create ONE complete educational carousel page, portrait 4:5, ideally 2160x2700. Use the supplied corrected cover ONLY as a reference for warm #FFFCF0 paper, polished blue/lilac hardware illustration, black editorial headings and #2246A8 accents. This new page must TEACH the mechanism with readable explanatory sentences, not just name components.
+
+Important layout change: use a smaller headline and smaller hardware illustrations so the explanatory body text has generous room. Normal-width readable sans-serif body, regular/medium weight, around 36-42px on a logical 1080x1350 canvas, comfortable 1.2-1.3 line spacing. Headline around 68-80px, not an enormous poster headline. Preserve visible gaps between letters and words. Short paragraphs must be visibly separate. At least 6% outer margins. No text on top of hardware, no connector crossing text, no microcopy. Text should be comfortably readable at a 360px feed width.
+
+No people, hands, faces, robots or mascots. Use restrained dimensional hardware illustrations and simple causal diagrams. Avoid decorative circuitry, excessive neon, or hardware taking most of the page. This page is a standalone explanation in a sequence. Render the exact text supplied, without extra jargon, numbers or unrequested words. No date, no benchmark screenshots, no fabricated measurement. Single page only.
+Page 3 explains ONE token generation step.
+Use a compact three-stage vertical visual path with clear numbered stages, each paired with its explanatory sentence. A small sky-blue memory illustration represents READ, a small lilac arithmetic grid represents CALCULATE, and one simple output tile represents APPEND. Keep the explanation text larger than the decorative hardware. Leave arrows in the gaps between the stages. Keep the token definition and bandwidth definition readable. These are conceptual operations, not benchmark results.
+Exact text:
+Eyebrow: "AI SYSTEMS"
+Headline: "What happens" / "for one token?"
+Intro: "A token is a chunk of text, not always a whole word."
+Stage 1 heading: "1. READ"
+Stage 1 explanation: "GPU units read weights from VRAM in pieces, through small on-chip stores called caches and registers."
+Stage 2 heading: "2. CALCULATE"
+Stage 2 explanation: "GPU compute units use those numbers to calculate the next-token probabilities."
+Stage 3 heading: "3. APPEND"
+Stage 3 explanation: "The system selects a token and adds it to the response."
+Definition: "Memory bandwidth is the amount of data moved per second, measured in GB/s."
+Takeaway: "The model must move data and perform math."
+Footer left: "madvibe.ai"
+Footer right: "03 / 05"
+
+SLIDE-04
+Create ONE complete educational carousel page, portrait 4:5, ideally 2160x2700. Use the supplied corrected cover ONLY as a reference for warm #FFFCF0 paper, polished blue/lilac hardware illustration, black editorial headings and #2246A8 accents. This new page must TEACH the mechanism with readable explanatory sentences, not just name components.
+
+Important layout change: use a smaller headline and smaller hardware illustrations so the explanatory body text has generous room. Normal-width readable sans-serif body, regular/medium weight, around 36-42px on a logical 1080x1350 canvas, comfortable 1.2-1.3 line spacing. Headline around 68-80px, not an enormous poster headline. Preserve visible gaps between letters and words. Short paragraphs must be visibly separate. At least 6% outer margins. No text on top of hardware, no connector crossing text, no microcopy. Text should be comfortably readable at a 360px feed width.
+
+No people, hands, faces, robots or mascots. Use restrained dimensional hardware illustrations and simple causal diagrams. Avoid decorative circuitry, excessive neon, or hardware taking most of the page. This page is a standalone explanation in a sequence. Render the exact text supplied, without extra jargon, numbers or unrequested words. No date, no benchmark screenshots, no fabricated measurement. Single page only.
+Page 4 explains WHY the data movement repeats and can cause slow generation. This is the key teaching page. Make the logic understandable from the page alone.
+Layout: a moderate two-line headline; a clearly readable intro paragraph; then three small sequential READ WEIGHTS -> CALCULATE -> TOKEN rows, with arrows DOWN between the rows to show that the model proceeds from token 1 to token 2 to token 3. The rows are successive iterations, NEVER parallel branches. Below the diagram, include the explanation about small on-chip stores and then the explanation about one response at a time. End with a clearly readable conclusion strip. Allocate enough space to the paragraphs; use restrained tiny hardware accents only. Do not shrink the body text to fit extra artwork.
+Exact text:
+Eyebrow: "AI SYSTEMS"
+Headline: "Now repeat" / "for the next token."
+Intro paragraph: "Ordinary generation produces one token at a time. Each next token uses the required weights again."
+First row: "READ WEIGHTS" then "CALCULATE" then "TOKEN 1"
+Second row: "READ WEIGHTS" then "CALCULATE" then "TOKEN 2"
+Third row: "READ WEIGHTS" then "CALCULATE" then "TOKEN 3"
+Paragraph 2: "A large model cannot stay entirely in the GPU's small on-chip stores. The required weights are read again from VRAM."
+Paragraph 3: "For one response at a time, moving these weights can take longer than the calculations."
+Takeaway: "Then memory bandwidth limits token speed."
+Footer left: "madvibe.ai"
+Footer right: "04 / 05"
+
+SLIDE-05
+Reference 1 is the corrected cover for palette and illustration style. Reference 2 is the newly inspected explanatory page for body-text size, spacing and information density. Match reference 2's readability; do not copy text from either reference.
+
+Create ONE complete educational carousel page, portrait 4:5, ideally 2160x2700. Use the supplied corrected cover ONLY as a reference for warm #FFFCF0 paper, polished blue/lilac hardware illustration, black editorial headings and #2246A8 accents. This new page must TEACH the mechanism with readable explanatory sentences, not just name components.
+
+Important layout change: use a smaller headline and smaller hardware illustrations so the explanatory body text has generous room. Normal-width readable sans-serif body, regular/medium weight, around 36-42px on a logical 1080x1350 canvas, comfortable 1.2-1.3 line spacing. Headline around 68-80px, not an enormous poster headline. Preserve visible gaps between letters and words. Short paragraphs must be visibly separate. At least 6% outer margins. No text on top of hardware, no connector crossing text, no microcopy. Text should be comfortably readable at a 360px feed width.
+
+No people, hands, faces, robots or mascots. Use restrained dimensional hardware illustrations and simple causal diagrams. Avoid decorative circuitry, excessive neon, or hardware taking most of the page. This page is a standalone explanation in a sequence. Render the exact text supplied, without extra jargon, numbers or unrequested words. No date, no benchmark screenshots, no fabricated measurement. Single page only.
+Page 5 is a worked bandwidth calculation, explicitly hypothetical. Use two aligned spacious comparison cards with almost no decorative hardware. The calculation is the main visual, with ample room for the assumption paragraph and readable limitation. These are ideal weight-read times only, NEVER measured token latency or a benchmark. Do not show tokens/sec, a speedup badge, a winner badge, a chart, or a price.
+Exact text:
+Eyebrow: "AI SYSTEMS"
+Headline: "Same capacity." / "Different read times."
+Assumption paragraph: "Suppose each GPU has 24 GB of VRAM. Both workloads fit. Each step reads 14 GB of weights."
+Left card label: "EXAMPLE A"
+Left card bandwidth heading: "MEMORY BANDWIDTH"
+Left card bandwidth: "350 GB/s"
+Left card calculation: "14 GB ÷ 350 GB/s"
+Left card result: "= 0.04 s = 40 ms"
+Right card label: "EXAMPLE B"
+Right card bandwidth heading: "MEMORY BANDWIDTH"
+Right card bandwidth: "700 GB/s"
+Right card calculation: "14 GB ÷ 700 GB/s"
+Right card result: "= 0.02 s = 20 ms"
+Unit definition: "ms means milliseconds."
+Limitation paragraph: "Ideal weight-read times only. This is illustrative arithmetic, not a benchmark. Other work also affects token latency."
+Takeaway: "Enough space does not guarantee fast data access."
+Footer left: "madvibe.ai"
+Footer right: "05 / 05"

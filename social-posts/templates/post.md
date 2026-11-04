@@ -6,6 +6,8 @@ timezone: Asia/Kolkata
 pillar: community
 format: single_image
 instagram_format: single_image
+visual_treatment:
+visual_rationale:
 primary_goal: comments
 instagram_primary_goal: shares
 audience:

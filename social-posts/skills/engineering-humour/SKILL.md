@@ -49,7 +49,7 @@ For two equal, filled top and bottom halves with setup and punchline inside thei
 Use a carousel only when revealing successive beats across pages materially improves the joke.
 Do not turn every humorous post into the same four-panel grid or the previous technical carousel.
 
-Default to image generation for complete social humour artwork, including integrated scenes and text. Specify exact wording and readable letter and word spacing; verify the final image.
+Follow the per-post visual decision from `linkedin-content-system`: image-generated character scenes or SVG cartoons and diagrams. Choose from the joke's expression, scene, label, and geometry needs; announce the rationale before production. Specify exact wording and readable letter and word spacing; verify the final image.
 Use deterministic rendering selectively for exact technical geometry, measured charts, editable diagrams, or precise text correction when suitable.
 
 ## Match the requested mode

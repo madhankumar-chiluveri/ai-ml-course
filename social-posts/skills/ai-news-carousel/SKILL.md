@@ -94,7 +94,7 @@ Keep the series recognizable through typography and spacing; choose illustration
 Design on a logical 1080 x 1350 canvas and render final PNGs at 2160 x 2700 from editable source at 2× scale.
 Use the bundled fonts unless another treatment is selected. At logical size, use approximately 35–55 words per interior page, 34–42 px body text, and generous margins.
 Keep essential caveats legible at mobile feed width. Do not hide qualifications in tiny footnotes.
-Default to image generation for complete social slides, with exact text and coherent scenes. Use SVG/HTML/CSS selectively for precise charts, technical geometry, editable diagrams, or suitable text corrections.
+Honor the per-post visual choice from `linkedin-content-system`: image-generated character scenes or SVG cartoons and diagrams. Decide and explain the treatment before production; use expression and scene needs versus label and geometry precision to choose. Preserve exact text and coherent relationships in either treatment.
 Specify normal-width type, clear letter and word gaps, open counters, and comfortable line spacing. Reject touching glyphs and cramped heavy headings at mobile size. Verify generated labels, figures, and relationships; identify illustrative examples where needed.
 Do not fabricate product screenshots, benchmark charts, terminal output, or supplier endorsements.
 Inspect every exported page at full size and roughly 360 px width for clipping and reading order.
