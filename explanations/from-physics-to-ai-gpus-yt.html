@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>print("Hello") → Photons · Interactive Video & Silicon Sequencer</title>
+<style>
+  :root[data-theme="light"] {
+    --bg: #FFFCF0;
+    --bg-panel: #F2F0E5;
+    --bg-card: #E6E4D9;
+    --ink: #100F0F;
+    --ink-muted: #6F6E69;
+    --border: #CECDC3;
+    --red: #AF3029;
+    --orange: #BC5215;
+    --yellow: #AD8301;
+    --green: #66800B;
+    --cyan: #24837B;
+    --blue: #205EA6;
+    --purple: #5E409D;
+    --accent-bg: rgba(32, 94, 166, 0.08);
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #100F0F;
+    --bg-panel: #1C1B1A;
+    --bg-card: #282726;
+    --ink: #CECDC3;
+    --ink-muted: #878580;
+    --border: #403E3C;
+    --red: #D14D41;
+    --orange: #DA702C;
+    --yellow: #D0A215;
+    --green: #879A39;
+    --cyan: #3AA99F;
+    --blue: #4385BE;
+    --purple: #8B7EC8;
+    --accent-bg: rgba(67, 133, 190, 0.14);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: 48px 118px 1fr;
+    user-select: none;
+  }
+
+  code, pre, .mono {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  /* TOP BAR */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .badge {
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  button {
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+
+  button:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+
+  button.primary {
+    background: var(--blue);
+    color: #FFFCF0;
+    border-color: var(--blue);
+  }
+
+  /* GLOBAL SVG PIPELINE STRIP */
+  .pipeline-strip {
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 6px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .pipeline-strip svg {
+    width: 100%;
+    height: 102px;
+    overflow: visible;
+  }
+
+  .pipe-node {
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+
+  .pipe-node rect {
+    fill: var(--bg-panel);
+    stroke: var(--border);
+    stroke-width: 1.5;
+    rx: 6;
+    transition: all 0.15s ease;
+  }
+
+  .pipe-node.active rect {
+    fill: var(--accent-bg);
+    stroke: var(--blue);
+    stroke-width: 2.5;
+  }
+
+  .pipe-node.done rect {
+    stroke: var(--green);
+  }
+
+  .pipe-node.missing-bridge rect {
+    stroke-dasharray: 4 2;
+    stroke: var(--orange);
+  }
+
+  .pipe-node.missing-bridge.active rect {
+    stroke-dasharray: none;
+    stroke: var(--orange);
+    fill: rgba(188, 82, 21, 0.12);
+  }
+
+  /* MAIN 3-COLUMN WORKSPACE */
+  main {
+    display: grid;
+    grid-template-columns: 290px 1fr 340px;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* LEFT: VIDEO SEQUENCER */
+  .sidebar {
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .sidebar-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    letter-spacing: 0.05em;
+    padding: 2px 4px 4px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .step-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: 22px 1fr auto;
+    gap: 8px;
+    align-items: start;
+    transition: all 0.12s ease;
+  }
+
+  .step-card:hover {
+    border-color: var(--ink-muted);
+  }
+
+  .step-card.active {
+    border-color: var(--blue);
+    box-shadow: inset 3px 0 0 var(--blue);
+    background: var(--accent-bg);
+  }
+
+  .step-card.gap-card.active {
+    border-color: var(--orange);
+    box-shadow: inset 3px 0 0 var(--orange);
+  }
+
+  .step-check {
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    accent-color: var(--green);
+    cursor: pointer;
+  }
+
+  .step-meta {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+  }
+
+  .step-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    margin: 2px 0;
+    line-height: 1.25;
+  }
+
+  .step-sub {
+    font-size: 11px;
+    color: var(--ink-muted);
+  }
+
+  .step-time {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 5px;
+    border-radius: 3px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    color: var(--ink-muted);
+  }
+
+  /* CENTER: DIAGRAM + VIDEO WORKBENCH */
+  .center-pane {
+    display: grid;
+    grid-template-rows: 1fr 220px;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  .diagram-stage {
+    position: relative;
+    padding: 12px 18px;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .stage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+
+  .stage-title {
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .stage-station-tag {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+  }
+
+  .svg-canvas-wrap {
+    flex: 1;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    overflow: hidden;
+  }
+
+  .svg-canvas-wrap svg {
+    width: 100%;
+    height: 100%;
+    max-height: 310px;
+  }
+
+  /* VIDEO DECK */
+  .video-deck {
+    padding: 12px 18px;
+    background: var(--bg-panel);
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .iframe-box {
+    background: #000;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    position: relative;
+  }
+
+  .iframe-box iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .video-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .video-links-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .yt-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    background: var(--red);
+    color: #FFFCF0;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .yt-btn.secondary {
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--border);
+  }
+
+  .yt-btn:hover {
+    opacity: 0.92;
+  }
+
+  .watch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .watch-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.38;
+  }
+
+  .watch-box strong {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 3px;
+  }
+
+  /* RIGHT: HARDWARE TELEMETRY & CODE TRACE */
+  .inspector {
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+  }
+
+  .panel-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px;
+  }
+
+  .panel-label {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+    margin-bottom: 6px;
+  }
+
+  .kv-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11.5px;
+  }
+
+  .kv-table td {
+    padding: 4px 0;
+    border-bottom: 1px solid var(--bg-card);
+    vertical-align: top;
+  }
+
+  .kv-table tr:last-child td { border-bottom: none; }
+
+  .kv-key {
+    color: var(--ink-muted);
+    font-weight: 600;
+    width: 38%;
+  }
+
+  .kv-val {
+    font-weight: 600;
+  }
+
+  pre.trace-box {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 11px;
+    line-height: 1.4;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    color: var(--ink);
+  }
+
+  /* SVG ANIMATIONS */
+  @keyframes pulseFlow {
+    to { stroke-dashoffset: -24; }
+  }
+
+  .signal-line {
+    stroke: var(--blue);
+    stroke-width: 2.2;
+    stroke-dasharray: 6 6;
+    animation: pulseFlow 0.9s linear infinite;
+    fill: none;
+  }
+
+  .signal-line-orange {
+    stroke: var(--orange);
+    stroke-width: 2.2;
+    stroke-dasharray: 6 6;
+    animation: pulseFlow 0.9s linear infinite;
+    fill: none;
+  }
+
+  .svg-text-title { fill: var(--ink); font-size: 11px; font-weight: 700; font-family: ui-sans-serif, system-ui, sans-serif; }
+  .svg-text-sub { fill: var(--ink-muted); font-size: 9.5px; font-family: ui-monospace, monospace; }
+  .svg-box { fill: var(--bg); stroke: var(--border); stroke-width: 1.5; rx: 5; }
+  .svg-box-accent { fill: var(--accent-bg); stroke: var(--blue); stroke-width: 2; rx: 5; }
+  .svg-box-warn { fill: rgba(188, 82, 21, 0.1); stroke: var(--orange); stroke-width: 2; rx: 5; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="brand">
+    <span>⚡ EXECUTION CAUSALITY SEQUENCER</span>
+    <span class="badge mono">print("Hello") → Photons</span>
+    <span class="badge" id="progress-badge">0 / 7 Completed</span>
+  </div>
+  <div class="controls">
+    <button onclick="prevStep()">← Prev Stage</button>
+    <button class="primary" onclick="nextStep()">Next Stage →</button>
+    <button onclick="toggleTheme()" id="theme-btn">Theme: Light</button>
+  </div>
+</header>
+
+<!-- INTERACTIVE TOP PIPELINE SVG -->
+<section class="pipeline-strip">
+  <svg viewBox="0 0 1260 98" id="top-pipeline-svg">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--ink-muted)"/>
+      </marker>
+    </defs>
+
+    <!-- Connecting Animated Wire -->
+    <line x1="85" y1="50" x2="1175" y2="50" stroke="var(--border)" stroke-width="3"/>
+    <line x1="85" y1="50" x2="1175" y2="50" class="signal-line"/>
+
+    <!-- 7 Pipeline Nodes injected by JS -->
+    <g id="pipeline-nodes-layer"></g>
+  </svg>
+</section>
+
+<!-- MAIN 3-COLUMN WORKSPACE -->
+<main>
+  <!-- LEFT SIDEBAR: SEQUENTIAL PLAYLIST -->
+  <aside class="sidebar">
+    <div class="sidebar-title">
+      <span>Sequential Watch Order</span>
+      <span class="mono">7 Modules</span>
+    </div>
+    <div id="step-list"></div>
+  </aside>
+
+  <!-- CENTER: LIVE STATE MACHINE SVG + VIDEO DECK -->
+  <section class="center-pane">
+    <div class="diagram-stage">
+      <div class="stage-header">
+        <div class="stage-title" id="stage-title">Loading...</div>
+        <div class="stage-station-tag mono" id="stage-station">Station</div>
+      </div>
+      <div class="svg-canvas-wrap" id="stage-svg-container"></div>
+    </div>
+
+    <div class="video-deck">
+      <div class="iframe-box">
+        <iframe id="yt-iframe" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+      <div class="video-info">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <span class="step-meta" id="vid-channel">CHANNEL</span>
+            <span class="badge mono" id="vid-duration">00:00</span>
+          </div>
+          <h3 style="font-size:14px; margin:3px 0 8px;" id="vid-title">Video Title</h3>
+          <div class="video-links-row" id="video-links"></div>
+        </div>
+
+        <div class="watch-grid">
+          <div class="watch-box">
+            <strong style="color:var(--green)">✓ What This Video Covers</strong>
+            <span id="vid-covers"></span>
+          </div>
+          <div class="watch-box">
+            <strong style="color:var(--orange)">⚠ Gap Bridge / What It Skips</strong>
+            <span id="vid-skips"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT: PHYSICAL MECHANISM & TELEMETRY -->
+  <aside class="inspector">
+    <div class="panel-card">
+      <div class="panel-label">Physical Mechanism (Before Code)</div>
+      <p id="phys-mech" style="font-size:12px; line-height:1.45; font-weight:500;"></p>
+    </div>
+
+    <div class="panel-card">
+      <div class="panel-label">Hardware & Kernel State Telemetry</div>
+      <table class="kv-table" id="telemetry-table"></table>
+    </div>
+
+    <div class="panel-card" style="flex:1; display:flex; flex-direction:column;">
+      <div class="panel-label">Exact Production Trace</div>
+      <pre class="trace-box mono" id="code-trace" style="flex:1;"></pre>
+    </div>
+  </aside>
+</main>
+
+<script>
+const STAGES = [
+  {
+    id: 0,
+    short: "00. Master Map",
+    layer: "ALL LAYERS",
+    title: "00. Full Stack Overview: Silicon to Apps",
+    station: "Artifact Stations 01–12 & 21",
+    duration: "42m 32s",
+    channel: "Improbable Matter",
+    videoTitle: "How a Computer Works - from silicon to apps",
+    videoId: "5f3NJnvnk7k",
+    secondaryUrl: null,
+    secondaryLabel: null,
+    isGap: false,
+    covers: "Doped silicon [00:03:36], MOSFETs & CMOS NAND gates [00:10:12], full adders [00:13:20], D-latches & quartz clocks [00:18:07], opcodes [00:25:08], C compilation [00:32:14], and RGB pixels [00:34:33].",
+    skips: "Skips CPython's bytecode evaluation loop, Ring 0 syscall traps, 4-level MMU page walks, and the Linux PTY terminal emulator bridge.",
+    mechanism: "Charge carriers drift across doped silicon channels under gate electric fields. Every higher software layer is a deterministic voltage state transition clocked by a quartz crystal.",
+    telemetry: [
+      ["Substrate", "P/N Doped Silicon + 1.5nm HfO2"],
+      ["Logic Swing", "GND (0.0V) → VDD (+0.8V / +1.0V)"],
+      ["Clock Pulse", "Quartz Piezoelectric 4.0 GHz"],
+      ["Display Target", "1920×1080 RGB Sub-Pixel Grid"]
+    ],
+    trace: `[USER CODE]   print("Hello")
+     ↓  AST Parser & Bytecode Compiler
+[CPYTHON VM]  LOAD_NAME 'print' → LOAD_CONST 'Hello' → CALL
+     ↓  libc write(1, "Hello\\n", 6)
+[ISA / TRAP]  RAX=1, RDI=1, RSI=buf, RDX=6 → syscall
+     ↓  Ring 0 Kernel vfs_write() → /dev/ptmx PTY
+[TERMINAL]    FreeType Glyph Atlas → GPU Texture Upload
+     ↓  VRAM Framebuffer → DisplayPort Scanout
+[PHOTONS]     OLED Sub-Pixel TFT emits 650nm/530nm/460nm light`,
+    svg: () => `
+      <svg viewBox="0 0 680 240">
+        <rect x="15" y="25" width="140" height="75" class="svg-box-accent"/>
+        <text x="85" y="50" text-anchor="middle" class="svg-text-title">1. Python Runtime</text>
+        <text x="85" y="68" text-anchor="middle" class="svg-text-sub">print("Hello")</text>
+        <text x="85" y="84" text-anchor="middle" class="svg-text-sub">Bytecode ceval.c</text>
+
+        <line x1="155" y1="62" x2="195" y2="62" class="signal-line" marker-end="url(#arrow)"/>
+
+        <rect x="195" y="25" width="140" height="75" class="svg-box"/>
+        <text x="265" y="50" text-anchor="middle" class="svg-text-title">2. libc & Ring 0</text>
+        <text x="265" y="68" text-anchor="middle" class="svg-text-sub">syscall (RAX=1)</text>
+        <text x="265" y="84" text-anchor="middle" class="svg-text-sub">vfs_write(fd=1)</text>
+
+        <line x1="335" y1="62" x2="375" y2="62" class="signal-line-orange" marker-end="url(#arrow)"/>
+
+        <rect x="375" y="25" width="140" height="75" class="svg-box-warn"/>
+        <text x="445" y="50" text-anchor="middle" class="svg-text-title">3. PTY & FreeType</text>
+        <text x="445" y="68" text-anchor="middle" class="svg-text-sub">/dev/pts/0 Loopback</text>
+        <text x="445" y="84" text-anchor="middle" class="svg-text-sub">Glyph Raster Atlas</text>
+
+        <line x1="515" y1="62" x2="545" y2="62" class="signal-line" marker-end="url(#arrow)"/>
+
+        <rect x="545" y="25" width="120" height="75" class="svg-box"/>
+        <text x="605" y="50" text-anchor="middle" class="svg-text-title">4. GPU & OLED</text>
+        <text x="605" y="68" text-anchor="middle" class="svg-text-sub">VRAM Framebuffer</text>
+        <text x="605" y="84" text-anchor="middle" class="svg-text-sub">RGB Photons</text>
+
+        <!-- Bottom Hardware Foundation -->
+        <rect x="15" y="135" width="650" height="80" class="svg-box"/>
+        <text x="340" y="158" text-anchor="middle" class="svg-text-title">PHYSICAL EXECUTION SUBSTRATE (STATIONS 01–12)</text>
+        <text x="340" y="178" text-anchor="middle" class="svg-text-sub">Quartz 4.0GHz Clock → x86_64 Decoder (48 01 D8) → 64-Bit CLA Adder → 6T SRAM → CMOS NAND → MOSFET Channel</text>
+        <line x1="85" y1="100" x2="85" y2="135" class="signal-line"/>
+        <line x1="265" y1="100" x2="265" y2="135" class="signal-line"/>
+        <line x1="445" y1="100" x2="445" y2="135" class="signal-line"/>
+        <line x1="605" y1="100" x2="605" y2="135" class="signal-line"/>
+      </svg>`
+  },
+  {
+    id: 1,
+    short: "01. Python VM",
+    layer: "TIER 8 · RUNTIME",
+    title: "01. Python Source to CPython Bytecode Evaluation Loop",
+    station: "Artifact Stations 18 & 19",
+    duration: "07m 17s",
+    channel: "Last Mile Developer",
+    videoTitle: "How Your Python Code Actually Runs: Bytecode, PVM Loop & Call Stack",
+    videoId: "c1VUSUeQtyc",
+    secondaryUrl: "http://www.youtube.com/watch?v=xVdjMZOeNVI",
+    secondaryLabel: "Alt: CPython VM Internals (5m)",
+    isGap: false,
+    covers: "Tokenizing Python text, Abstract Syntax Tree (AST) generation, compiling to bytecode instructions, and the CPython Virtual Machine dispatch loop.",
+    skips: "Stops at the C interpreter boundary; does not show how C's write() transitions into kernel mode.",
+    mechanism: "The CPU never executes Python directly. It executes a compiled C binary (python3) running an infinite switch-case dispatch loop (_PyEval_EvalFrameDefault) that manipulates PyObject pointers on the heap.",
+    telemetry: [
+      ["Entry Source", "print('Hello')"],
+      ["Bytecode Ops", "LOAD_NAME 0, LOAD_CONST 0, CALL 1"],
+      ["VM Engine", "Python/ceval.c switch(*next_instr)"],
+      ["C Target", "builtin_print() → PyFile_WriteObject()"]
+    ],
+    trace: `// Disassembled Python 3.12 Bytecode:
+  0 RESUME          0
+  2 LOAD_NAME       0 (print)     // Push PyCFunction 'print' onto VM value stack
+  4 LOAD_CONST      0 ('Hello')   // Push PyUnicodeObject 'Hello' onto stack
+  6 CALL            1             // Dispatch builtin_print() in Python/bltinmodule.c
+ 14 RETURN_VALUE                  // C calls fwrite("Hello\\n", 1, 6, stdout)`,
+    svg: () => `
+      <svg viewBox="0 0 680 240">
+        <rect x="20" y="40" width="135" height="150" class="svg-box"/>
+        <text x="87" y="68" text-anchor="middle" class="svg-text-title">Source & AST</text>
+        <text x="87" y="95" text-anchor="middle" class="svg-text-sub">print("Hello")</text>
+        <text x="87" y="115" text-anchor="middle" class="svg-text-sub">↓ Lexer / Parser</text>
+        <text x="87" y="135" text-anchor="middle" class="svg-text-sub">Expr(Call(Name))</text>
+
+        <line x1="155" y1="115" x2="195" y2="115" class="signal-line" marker-end="url(#arrow)"/>
+
+        <rect x="195" y="40" width="155" height="150" class="svg-box-accent"/>
+        <text x="272" y="68" text-anchor="middle" class="svg-text-title">Bytecode Array</text>
+        <text x="272" y="95" text-anchor="middle" class="svg-text-sub">LOAD_NAME (print)</text>
+        <text x="272" y="118" text-anchor="middle" class="svg-text-sub">LOAD_CONST ('Hello')</text>
+        <text x="272" y="141" text-anchor="middle" class="svg-text-sub">CALL 1</text>
+
+        <line x1="350" y1="115" x2="390" y2="115" class="signal-line" marker-end="url(#arrow)"/>
+
+        <rect x="390" y="40" width="270" height="150" class="svg-box"/>
+        <text x="525" y="68" text-anchor="middle" class="svg-text-title">CPython C Loop (ceval.c)</text>
+        <text x="525" y="95" text-anchor="middle" class="svg-text-sub">switch (opcode) {</text>
+        <text x="525" y="115" text-anchor="middle" class="svg-text-sub">  case CALL: builtin_print();</text>
+        <text x="525" y="135" text-anchor="middle" class="svg-text-sub">}</text>
+        <text x="525" y="165" text-anchor="middle" class="svg-text-sub" fill="var(--blue)">→ Calls glibc write(1, "Hello\\n", 6)</text>
+      </svg>`
+  },
+  {
+    id: 2,
+    short: "02. Syscall Trap",
+    layer: "TIERS 6 & 7 · OS BRIDGE",
+    title: "02. libc Wrapper, Privilege Bit & The Ring 0 Syscall Trap",
+    station: "Artifact Stations 15, 16 & 17",
+    duration: "21m 30s",
+    channel: "Core Dumped",
+    videoTitle: "How a Single Bit Inside Your Processor Shields Your OS Integrity",
+    videoId: "H4SDPLiUnv4",
+    secondaryUrl: "http://www.youtube.com/watch?v=eP_P4KOjwhs",
+    secondaryLabel: "Part 2: OS System Calls & ABI (13m)",
+    isGap: false,
+    covers: "User mode (Ring 3) vs Kernel mode (Ring 0) hardware bit protection, hardware traps, and why applications must issue system calls.",
+    skips: "Explains the generic trap gate mechanism but not the Linux TTY/PTY character device driver internals.",
+    mechanism: "User space processes run with the CPU Current Privilege Level (CPL) bits set to 11 (Ring 3). Executing the syscall opcode atomically flips CPL to 00 (Ring 0), saves RIP into RCX, loads the kernel stack pointer, and jumps to the address stored in Model Specific Register IA32_LSTAR.",
+    telemetry: [
+      ["ABI Registers", "RAX=1 (sys_write), RDI=1 (stdout)"],
+      ["Buffer Args", "RSI=0x7ffd... ('Hello\\n'), RDX=6"],
+      ["Privilege Flip", "CPL=3 (User) → CPL=0 (Kernel)"],
+      ["Entry Vector", "MSR IA32_LSTAR → entry_SYSCALL_64"]
+    ],
+    trace: `; glibc write() wrapper (x86_64 Linux System V ABI)
+mov    $0x1, %rax      ; __NR_write = 1
+mov    $0x1, %rdi      ; fd = 1 (stdout)
+lea    buf(%rip), %rsi ; pointer to "Hello\\n"
+mov    $0x6, %rdx      ; 6 bytes
+syscall                ; Atomic trap: RIP->RCX, RFLAGS->R11, CPL=0
+                       ; Kernel runs: ksys_write() -> vfs_write()`,
+    svg: () => `
+      <svg viewBox="0 0 680 240">
+        <rect x="20" y="30" width="220" height="180" class="svg-box"/>
+        <text x="130" y="55" text-anchor="middle" class="svg-text-title">RING 3 · USER SPACE (CPL=11)</text>
+        <text x="130" y="85" text-anchor="middle" class="svg-text-sub">glibc write(1, "Hello\\n", 6)</text>
+        <text x="130" y="110" text-anchor="middle" class="svg-text-sub">RAX = 1 (__NR_write)</text>
+        <text x="130" y="130" text-anchor="middle" class="svg-text-sub">RDI = 1 | RSI = ptr | RDX = 6</text>
+        <rect x="55" y="150" width="150" height="36" class="svg-box-accent"/>
+        <text x="130" y="172" text-anchor="middle" class="svg-text-title">Opcode: 0F 05 (syscall)</text>
+
+        <line x1="240" y1="120" x2="380" y2="120" class="signal-line" marker-end="url(#arrow)"/>
+        <text x="310" y="105" text-anchor="middle" class="svg-text-title" fill="var(--blue)">ATOMIC TRAP</text>
+        <text x="310" y="140" text-anchor="middle" class="svg-text-sub">RIP → RCX | CPL → 00</text>
+
+        <rect x="380" y="30" width="280" height="180" class="svg-box-accent"/>
+        <text x="520" y="55" text-anchor="middle" class="svg-text-title">RING 0 · LINUX KERNEL (CPL=00)</text>
+        <text x="520" y="85" text-anchor="middle" class="svg-text-sub">MSR IA32_LSTAR Dispatcher</text>
+        <text x="520" y="110" text-anchor="middle" class="svg-text-sub">sys_call_table[1] → sys_write()</text>
+        <text x="520" y="135" text-anchor="middle" class="svg-text-sub">vfs_write() → file->f_op->write()</text>
+        <text x="520" y="165" text-anchor="middle" class="svg-text-sub">Routes to tty_write() driver</text>
+      </svg>`
+  },
+  {
+    id: 3,
+    short: "03. PTY & Font Bridge",
+    layer: "MISSING ARTIFACT BRIDGE",
+    title: "03. The Missing Bridge: Kernel PTY Loopback & Glyph Rasterization",
+    station: "Bridges Station 17 → Station 21",
+    duration: "22m 29s",
+    channel: "Gregg Ink / Luke Smith",
+    videoTitle: "Take Control of the Terminal using C (File Descriptors, ANSI & TTY)",
+    videoId: "WcN7ryZYUeQ",
+    secondaryUrl: "http://www.youtube.com/watch?v=hMSByvFHOro",
+    secondaryLabel: "Part 2: Terminal vs Shell vs TTY (11m)",
+    isGap: true,
+    covers: "How C writes byte streams to file descriptor 1 (stdout) and how the terminal emulator interprets raw ASCII bytes and escape codes.",
+    skips: "Notice: Your HTML artifact jumps from Station 17 (syscall) to Station 21 (GPU). This stage fills that exact architectural gap.",
+    mechanism: "fd 1 is not wired to the monitor. It points to a kernel Pseudo-Terminal Slave (/dev/pts/0). Kernel tty_write() copies 'Hello\\n' across a line discipline buffer (converting \\n to \\r\\n) into the PTY Master (/dev/ptmx). Your GUI Terminal Emulator reads those 6 bytes, shapes vector fonts via FreeType/HarfBuzz into an 8-bit alpha bitmap atlas, and uploads the texture to GPU VRAM.",
+    telemetry: [
+      ["Slave Device", "fd 1 → /dev/pts/0 (Line Discipline n_tty)"],
+      ["CRLF Translation", "'Hello\\n' (6B) → 'Hello\\r\\n' (7B)"],
+      ["Master Reader", "Terminal Emulator (Alacritty/WezTerm) via epoll"],
+      ["Font Shaping", "FreeType Bezier Curve → 2D Bitmap Texture Atlas"]
+    ],
+    trace: `1. Kernel: vfs_write(fd=1) -> tty_write() -> n_tty_write()
+2. Line Discipline (ONLCR): Expands 0x0A ('\\n') to 0x0D 0x0A ('\\r\\n')
+3. PTY Master Wakeup: Terminal Emulator reads "Hello\\r\\n" from /dev/ptmx
+4. Grid Update: Cell[row][0..4] = {'H','e','l','l','o'}
+5. Rasterizer: FreeType converts TTF Bezier curves into pixel coverage masks
+6. GPU Upload: glTexSubImage2D() pushes glyph bitmaps to VRAM Texture Atlas`,
+    svg: () => `
+      <svg viewBox="0 0 680 240">
+        <rect x="15" y="35" width="195" height="170" class="svg-box-warn"/>
+        <text x="112" y="60" text-anchor="middle" class="svg-text-title">1. Kernel PTY Subsystem</text>
+        <text x="112" y="88" text-anchor="middle" class="svg-text-sub">Python fd 1 → /dev/pts/0</text>
+        <text x="112" y="112" text-anchor="middle" class="svg-text-sub">n_tty Line Discipline</text>
+        <text x="112" y="132" text-anchor="middle" class="svg-text-sub">\\n → \\r\\n (ONLCR)</text>
+        <text x="112" y="160" text-anchor="middle" class="svg-text-sub">Wake /dev/ptmx Master</text>
+
+        <line x1="210" y1="120" x2="250" y2="120" class="signal-line-orange" marker-end="url(#arrow)"/>
+
+        <rect x="250" y="35" width="195" height="170" class="svg-box-warn"/>
+        <text x="347" y="60" text-anchor="middle" class="svg-text-title">2. Terminal Emulator</text>
+        <text x="347" y="88" text-anchor="middle" class="svg-text-sub">epoll_wait() reads 7 bytes</text>
+        <text x="347" y="112" text-anchor="middle" class="svg-text-sub">VT100 State Machine Parser</text>
+        <text x="347" y="132" text-anchor="middle" class="svg-text-sub">2D Cell Grid [Row 0, Col 0..4]</text>
+        <text x="347" y="160" text-anchor="middle" class="svg-text-sub">Cursor Col=0, Row++</text>
+
+        <line x1="445" y1="120" x2="485" y2="120" class="signal-line-orange" marker-end="url(#arrow)"/>
+
+        <rect x="485" y="35" width="180" height="170" class="svg-box-accent"/>
+        <text x="575" y="60" text-anchor="middle" class="svg-text-title">3. FreeType & GPU API</text>
+        <text x="575" y="88" text-anchor="middle" class="svg-text-sub">HarfBuzz Glyph Shaping</text>
+        <text x="575" y="112" text-anchor="middle" class="svg-text-sub">Bezier → Bitmap Raster</text>
+        <text x="575" y="132" text-anchor="middle" class="svg-text-sub">VRAM Glyph Texture Atlas</text>
+        <text x="575" y="160" text-anchor="middle" class="svg-text-sub">Draw Instanced Quads</text>
+      </svg>`
+  },
+  {
+    id: 4,
+    short: "04. CPU Decode & ALU",
+    layer: "TIERS 3 & 4 · CPU CORE",
+    title: "04. Instruction Decode (REX.W / ModR/M), Registers & 64-Bit ALU",
+    station: "Artifact Stations 07, 09, 10 & 12",
+    duration: "14m 28s",
+    channel: "Core Dumped",
+    videoTitle: "HOW TRANSISTORS RUN CODE?",
+    videoId: "HjneAhCy2N4",
+    secondaryUrl: "https://www.youtube.com/watch?v=uTNCVRxuP_c",
+    secondaryLabel: "Alt: Transistors to CPU Control Unit",
+    isGap: false,
+    covers: "How binary opcodes stored in RAM enter the Instruction Register, get decoded by demultiplexers, open register latches, and trigger ALU arithmetic.",
+    skips: "Focuses on clean architectural registers rather than variable-length x86_64 REX.W prefixes.",
+    mechanism: "Every instruction in CPython, the Linux kernel, and FreeType executes through the CPU 5-stage pipeline. A 4.0 GHz quartz oscillator pulses rising voltage edges to D flip-flops, latching instruction bytes (like 48 01 D8) into the decoder to open register pass-transistors and energize the 64-bit Carry-Lookahead Adder.",
+    telemetry: [
+      ["Machine Bytes", "0x48 (REX.W) 0x01 (ADD) 0xD8 (ModR/M)"],
+      ["ModR/M Split", "mod=11 (Reg) | reg=011 (RBX) | r/m=000 (RAX)"],
+      ["ALU Propagation", "~180 ps via Carry-Lookahead Tree"],
+      ["State Latch", "Rising Quartz Clock Edge → D Flip-Flop"]
+    ],
+    trace: `Opcode Stream: 0x48 0x01 0xD8  (add %rbx, %rax)
+  ├─ 0x48 [0100 1000] : REX.W=1 selects 64-bit datapath width
+  ├─ 0x01 [0000 0001] : Decoder asserts ALU_ADD control line HIGH
+  └─ 0xD8 [11 011 000]: Connects RBX (3) and RAX (0) to ALU input ports
+Next Rising Clock Edge (+1.0V): RAX flip-flops latch the 64-bit sum.`,
+    svg: () => `
+      <svg viewBox="0 0 680 240">
+        <rect x="15" y="25" width="180" height="80" class="svg-box-accent"/>
+        <text x="105" y="48" text-anchor="middle" class="svg-text-title">Instruction Register</text>
+        <text x="105" y="70" text-anchor="middle" class="svg-text-sub">[0x48] REX.W (64-Bit)</text>
+        <text x="105" y="88" text-anchor="middle" class="svg-text-sub">[0x01] ADD | [0xD8] ModR/M</text>
+
+        <rect x="15" y="130" width="180" height="80" class="svg-box"/>
+        <text x="105" y="155" text-anchor="middle" class="svg-text-title">Quartz Crystal Clock</text>
+        <text x="105" y="175" text-anchor="middle" class="svg-text-sub">SiO2 Piezoelectric 4.0 GHz</text>
+        <text x="105" y="193" text-anchor="middle" class="svg-text-sub">Rising Edge Latches State</text>
+
+        <line x1="195" y1="65" x2="250" y2="65" class="signal-line" marker-end="url(#arrow)"/>
+        <line x1="195" y1="170" x2="250" y2="170" class="signal-line" marker-end="url(#arrow)"/>
+
+        <rect x="250" y="25" width="180" height="185" class="svg-box"/>
+        <text x="340" y="52" text-anchor="middle" class="svg-text-title">Decoder & Register File</text>
+        <text x="340" y="82" text-anchor="middle" class="svg-text-sub">Demux Control Matrix</text>
+        <text x="340" y="110" text-anchor="middle" class="svg-text-sub">RAX (Bank 0) Flip-Flops</text>
+        <text x="340" y="132" text-anchor="middle" class="svg-text-sub">RBX (Bank 3) Flip-Flops</text>
+        <text x="340" y="165" text-anchor="middle" class="svg-text-sub">6T SRAM L1 Cache (1.2ns)</text>
+
+        <line x1="430" y1="115" x2="480" y2="115" class="signal-line" marker-end="url(#arrow)"/>
+
+        <rect x="480" y="45" width="180" height="145" class="svg-box-accent"/>
+        <text x="570" y="75" text-anchor="middle" class="svg-text-title">64-Bit CLA Adder</text>
+        <text x="570" y="102" text-anchor="middle" class="svg-text-sub">Sum = A ⊕ B ⊕ Cin</text>
+        <text x="570" y="124" text-anchor="middle" class="svg-text-sub">Cout = (A&B)|(Cin&(A⊕B))</text>
+        <text x="570" y="152" text-anchor="middle" class="svg-text-sub">Evaluates in 180 ps</text>
+      </svg>`
+  },
+  {
+    id: 5,
+    short: "05. Silicon & MOSFETs",
+    layer: "TIERS 1 & 2 · SUBSTRATE",
+    title: "05. Doped Silicon, MOSFET Inversion Channels & CMOS Logic Gates",
+    station: "Artifact Stations 01–06 & 08",
+    duration: "26m 45s",
+    channel: "Branch Education",
+    videoTitle: "How do Transistors Build into a CPU? How do Transistors Work?",
+    videoId: "_Pqfjer8-O4",
+    secondaryUrl: null,
+    secondaryLabel: null,
+    isGap: false,
+    covers: "Atomic silicon crystal lattice, N-type/P-type doping, FinFET/MOSFET gate oxides, CMOS inverter pairs, and how NAND gates wire into full adders.",
+    skips: "Purely hardware physics; connect back to Stage 04 to see how these gates form the decoder and ALU.",
+    mechanism: "Applying +0.8V to a MOSFET metal gate creates an vertical electric field across a 1.5 nm HfO2 insulator. This field repels holes in the P-type substrate and attracts free electrons into an inversion channel, allowing drift current (v_d = μE) to flow from Source to Drain.",
+    telemetry: [
+      ["Electric Field", "F = q·E | Drift Velocity v_d = μ·E"],
+      ["Dopants", "Phosphorus (N-type e⁻) / Boron (P-type h⁺)"],
+      ["CMOS Pair", "PMOS Pull-Up (VDD) + NMOS Pull-Down (GND)"],
+      ["Universal Gate", "4-Transistor CMOS NAND (![A & B])"]
+    ],
+    trace: `Gate = 0.0V (OFF): Depletion barrier blocks Source-to-Drain (~0.7V V_bi).
+Gate = +0.8V (ON): Electric field forms N-channel inversion layer under HfO2.
+CMOS NAND Gate:
+  - 2 PMOS in parallel (top) + 2 NMOS in series (bottom)
+  - Output pulls to 0V ONLY when Input A = +0.8V AND Input B = +0.8V.`,
+    svg: () => `
+      <svg viewBox="0 0 680 240">
+        <!-- MOSFET Cross Section -->
+        <rect x="40" y="110" width="280" height="95" class="svg-box"/>
+        <text x="180" y="185" text-anchor="middle" class="svg-text-title">P-Type Silicon Substrate (Boron Doped)</text>
+
+        <rect x="55" y="110" width="65" height="45" fill="rgba(32,94,166,0.25)" stroke="var(--blue)"/>
+        <text x="87" y="136" text-anchor="middle" class="svg-text-title">N+ Source</text>
+
+        <rect x="240" y="110" width="65" height="45" fill="rgba(32,94,166,0.25)" stroke="var(--blue)"/>
+        <text x="272" y="136" text-anchor="middle" class="svg-text-title">N+ Drain</text>
+
+        <!-- Inversion Channel -->
+        <rect x="120" y="110" width="120" height="18" fill="rgba(218,112,44,0.3)" stroke="var(--orange)"/>
+        <line x1="120" y1="119" x2="240" y2="119" class="signal-line-orange"/>
+        <text x="180" y="145" text-anchor="middle" class="svg-text-sub">e⁻ Inversion Channel</text>
+
+        <!-- Oxide & Gate -->
+        <rect x="120" y="96" width="120" height="14" fill="var(--bg-card)" stroke="var(--border)"/>
+        <text x="180" y="106" text-anchor="middle" class="svg-text-sub">1.5nm HfO2 Oxide</text>
+
+        <rect x="120" y="55" width="120" height="41" class="svg-box-accent"/>
+        <text x="180" y="80" text-anchor="middle" class="svg-text-title">Metal Gate (+0.8V)</text>
+
+        <line x1="320" y1="130" x2="385" y2="130" class="signal-line" marker-end="url(#arrow)"/>
+
+        <!-- CMOS NAND -->
+        <rect x="385" y="45" width="265" height="160" class="svg-box"/>
+        <text x="517" y="72" text-anchor="middle" class="svg-text-title">4-Transistor CMOS NAND</text>
+        <text x="517" y="100" text-anchor="middle" class="svg-text-sub">Top: 2× PMOS in Parallel (Pull-Up VDD)</text>
+        <text x="517" y="125" text-anchor="middle" class="svg-text-sub">Bottom: 2× NMOS in Series (Pull-Down GND)</text>
+        <text x="517" y="155" text-anchor="middle" class="svg-text-sub">28 Transistors → 1-Bit Full Adder</text>
+        <text x="517" y="180" text-anchor="middle" class="svg-text-sub">~2,500 Transistors → 64-Bit CLA ALU</text>
+      </svg>`
+  },
+  {
+    id: 6,
+    short: "06. GPU → Photons",
+    layer: "DISPLAY PIPELINE",
+    title: "06. GPU Shaders, VRAM Framebuffer, Display Scanout & OLED Photons",
+    station: "Artifact Station 21 (Silicon to Photons)",
+    duration: "28m 30s",
+    channel: "Branch Education",
+    videoTitle: "How do Graphics Cards Work? Exploring GPU Architecture",
+    videoId: "h9Z4oGN89MU",
+    secondaryUrl: "http://www.youtube.com/watch?v=C8YtdC8mxTU",
+    secondaryLabel: "Alt: Rasterization & Shaders (21m)",
+    isGap: false,
+    covers: "GPU Streaming Multiprocessors (SMs), SIMD parallel shader execution, VRAM memory bandwidth, and writing RGBA pixel arrays to the framebuffer.",
+    skips: "Covers 3D triangle rasterization heavily; in a terminal, the GPU renders 2D textured quads for each character cell.",
+    mechanism: "The GPU's Streaming Multiprocessors sample the FreeType glyph texture atlas and write 32-bit RGBA color values into the VRAM Framebuffer. The Display Controller (Scanout Engine) reads VRAM row-by-row at 60Hz–144Hz, serializes packets over DisplayPort/HDMI to the monitor T-Con, which applies analog voltages to OLED Thin-Film Transistors to emit visible photons.",
+    telemetry: [
+      ["Shader Action", "Fragment Shader samples Glyph Atlas → RGBA"],
+      ["Framebuffer", "3840×2160 × 4 Bytes = 33.17 MB VRAM"],
+      ["Scanout Clock", "DisplayPort / HDMI Serializer @ 60Hz–144Hz"],
+      ["Sub-Pixel Light", "Red (650nm), Green (530nm), Blue (460nm)"]
+    ],
+    trace: `1. GPU Warp Execution: Fragment shaders evaluate pixel coverage for "Hello"
+2. ROP Write: Stores 0xFFFFFFFF (White text) into VRAM Framebuffer address
+3. Display Engine Scanout: Reads row-by-row every 6.94 ms (144Hz)
+4. Monitor T-Con: Demultiplexes stream to Column DACs & Row Gate Drivers
+5. OLED Electroluminescence: e⁻ + h⁺ recombine in organic layer → Photons hit retina`,
+    svg: () => `
+      <svg viewBox="0 0 680 240">
+        <rect x="15" y="45" width="145" height="150" class="svg-box-accent"/>
+        <text x="87" y="72" text-anchor="middle" class="svg-text-title">1. GPU SMs</text>
+        <text x="87" y="98" text-anchor="middle" class="svg-text-sub">Fragment Shaders</text>
+        <text x="87" y="118" text-anchor="middle" class="svg-text-sub">Sample Glyph Atlas</text>
+        <text x="87" y="145" text-anchor="middle" class="svg-text-sub">Compute RGBA</text>
+
+        <line x1="160" y1="120" x2="190" y2="120" class="signal-line" marker-end="url(#arrow)"/>
+
+        <rect x="190" y="45" width="145" height="150" class="svg-box"/>
+        <text x="262" y="72" text-anchor="middle" class="svg-text-title">2. VRAM Buffer</text>
+        <text x="262" y="98" text-anchor="middle" class="svg-text-sub">2D Pixel Array</text>
+        <text x="262" y="118" text-anchor="middle" class="svg-text-sub">4 Bytes / Pixel</text>
+        <text x="262" y="145" text-anchor="middle" class="svg-text-sub">"Hello" Rasterized</text>
+
+        <line x1="335" y1="120" x2="365" y2="120" class="signal-line" marker-end="url(#arrow)"/>
+
+        <rect x="365" y="45" width="145" height="150" class="svg-box"/>
+        <text x="437" y="72" text-anchor="middle" class="svg-text-title">3. Scanout & DP</text>
+        <text x="437" y="98" text-anchor="middle" class="svg-text-sub">Display Controller</text>
+        <text x="437" y="118" text-anchor="middle" class="svg-text-sub">Row-by-Row @ 144Hz</text>
+        <text x="437" y="145" text-anchor="middle" class="svg-text-sub">Monitor T-Con DAC</text>
+
+        <line x1="510" y1="120" x2="540" y2="120" class="signal-line-orange" marker-end="url(#arrow)"/>
+
+        <rect x="540" y="45" width="125" height="150" class="svg-box-warn"/>
+        <text x="602" y="72" text-anchor="middle" class="svg-text-title">4. OLED Pixels</text>
+        <text x="602" y="98" text-anchor="middle" class="svg-text-sub">TFT Gate Voltage</text>
+        <text x="602" y="118" text-anchor="middle" class="svg-text-sub">R: 650nm G: 530nm</text>
+        <text x="602" y="138" text-anchor="middle" class="svg-text-sub">B: 460nm Photons</text>
+        <text x="602" y="168" text-anchor="middle" class="svg-text-title">"Hello" on Screen</text>
+      </svg>`
+  }
+];
+
+let currentStep = 0;
+let completed = JSON.parse(localStorage.getItem("mad_hello_flow_done") || "{}");
+
+function renderTopPipeline() {
+  const layer = document.getElementById("pipeline-nodes-layer");
+  layer.innerHTML = "";
+  const startX = 15;
+  const gap = 178;
+
+  STAGES.forEach((s, idx) => {
+    const x = startX + idx * gap;
+    const isDone = !!completed[s.id];
+    const isActive = idx === currentStep;
+    const classes = [
+      "pipe-node",
+      isActive ? "active" : "",
+      isDone ? "done" : "",
+      s.isGap ? "missing-bridge" : ""
+    ].join(" ");
+
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute("class", classes);
+    g.setAttribute("transform", `translate(${x}, 14)`);
+    g.onclick = () => selectStep(idx);
+
+    g.innerHTML = `
+      <rect width="162" height="70"></rect>
+      <text x="10" y="20" class="svg-text-sub" style="font-weight:700; fill:${s.isGap ? 'var(--orange)' : 'var(--ink-muted)'}">
+        ${isDone ? '✓ ' : ''}${s.layer}
+      </text>
+      <text x="10" y="41" class="svg-text-title">${s.short}</text>
+      <text x="10" y="58" class="svg-text-sub">${s.duration}</text>
+    `;
+    layer.appendChild(g);
+  });
+}
+
+function renderSidebar() {
+  const list = document.getElementById("step-list");
+  list.innerHTML = "";
+
+  STAGES.forEach((s, idx) => {
+    const card = document.createElement("div");
+    card.className = `step-card ${idx === currentStep ? "active" : ""} ${s.isGap ? "gap-card" : ""}`;
+    card.onclick = (e) => {
+      if (e.target.tagName !== "INPUT") selectStep(idx);
+    };
+
+    const checked = completed[s.id] ? "checked" : "";
+    card.innerHTML = `
+      <input type="checkbox" class="step-check" ${checked} onchange="toggleDone(${s.id}, this.checked)" title="Mark watched"/>
+      <div>
+        <div class="step-meta" style="color:${s.isGap ? 'var(--orange)' : ''}">${s.layer}</div>
+        <div class="step-name">${s.short}</div>
+        <div class="step-sub">${s.channel}</div>
+      </div>
+      <span class="step-time mono">${s.duration}</span>
+    `;
+    list.appendChild(card);
+  });
+
+  const doneCount = Object.values(completed).filter(Boolean).length;
+  document.getElementById("progress-badge").textContent = `${doneCount} / ${STAGES.length} Completed`;
+}
+
+function selectStep(idx) {
+  currentStep = idx;
+  const s = STAGES[idx];
+
+  document.getElementById("stage-title").textContent = s.title;
+  document.getElementById("stage-station").textContent = s.station;
+  document.getElementById("stage-svg-container").innerHTML = s.svg();
+
+  // Video Deck
+  document.getElementById("yt-iframe").src = `https://www.youtube-nocookie.com/embed/${s.videoId}?rel=0`;
+  document.getElementById("vid-channel").textContent = `${s.channel} · STEP 0${s.id}`;
+  document.getElementById("vid-duration").textContent = s.duration;
+  document.getElementById("vid-title").textContent = s.videoTitle;
+  document.getElementById("vid-covers").textContent = s.covers;
+  document.getElementById("vid-skips").textContent = s.skips;
+
+  const linksDiv = document.getElementById("video-links");
+  const primaryUrl = `http://www.youtube.com/watch?v=${s.videoId}`;
+  let linksHtml = `<a class="yt-btn" href="${primaryUrl}" target="_blank" rel="noopener">▶ Watch on YouTube (${s.duration}) ↗</a>`;
+  if (s.secondaryUrl) {
+    linksHtml += `<a class="yt-btn secondary" href="${s.secondaryUrl}" target="_blank" rel="noopener">${s.secondaryLabel} ↗</a>`;
+  }
+  linksDiv.innerHTML = linksHtml;
+
+  // Inspector
+  document.getElementById("phys-mech").textContent = s.mechanism;
+  const table = document.getElementById("telemetry-table");
+  table.innerHTML = s.telemetry.map(([k, v]) => `
+    <tr>
+      <td class="kv-key">${k}</td>
+      <td class="kv-val mono">${v}</td>
+    </tr>
+  `).join("");
+
+  document.getElementById("code-trace").textContent = s.trace;
+
+  renderTopPipeline();
+  renderSidebar();
+}
+
+function toggleDone(id, isChecked) {
+  completed[id] = isChecked;
+  localStorage.setItem("mad_hello_flow_done", JSON.stringify(completed));
+  renderTopPipeline();
+  renderSidebar();
+}
+
+function prevStep() {
+  selectStep((currentStep - 1 + STAGES.length) % STAGES.length);
+}
+
+function nextStep() {
+  selectStep((currentStep + 1) % STAGES.length);
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const next = html.getAttribute("data-theme") === "light" ? "dark" : "light";
+  html.setAttribute("data-theme", next);
+  document.getElementById("theme-btn").textContent = `Theme: ${next.charAt(0).toUpperCase() + next.slice(1)}`;
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowRight") nextStep();
+  if (e.key === "ArrowLeft") prevStep();
+});
+
+// Initialize
+selectStep(0);
+</script>
+</body>
+</html>

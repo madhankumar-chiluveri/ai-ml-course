@@ -120,6 +120,17 @@ Create or update the selected post file using the project's post template.
 
 Audit positioning, evidence, voice, structure, format fit, accessibility, and AI-tell density. Report findings without rewriting unless the user asks for changes. If `scripts/validate_post.py` is available, run it on post files before declaring them ready.
 
+### Publishing and scheduling
+
+An explicit request to post or schedule a reviewed package authorizes its media-hosting and Buffer workflow. Reuse the established accounts, intended date, and saved publishing slots when available; do not ask for the same approval again.
+
+1. Push the final post package and related approved changes to the user's existing public GitHub repository. Use the established branch and exclude unrelated work. Confirm the push succeeded before using its URLs. Reuse already published media only when its bytes match the final files.
+2. Build direct public media URLs pinned to the pushed commit. Fetch every PDF, image, and document thumbnail without authentication; compare the downloaded bytes with the final local files. Record the commit and any expiry. Prefer stable repository URLs; use another public host only when project instructions authorize it and the user has not required a GitHub push first.
+3. Schedule through Buffer MCP. Attach the LinkedIn document with its title and cover thumbnail, and the Instagram pages in order, using each platform's canonical caption. Use the intended publishing date and timezone; select automatic publishing unless the user requested reminders.
+4. Read both saved posts back. Verify account, caption, media type and order, intended time, timezone, status, and publishing mode. Record Buffer post IDs and the media commit in the post file; update the week plan and backlog, then push those scheduling records.
+
+If authentication, hosting, or scheduling fails, report the exact incomplete step and continue any independent work. Never claim a push or schedule succeeded without verification. Do not upload unrelated private files or switch accounts, repositories, dates, or publishing modes merely to bypass a failure.
+
 ### Measurement and iteration
 
 After publication, record consistent 24-hour and 72-hour snapshots in the project's metrics dataset. Use `NA` for unavailable data; zero means measured zero. Update the weekly retrospective with interpretation and promote audience questions to the backlog. Do not declare a format, theme, hook, or posting-time winner from a single post.
