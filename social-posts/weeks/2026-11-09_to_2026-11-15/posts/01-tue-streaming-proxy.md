@@ -1,6 +1,8 @@
 ---
 post_id: LI-012
-status: review
+status: scheduled
+scheduled_at: 2026-11-10T16:00:00+05:30
+instagram_scheduled_at: 2026-11-10T19:00:00+05:30
 timezone: Asia/Kolkata
 pillar: authority
 format: single_image
@@ -19,6 +21,8 @@ instagram_published_url:
 # When an AI stream arrives all at once
 
 **Asset:** [Diagnostic card](../assets/LI-012-streaming-proxy.png) · [Editable source](../assets/LI-012-streaming-proxy.html)
+
+**Buffer:** LinkedIn `6af29c32e261c09acc9c5cfd`; Instagram `6af29c38e261c09acc9c6430`. Both are scheduled for automatic publishing. The public image is pinned to commit `bf00a1669f002a4b06f3f810cfff22557098a356` and its bytes matched the local PNG at scheduling time.
 
 **Alt text:** Illustrative debugging comparison: a direct connection can deliver response chunks gradually while a buffering NGINX proxy can delay them. Check the streaming route's buffering setting, then retest the complete path.
 

@@ -20,7 +20,7 @@ deferred means the topic is valid but outside the active course phase.
 | LI-008 | One blocking function can freeze a streaming AI endpoint | Build proof | Agent latency is blamed only on the model | Concurrency proof and event-loop trace | Phase 0.3 / 0.9 | 2 | review |
 | LI-009 | Retrying the same invalid request is not resilience | Authority | Agent tools amplify bad retry policies | Executed offline policy simulation and seven-page decision carousel | Phase 0.7 / 0.8 | 3 | review |
 | LI-011 | One AI product has at least three kinds of state | Authority | Postgres, pgvector, and Redis are treated as interchangeable | Storage-boundary architecture | Phase 0.15 | 3 | idea |
-| LI-012 | NGINX can make token streaming arrive all at once | Authority | Proxy buffering is mistaken for model latency | Illustrative diagnostic story, supported by NGINX documentation; no measured trace | Phase 0.12 | 3 | review |
+| LI-012 | NGINX can make token streaming arrive all at once | Authority | Proxy buffering is mistaken for model latency | Illustrative diagnostic story, supported by NGINX documentation; no measured trace | Phase 0.12 | 3 | scheduled |
 | LI-013 | AI says Fixed; pytest asks for a word | Community | A confident completion message arrives before executable checks | Fictional comic grounded in the testing lesson | Phase 0.5 | 1 | scheduled |
 
 | LI-015 | One small change and a very large rollback | Community | AI-assisted changes can exceed the requested scope | Fictional visual joke, grounded in version control | Phase 0.4 | 1 | scheduled |
