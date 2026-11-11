@@ -1,9 +1,13 @@
 ---
 post_id: LI-020
-status: review
-scheduled_at: 2026-11-11T16:00:00+05:30
+status: scheduled
+instagram_status: scheduled
+scheduled_at: 2026-11-11T17:20:00+05:30
 instagram_scheduled_at: 2026-11-11T18:00:00+05:30
-schedule_note: Proposed times only; neither post is scheduled. These are general timing hypotheses.
+schedule_note: Scheduled through Buffer's existing channel queues for automatic publication; captions, media, times, accounts, and publishing mode read back and verified.
+buffer_linkedin_post_id: 6af4016be324ad28736ac1d2
+buffer_instagram_post_id: 6af401749a3abc82a1d12fca
+media_commit: f0ad7d78033d17f573d66a53e541ab01dc53e378
 timezone: Asia/Kolkata
 pillar: authority
 content_series: ai_update
@@ -32,6 +36,7 @@ instagram_published_url:
 - [Instagram carousel](../assets/LI-020-robot-vision-action/LI-020-instagram-carousel.zip): six 2160 × 2700 PNGs in order.
 - [Packaging builder](../assets/LI-020-robot-vision-action/source/build.py) and [image generation prompts](../assets/LI-020-robot-vision-action/source/direct-slides.prompts.txt). The native generated pages are in the same source folder.
 - The generated robots are imaginary educational illustrations. They are not the real Apollo 2 robot, screenshots, or photos of the factory pilot. The exported PNG dimensions do not imply the generated artwork gained detail when scaled.
+- Buffer uses public GitHub media URLs pinned to the media commit above. Anonymous downloads of the PDF and six PNGs matched the local files byte for byte. The URLs have no configured expiry. LinkedIn has the document and cover thumbnail; Instagram has the six images in order with their alt text and AI-generated disclosure.
 
 ## Source notes
 
