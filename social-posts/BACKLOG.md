@@ -32,6 +32,8 @@ deferred means the topic is valid but outside the active course phase.
 |---|---|---|---|---|---|
 | LI-014 | Before you add another agent, check what it adds | Authority | Follow the testing comic with a sourced comparison of handoffs, shared context, and useful agent boundaries | Anthropic guide, 22 October 2026 | review |
 | LI-016 | DeepSeek Super-agent: when can an agent act? | Authority | Explain proactive coding work and team-defined permission boundaries | DeepSeek prototype, 31 October 2026 | scheduled |
+| LI-019 | Can AI help prove your messages stay private? | Authority | Explain encryption and AI-assisted verification through a beginner-friendly example | Google DeepMind research, 10 November 2026 | archived |
+| LI-020 | How does AI help a robot pick up the right part? | Authority | Explain vision, instructions, and robot actions through one factory task | Google DeepMind research, 10 November 2026 | review |
 
 ## Approved standalone explainers
 

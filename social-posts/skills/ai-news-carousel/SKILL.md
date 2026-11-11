@@ -82,13 +82,14 @@ Do not force previous constraints, mechanisms, use cases, limitations pages, or 
 Keep relevant caveats beside their claims even when there is no dedicated limitations page.
 Use clear language without assuming the reader has completed advanced course topics.
 Give each page one main visual or idea. Vary compositions; avoid repeating the same headline-and-bullets layout.
+Follow the shared content skill's balanced explanation and complete-page image-generation guidance: the pages must teach the mechanism in readable sentences without depending on the caption.
 Use a question only when it helps conversation. Avoid engagement bait.
 
 ## Apply Madhan's visual system
 
 Read [style-ref-editorial](../style-ref-editorial/SKILL.md) and its design-system reference before production.
 Use the existing warm-paper treatment by default; apply a different design system when the user selects one.
-Use a quiet `AI UPDATE` series label, page count, and the exact public credit `madvibe.ai`. Omit publication and edition dates from artwork and public captions unless explicitly requested.
+The `AI UPDATE` label is optional; omit it when it adds no value or the user prefers. Include page count and the exact public credit `madvibe.ai`. Omit publication and edition dates from artwork and public captions unless explicitly requested.
 Keep the series recognizable through typography and spacing; choose illustrations, examples, photos, charts, or diagrams for the story.
 
 Design on a logical 1080 x 1350 canvas and render final PNGs at 2160 x 2700 from editable source at 2× scale.
