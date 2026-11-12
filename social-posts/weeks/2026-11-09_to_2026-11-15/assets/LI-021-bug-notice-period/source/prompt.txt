@@ -1,0 +1,52 @@
+Use case: illustration-story.
+Asset type: final single-image LinkedIn and Instagram engineering meme, 4:5 portrait PNG, target 2160 x 2700 pixels. Generate the COMPLETE finished image including all final text; not a mockup.
+Primary request: Make the selected joke "the bug is serving its notice period" funny AND immediately understandable without a caption. The precise scenario is a software fix deployed to the server, but an existing cached response still returns the old bad answer because that saved response has not expired or been invalidated. The cache does not contain the source code. The bug is a fictional personification of the old bad response.
+
+Reference image 1: character identity reference ONLY, not an edit target and not a layout reference. Preserve Mad's recognizable South Asian face, swept black hair, brown eyes, trimmed beard and moustache, and polished illustrated identity. Adapt him to a navy rolled-sleeve casual shirt, waist-up or three-quarter stance, expressive and actively gesturing toward the bug. He has exactly two anatomically correct human arms, with one hand pointing and the other beside his laptop. Both arm chains must connect to the correct shoulders. Do not reproduce the source's thinking pose.
+
+Visual style: premium original editorial cartoon, warm ivory paper #FFFCF0, crisp dark ink #100F0F, expressive carefully shaded characters, thin confident ink outlines, pastel mint #DDF6E9 and lilac #ECE6FF areas, restrained blue #2246A8 annotations. Keep a clean flat paper backdrop with very subtle texture. No neon, photorealism, corporate slide template, stock AI robot, decorative avatar sticker, fake screenshot, or illegible handwriting.
+
+Composition: one continuous coherent cartoon scene with generous margins and a clear reading order, NOT a grid or carousel.
+Top 15%: dominant bold black headline in normal-width highly readable sans serif, comfortably spaced letters and words.
+Middle 18%-75%: Mad stands on the LEFT beside a laptop, looking incredulously toward the bug. The laptop screen is mint with the large label "FIX DEPLOYED". His large speech bubble sits above him with an unambiguous short tail.
+On the RIGHT, a smug adorable rose/pink cartoon software bug reclines on a small couch INSIDE an unmistakable lilac rounded room/box marked "CACHE", with the subtitle "Saved responses". The bug sips coffee and casually holds a response card marked "OLD ANSWER". Give the bug a simple coherent cartoon body, antennae, two visible arm/hand gestures and no stray limbs. Its large speech bubble sits above the cache scene and clearly points to the bug.
+A small but readable rose user-interface card OUTSIDE the cache, at the lower right of the scene, reads "Same bug." A short clean blue arrow carries the OLD ANSWER from the cache to this user-interface card. The direction is cache -> user. The arrow must route through whitespace without crossing any words, body, bubble, or structural boundary except at its intended cache exit. Keep the FIX DEPLOYED laptop visibly separate from the lilac cache. Do not draw a server-to-cache arrow that would imply the fixed answer has already replaced the old one.
+Bottom 78%-94%: an uncluttered explanation strip in the same paper scene, with comfortable line spacing. It must state the physical mechanism in full, not a vague slogan. Quiet public credit at the lower right.
+
+Exact text, render verbatim and ONLY the following:
+Headline, two lines:
+"THE BUG IS SERVING"
+"ITS NOTICE PERIOD."
+
+Mad speech bubble, two lines:
+"The bug is fixed."
+"You can leave."
+
+Bug speech bubble, two lines:
+"My notice period"
+"hasn't expired."
+
+Laptop screen:
+"FIX DEPLOYED"
+
+Lilac box:
+"CACHE"
+"Saved responses"
+
+Bug's response card:
+"OLD ANSWER"
+
+User-interface card:
+"Same bug."
+
+Bottom explanation, three readable lines:
+"The server is fixed."
+"The cache still serves the old answer"
+"until it expires or is cleared."
+
+Footer:
+"madvibe.ai"
+
+Typography constraints: headline should be largest; dialogue and the bottom explanation must be clearly readable at a roughly 360-pixel-wide feed preview. Use open, normal-width sans-serif characters; no compressed headlines, joined letters, negative tracking or tight word spaces. At a 2160-pixel width, target roughly 80-pixel dialogue/body text and at least 64-pixel supporting labels. Reflow generously rather than shrinking text. Preserve exact apostrophe and spelling. No extra dialogue, dates, source URLs, edition labels, invented metric, countdown, or watermark. Do not label the illustration with numbers or add platform logos.
+Quality gate: every label spelled correctly; the bug physically sits inside CACHE; OLD ANSWER visibly travels from cache to user; Mad's server is already fixed; no implication that Redis ignores writes; no collisions or clipped content. The humour is the bug treating cache expiry like an employment notice period.
+Output: finished 4:5 portrait artwork, request the strongest suitable native detail, target final PNG export 2160 x 2700. Opaque paper background.

@@ -25,6 +25,7 @@ deferred means the topic is valid but outside the active course phase.
 
 | LI-015 | One small change and a very large rollback | Community | AI-assisted changes can exceed the requested scope | Fictional visual joke, grounded in version control | Phase 0.4 | 1 | scheduled |
 | LI-017 | One prompt, then the AI roadmap | Community | Initial confidence meets an expanding learning scope | Fictional two-panel comic; user reported publication on 4 Nov | User-requested learning humour | 1 | published |
+| LI-021 | The bug is serving its notice period | Community | A deployed fix can be hidden by an unchanged cached response | Fictional illustrated meme; Redis expiration documentation | Phase 0.15 | 1 | review |
 
 ## AI Update candidates
 
