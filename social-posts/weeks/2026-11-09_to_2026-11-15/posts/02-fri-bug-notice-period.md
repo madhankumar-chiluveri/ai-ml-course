@@ -4,7 +4,15 @@ status: review
 instagram_status: review
 scheduled_at: 2026-11-13T15:00:00+05:30
 instagram_scheduled_at: 2026-11-13T19:00:00+05:30
-schedule_note: User authorized a GitHub push and Buffer scheduling on 12 November; these are the intended Friday slots, pending Buffer verification.
+schedule_note: User authorized the push and scheduling. The intended slots remain 13 November, LinkedIn 3 PM and Instagram 7 PM IST. No Buffer post was created because the session blocked MCP write approval, including a draft attempt and a retry after renewed authorization.
+buffer_scheduling_status: blocked_by_session_approval_policy
+buffer_last_attempted_on: 2026-11-13
+buffer_organization: My organization
+buffer_organization_id: 6ae187bda9c35b2c815e7173
+buffer_linkedin_channel_id: 6ae1887b2f1f5ed648f77d1b
+buffer_instagram_channel_id: 6ae20ccf2f1f5ed648fcef4c
+media_commit: 01ffd41caae93a994771aa6ba3ae9d9a6a767189
+media_url: https://raw.githubusercontent.com/madhankumar-chiluveri/ai-ml-course/01ffd41caae93a994771aa6ba3ae9d9a6a767189/social-posts/weeks/2026-11-09_to_2026-11-15/assets/LI-021-bug-notice-period/LI-021-bug-notice-period.png
 intended_date: 2026-11-13
 timezone: Asia/Kolkata
 pillar: community
@@ -31,6 +39,7 @@ instagram_published_url:
 - [Generation prompt](../assets/LI-021-bug-notice-period/source/prompt.txt). Built-in image generation, with Mad's portrait as the character identity reference.
 - [Native generated source](../assets/LI-021-bug-notice-period/source/generated-source.png), 1122 × 1402. The final 2160 × 2700 PNG is a resampled export; it does not gain native detail. Full-size and 360-pixel feed inspections passed for text, reading order, anatomy, and the cache-to-user arrow.
 - **Upload verification:** metadata-only preparation preserved decoded pixels. The opaque RGB PNG is 2160 × 2700 and has no parsed caBX chunk. SHA-256: c9a7e6a86a1a55d9b70753fd6a889bc3f797634fb3b4d2acf276af64fa769bb9.
+- **Public media:** the package was pushed to the existing madhan branch. An anonymous download from the commit-pinned media URL matched the final PNG byte for byte. The URL has no configured expiry.
 - **Alt text:** Mad announces that the bug is fixed beside a laptop marked FIX DEPLOYED. A smug bug sits inside a CACHE box labelled Saved responses, holding an OLD ANSWER and saying its notice period has not expired. The cache sends that old answer to a user interface showing Same bug. The explanation states that the fixed server can coexist with an old cached answer until that answer expires or is cleared.
 
 ## Source note
@@ -38,6 +47,10 @@ instagram_published_url:
 Fictional humour, not a reported incident or measured trace. The scenario assumes a response-cache hit after a server deployment, with no invalidation or replacement of the existing response. The saved response therefore bypasses the corrected server handler. This does not imply Redis ignores writes.
 
 [Redis EXPIRE documentation](https://redis.io/docs/latest/commands/expire/), checked 12 November 2026, documents key expiration. The AI-product connection is a cached tool response that outlives a code change. The image uses "cleared" as plain-language wording for invalidating the saved answer.
+
+## Buffer scheduling
+
+The existing Buffer organization and both connected channels were read successfully. Both channels use Asia/Kolkata. Automatic publication was requested for the intended times, with the verified image, platform caption, alt text, and Instagram AI-generated disclosure. Scheduling and draft creation were rejected before execution with: "MCP tool call requires approval, but approval policy is never". A retry after the user's instruction to continue received the same error. A subsequent read found no posts for either channel on 13 November. Buffer write approval must be enabled in the client before scheduling can resume.
 
 ## LinkedIn
 
