@@ -1,12 +1,14 @@
 ---
 post_id: LI-021
-status: review
-instagram_status: review
+status: scheduled
+instagram_status: scheduled
 scheduled_at: 2026-11-13T15:00:00+05:30
 instagram_scheduled_at: 2026-11-13T19:00:00+05:30
-schedule_note: User authorized the push and scheduling. The intended slots remain 13 November, LinkedIn 3 PM and Instagram 7 PM IST. No Buffer post was created because the session blocked MCP write approval, including a draft attempt and a retry after renewed authorization.
-buffer_scheduling_status: blocked_by_session_approval_policy
-buffer_last_attempted_on: 2026-11-13
+schedule_note: Scheduled through Buffer for automatic publication on 13 November; accounts, captions, media, times, alt text, and publishing mode read back and verified.
+buffer_scheduling_status: scheduled_verified
+buffer_verified_on: 2026-11-13
+buffer_linkedin_post_id: 6af68f19ba218f326379d881
+buffer_instagram_post_id: 6af68f14e1d8eff6109db6db
 buffer_organization: My organization
 buffer_organization_id: 6ae187bda9c35b2c815e7173
 buffer_linkedin_channel_id: 6ae1887b2f1f5ed648f77d1b
@@ -50,7 +52,7 @@ Fictional humour, not a reported incident or measured trace. The scenario assume
 
 ## Buffer scheduling
 
-The existing Buffer organization and both connected channels were read successfully. Both channels use Asia/Kolkata. Automatic publication was requested for the intended times, with the verified image, platform caption, alt text, and Instagram AI-generated disclosure. Scheduling and draft creation were rejected before execution with: "MCP tool call requires approval, but approval policy is never". A retry after the user's instruction to continue received the same error. A subsequent read found no posts for either channel on 13 November. Buffer write approval must be enabled in the client before scheduling can resume.
+Scheduled in Buffer's My organization for automatic publication on 13 November: Madhan Kumar Chiluveri's LinkedIn profile at 3 PM IST and @madvibe.ai on Instagram at 7 PM IST. Both channels use Asia/Kolkata. Each saved post was read back and verified for its exact canonical caption, channel, publishing time, scheduled status, automatic publishing mode, single 2160 × 2700 image, and alt text. Instagram's AI-generated disclosure is enabled. Both posts use the verified commit-pinned media URL above.
 
 ## LinkedIn
 
