@@ -41,7 +41,7 @@ The humour should survive without a caption explaining why it is funny.
 ## Choose the design for the scene
 
 Read [the design router](references/design-router.md) when choosing a layout or creating a visual brief.
-Apply [style-ref-editorial](../style-ref-editorial/SKILL.md) for the default paper, typography, pastel surfaces, and blue notes.
+Apply [style-ref-editorial](../style-ref-editorial/SKILL.md) for the default paper, typography, pastel surfaces, and plum notes.
 Let the scenario determine the illustration: a queue, conversation, timeline, stale response, expectation split, or escalating sequence.
 
 One joke often fits one image. Several panels within one image are still a single-image format.

@@ -20,7 +20,7 @@ If a queue is the joke, draw a queue. If timing is the joke, show timing.
 
 ## Preserve a recognisable visual voice
 
-- Start with warm paper, bold ink text, pastel groupings, and restrained blue annotations.
+- Start with warm paper, bold ink text, pastel groupings, and restrained plum annotations.
 - Use the component's actual name where it helps recognition: retry loop, proxy, cache, event loop, or pytest.
 - Use expressive poses or faces only when they add information. An unchanged response can be funnier than an elaborate character.
 - Keep one focal action and a clear reading order. Give the punchline space.

@@ -2,7 +2,7 @@
 
 The visual field behaves like carefully prepared technical paper. Broad empty areas separate concepts. Thin ink boundaries show ownership and direction. Meticulous alignment makes the mechanism visible before the reader studies the labels.
 
-Heavy editorial type establishes the question. Readable sans-serif labels explain the mechanism. Short blue notes supply a reading cue. Careful line length and spacing preserve clarity at feed size.
+Heavy editorial type establishes the question. Readable sans-serif labels explain the mechanism. Short plum notes supply a reading cue. Careful line length and spacing preserve clarity at feed size.
 
 Pastel surfaces group information without competing with the black headline. Mint marks a verified or safe outcome. Rose marks failure or risk. Butter marks a decision, lilac a transformation, and sky an input or transport boundary.
 
@@ -14,7 +14,7 @@ The composition changes with the reasoning. A comparison aligns alternatives. A 
 |---|---|
 | Paper | `#FFFCF0` |
 | Ink | `#100F0F` |
-| Annotation blue | `#2246A8` |
+| Annotation plum | `#7C3154` |
 | Secondary text | `#575653` |
 | Mint | `#DDF6E9` |
 | Lilac | `#ECE6FF` |
@@ -24,6 +24,7 @@ The composition changes with the reasoning. A comparison aligns alternatives. A 
 | Quiet rule | `#DAD8CE` |
 
 These are production tokens inferred from the reference family. They are not sampled color measurements.
+Use ink for primary text and plum for restrained annotations or connectors. Check text contrast against its actual background; do not use color alone to convey meaning.
 
 ## Typography and geometry
 

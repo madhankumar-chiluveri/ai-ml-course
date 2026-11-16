@@ -1,9 +1,9 @@
 ---
 post_id: LI-009
-status: review
-scheduled_at: 2026-10-27T09:00:00+05:30
+status: published
+scheduled_at: 2026-10-27T10:01:28+05:30
 timezone: Asia/Kolkata
-schedule_note: Proposed editorial slot only; no platform scheduling performed
+schedule_note: Buffer history confirms LinkedIn and Instagram published on 27 October 2026; Instagram due time was 10:00 IST.
 pillar: authority
 format: document
 instagram_format: carousel

@@ -12,7 +12,7 @@ The source references in `C:\Users\madhankumar.ch\Downloads\style-ref` contribut
 |---|---|---|
 | Paper | `#FBF8F1` | Warm primary canvas |
 | Ink | `#111318` | Headlines and primary text |
-| Note | `#2246A8` | Handwritten annotations and connectors |
+| Note | `#7C3154` | Plum annotations and connectors |
 | Mint | `#DDF6E9` | Durable/verified or safe state |
 | Lilac | `#ECE6FF` | Semantic/model or transformation state |
 | Butter | `#FFF1B8` | Decision, constraint, or takeaway |
@@ -21,7 +21,7 @@ The source references in `C:\Users\madhankumar.ch\Downloads\style-ref` contribut
 | Muted | `#5D6470` | Secondary copy |
 | Rule | `#CDD3DC` | Dividers and quiet borders |
 
-Preserve semantic meaning when another project system already assigns colors. Use these pastels as surfaces, not as saturated full-canvas backgrounds.
+Preserve semantic meaning when another project system already assigns colors. Use these pastels as surfaces, not as saturated full-canvas backgrounds. Use ink for primary text and plum for restrained annotations. Check text contrast against its actual background.
 
 ## Typography
 

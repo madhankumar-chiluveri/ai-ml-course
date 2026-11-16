@@ -1,7 +1,7 @@
 ---
 name: style-ref-editorial
 description: >-
-  Create original LinkedIn and Instagram carousels or technical cards using Madhan's saved style-ref treatment: warm paper, oversized black headlines, pastel diagrams, and readable blue annotations. Use for social visuals in this workspace or an explicit style-ref request.
+  Create original LinkedIn and Instagram carousels or technical cards using Madhan's saved style-ref treatment: warm paper, oversized black headlines, pastel diagrams, and readable plum annotations. Use for social visuals in this workspace or an explicit style-ref request.
 ---
 
 # Style Ref Editorial
@@ -24,7 +24,7 @@ Bundled OFL fonts and their licenses live in `assets/fonts/` for reproducible of
 
 1. Take the topic, evidence, platform, and chosen format from the post brief. This skill controls visual treatment.
 2. Identify the physical mechanism or engineering decision. Make that the dominant diagram.
-3. Use warm paper, a heavy black headline, pastel surfaces, thin ink strokes, and restrained blue notes.
+3. Use warm paper, a heavy black headline, pastel surfaces, thin ink strokes, and restrained plum notes. Use the color tokens and contrast guidance in the design system.
 4. Follow the per-post visual decision from `linkedin-content-system`: image-generated character scenes or SVG cartoons and diagrams. Choose expressive generated scenes when human action carries the story; choose SVG when exact labels, geometry, or data paths carry the explanation. Reassess for each post and verify every word and technical relationship.
 5. Use a readable sans-serif with clear gaps between letters and words. Choose normal-width type, open counters, and moderate weight. Avoid negative tracking, touching glyphs, compressed heavy headlines, and handwriting fonts unless explicitly requested. Inspect at feed size and regenerate cramped type.
 6. Vary composition with the information: a causal path, aligned comparison, timeline, branching decision, or trace.
@@ -39,6 +39,7 @@ Bundled OFL fonts and their licenses live in `assets/fonts/` for reproducible of
 - Plan each appearance around the situation: what Mad sees, does, says, or reacts to. Match his gaze, facial expression, gesture, and pose to that action. Generate a suitable variation when the existing pose does not fit. Check facial features, hands, prop contact, and readability at feed size.
 - Add original supporting characters when the story needs another participant, such as a teammate, reviewer, or clearly labeled agent. Give each one a useful role; omit characters that add no meaning. Compose characters, props, speech bubbles, and diagrams as one scene, with clear reading order and no text collisions. Keep labels and dialogue exact and readable.
 - Inspect anatomy before accepting a scene: trace each visible arm from its own shoulder through elbow and wrist to its hand. Verify one anatomical left hand and one right hand, not just a count of two hands. Reject both hands appearing to emerge from the same side, duplicated handedness, detached wrists, or implausible connections. Prefer a simple pose with both arm chains visible when occlusion makes the anatomy ambiguous. Check fingers, gaze, prop contact, bubble tails, connectors, and alignment; regenerate faulty artwork rather than hiding it.
+- For a laptop scene with visible screen content, orient the screen partly toward the viewer and place all interface content on the inner display, never on the outer lid. Align the character's gaze and interaction with the visible screen; check the hinge, keyboard, and perspective before accepting the image.
 
 ## Carousel guidance
 
@@ -54,7 +55,7 @@ Bundled OFL fonts and their licenses live in `assets/fonts/` for reproducible of
 ## Boundaries
 
 - Do not reproduce another creator's handle, distinctive composition, signature badges, people, or proprietary artwork.
-- Preserve meaningful detail from the references: pastel groupings, illustrated connectors, ink hierarchy, and short blue annotations in readable type.
+- Preserve meaningful detail from the references: pastel groupings, illustrated connectors, ink hierarchy, and short plum annotations in readable type.
 - Do not reduce this treatment to plain corporate cards or add unrelated decorative AI imagery.
 - Label simulations and illustrative data. Never draw a fake terminal capture, benchmark, or production incident.
 - Keep delivery to the selected assets and captions. Add source notes in the post only when useful; separate study artifacts require explicit request.
@@ -80,4 +81,4 @@ The image remains AI-generated; metadata cleanup does not establish a different 
 
 ## Reusable prompt
 
-> Apply the style-ref-editorial skill to this approved brief. Honor its recorded choice of image-generated character scenes or SVG cartoons and diagrams; decide and explain the treatment first if missing. Use warm paper, clearly spaced normal-width editorial type, pastel diagrams, thin ink outlines, and readable blue notes. Preserve exact labels and the evidence boundary. Use madvibe.ai as the public credit. Return 2160 × 2700 PNGs, the selected carousel PDF, selected production source, and page-specific alt text.
+> Apply the style-ref-editorial skill to this approved brief. Honor its recorded choice of image-generated character scenes or SVG cartoons and diagrams; decide and explain the treatment first if missing. Use warm paper, clearly spaced normal-width editorial type, pastel diagrams, thin ink outlines, and readable plum notes. Preserve exact labels and the evidence boundary. Use madvibe.ai as the public credit. Return 2160 × 2700 PNGs, the selected carousel PDF, selected production source, and page-specific alt text.

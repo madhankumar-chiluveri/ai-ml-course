@@ -25,6 +25,7 @@ Create original, mobile-legible technical visuals with a clear editorial headlin
 - Keep evidence visually dominant; decoration must not compete with it.
 - When characters serve the story, give each a clear role and action. Match expression, gaze, pose, and prop interaction to the situation. Add supporting characters only when they explain the idea; avoid detached avatar stickers. For social posts, follow the [social editorial guidance](../../../social-posts/skills/style-ref-editorial/SKILL.md) for Mad references, character frequency, and date treatment.
 - Validate human anatomy and scene alignment in the final render. Trace limbs to their shoulders and inspect hands, prop contact, bubble tails, and connectors; regenerate visible mistakes.
+- When laptop screen content is visible, turn the inner display partly toward the viewer. Place interface content on the screen, never on the outer lid, and align gaze, hands, keyboard, and hinge with that orientation.
 - Meet WCAG AA contrast and add labels or shapes so color is never the only signal.
 - Use `madvibe.ai` as the public visual credit. Never reproduce another creator's handle, signature composition, proprietary illustration, or recognizable brand identity.
 - Treat supplied references as mood and design-principle inputs, not templates to clone.
