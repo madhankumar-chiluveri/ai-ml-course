@@ -9,6 +9,6 @@ status: active
 
 | Day | Post | Format | Intended time | Status |
 |---|---|---|---|---|
-| Tue 17 | [LI-022: Did the MCP tool succeed?](posts/01-tue-mcp-tool-errors.md) | LinkedIn document / Instagram carousel | LinkedIn 4 PM; Instagram 7 PM IST | In preparation; not yet scheduled. |
+| Tue 17 | [LI-022: Did the MCP tool succeed?](posts/01-tue-mcp-tool-errors.md) | LinkedIn document / Instagram carousel | LinkedIn 4 PM; Instagram 7 PM IST | Buffer scheduled; both posts and media verified. |
 
 The proposed times are starting hypotheses, not measured account-specific peaks.

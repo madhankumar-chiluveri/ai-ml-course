@@ -1,8 +1,8 @@
 ---
 post_id: LI-022
-status: review
+status: scheduled
 scheduled_at: 2026-11-17T16:00:00+05:30
-schedule_note: Proposed time; not scheduled until verified in Buffer. Instagram intended for 19:00 IST.
+schedule_note: Buffer read-back verified automatic publishing on 17 November; LinkedIn 16:00 and Instagram 19:00 IST.
 timezone: Asia/Kolkata
 pillar: authority
 format: document
@@ -15,6 +15,9 @@ audience: full-stack engineers moving into AI product engineering
 course_source: ../../../../course-path/phase-0-engineering-foundations/07_http_fundamentals.md
 asset: ../assets/LI-022-mcp-tool-errors/LI-022-mcp-tool-errors.pdf
 asset_source: ../assets/LI-022-mcp-tool-errors/source/prompts.md
+buffer_linkedin_post_id: 6afb1d986b7e529a1fdf2c80
+buffer_instagram_post_id: 6afb1da1da3ceb8b6ea0345b
+media_commit: 42495e0fc63f503d2995fec6136dce6964170c1d
 published_url:
 instagram_published_url:
 ---
@@ -26,6 +29,7 @@ An MCP tool result may carry `isError: true`; an ordinary result object therefor
 - **LinkedIn document:** [Five-page PDF](../assets/LI-022-mcp-tool-errors/LI-022-mcp-tool-errors.pdf).
 - **Instagram carousel:** [Five ordered PNGs](../assets/LI-022-mcp-tool-errors/LI-022-instagram-carousel.zip).
 - **Source:** [Generation and packaging notes](../assets/LI-022-mcp-tool-errors/source/prompts.md).
+- **Scheduling evidence:** Buffer read-back confirmed both captions, automatic publishing, LinkedIn PDF and cover, and the five Instagram images in order. Public GitHub media URLs are pinned to the media commit above; anonymous downloads matched the local PDF and PNGs. They have no configured expiry.
 - **Primary sources:** [MCP TypeScript SDK: tool and protocol errors](https://ts.sdk.modelcontextprotocol.io/v2/servers/errors) and [MCP C# SDK: error handling](https://csharp.sdk.modelcontextprotocol.io/v1/concepts/tools/tools.html).
 - **Alt text:** 1. An engineer checks whether a delivered tool result means success. 2. A result envelope arrives with a warning inside, illustrating an MCP tool error. 3. A protocol error and a tool error follow distinct paths. 4. Check the error flag, message, and expected output before reporting an outcome. 5. Ask whether the request succeeded, whether the tool reported an error, and whether the output meets the task.
 
