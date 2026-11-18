@@ -1,9 +1,18 @@
 ---
 post_id: LI-023
-status: review
+status: scheduled
 intended_date: 2026-11-18
 scheduled_at: 2026-11-18T16:00:00+05:30
-schedule_note: Proposed LinkedIn slot. The package is in review.
+instagram_scheduled_at: 2026-11-18T18:00:00+05:30
+schedule_note: Buffer read-back verified automatic publishing on both accounts.
+buffer_scheduling_status: scheduled_verified
+buffer_verified_on: 2026-11-18
+buffer_linkedin_post_id: 6afd1b6839777dd13e118a95
+buffer_instagram_post_id: 6afd1b6993fa11d37d035d83
+buffer_organization: My organization
+local_asset_commit: 3b14828fb3a0b32016cbe436db1263401c6b7792
+media_url: https://breezy-ferret-54.beacon.host/LI-023-coding-agent-budget.png
+media_expires_at: 2026-11-19T08:58:17+05:30
 timezone: Asia/Kolkata
 pillar: authority
 content_series: ai_update
@@ -33,6 +42,12 @@ instagram_published_url:
 
 - [Cognition FrontierCode 2.0](https://cognition.com/frontiercode), checked 18 November 2026. The suite has 132 coding tasks. The board reports mean API cost per rollout and a separate pass rate. Max-effort GPT-6.2 Sol used Codex and averaged $1.29 per rollout, 48.2% passed, and 38,100 output tokens. Max-effort Claude Opus 5.5 used Claude Code and averaged $12.82, 51.8% passed, and 201,900 output tokens. The figures describe those two setups. The budget meeting is fictional.
 - [OpenAI API pricing](https://developers.openai.com/api/docs/models/gpt-6.2-sol) and [Anthropic API pricing](https://platform.claude.com/docs/en/about-claude/pricing), checked 18 November 2026. Standard short-context input and output rates are $2 and $10 for Sol and $4 and $20 for Opus per million tokens.
+
+## Buffer scheduling
+
+Buffer verified the personal LinkedIn post at 4 PM IST and the @madvibe.ai Instagram feed post at 6 PM IST on 18 November. Both posts use automatic publishing and have the exact captions, alt text, and approved 2160 × 2700 image. Instagram has the AI-generated disclosure enabled.
+
+The public media download matched the approved PNG by SHA-256. The temporary image link expires at 8:58 AM IST on 19 November. GitHub push requires authentication, so the package commit is local.
 
 ## LinkedIn
 
