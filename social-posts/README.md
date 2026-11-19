@@ -86,7 +86,7 @@ For humour, answer the technical and audience questions in the brief. Keep the p
 
 - Publish from the personal profile; tag Nalsoft only for genuinely relevant, publicly shareable company work.
 - Prepare native LinkedIn and Instagram packages. Schedule through the Buffer MCP when the user explicitly requests it; preparing an asset does not authorize account actions. Follow [social content instructions](AGENTS.md) for media hosting and verification.
-- On posting days, leave 10–15 substantive comments: approximately 70% peers, 20% aspirational practitioners, and 10% relevant opportunities.
+- Test three to five manual comments on relevant threads per session, three days per week. Prefer builders who share your target audience. Add a concrete observation, trade-off, or implementation question. Measure comment impressions and relevant replies.
 - Reply to every genuine comment and convert useful questions into backlog candidates.
 - Use a soft follow CTA at most once per week.
 
@@ -102,7 +102,7 @@ social-posts/
 ├── audits/
 │   └── 2026-09-27-linkedin-baseline.md
 ├── data/
-│   └── linkedin-metrics.csv          # one row per post snapshot
+│   └── post-timing-snapshots.csv      # one row per platform and post snapshot
 ├── weeks/
 │   └── YYYY-MM-DD_to_YYYY-MM-DD/
 │       ├── plan.md                   # schedule plus retrospective
@@ -127,7 +127,7 @@ social-posts/
 | Future candidates and status | `BACKLOG.md` |
 | Course-derived angle library | `strategy/course-to-ai-content-map.md` |
 | Metric definitions | `strategy/metrics-framework.md` |
-| Raw numeric outcomes | `data/linkedin-metrics.csv` |
+| Raw numeric outcomes | `data/post-timing-snapshots.csv` |
 | Schedule and weekly status | The dated week's `plan.md` |
 | Final copy, asset links, source notes, and material limitations | The post file |
 | Long-term interpretation | Dated audits and weekly retrospectives |
@@ -152,10 +152,11 @@ Phase 0 topic or verified AI update → Chosen angle → LinkedIn + Instagram ca
 
 ## Current references
 
-- [Current week: 2026-11-02 to 2026-11-08](weeks/2026-11-02_to_2026-11-08/plan.md)
+- [Current week: 2026-11-16 to 2026-11-22](weeks/2026-11-16_to_2026-11-22/plan.md)
 - [Course-to-AI content map](strategy/course-to-ai-content-map.md)
 - [Metrics framework](strategy/metrics-framework.md)
 - [2026-09-27 account baseline](audits/2026-09-27-linkedin-baseline.md)
+- [2026-11-19 meme reach and follower-growth test](audits/2026-11-19-linkedin-meme-reach.md)
 
 ## Legacy archive
 

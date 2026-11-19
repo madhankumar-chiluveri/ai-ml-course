@@ -14,3 +14,5 @@ status: active
 | Fri 20 | [LI-024 — It’s just a staging test](posts/03-fri-staging-test-email.md) | Shared single-image meme | LinkedIn 3 PM, Instagram 7 PM IST | Automatic Buffer schedules and GitHub image verified |
 
 The proposed times are starting hypotheses, not measured account-specific peaks.
+
+The Friday meme starts the weekly reach test. Keep one engineering proof post in the mix and review both formats at 24 and 72 hours. [19 November audit](../../audits/2026-11-19-linkedin-meme-reach.md)

@@ -88,9 +88,9 @@ If the concept needs several explanatory paragraphs, simplify the joke or return
 
 ## Learn from results
 
-Treat broader appeal as a hypothesis. A supplied screenshot's reactions do not establish a reach or conversion advantage.
-Use the existing metrics framework to assess relevant responses and profile interest across several comparable posts.
-Keep humour occasional until actual results support a cadence. Do not replace the engineering series or promise virality.
+- For a discovery post, start with a recognisable workplace tension. Show one specific engineering failure or trade-off through an action, a reversal, and a visible consequence. Use one readable image when it carries the whole joke.
+- Let the image carry the punchline. Keep the caption complementary. Add one useful engineering implication if it earns the space. Use benchmark detail when the visual makes a sourced comparison.
+- Test one LinkedIn meme per week for four weeks alongside technical posts. Compare like-aged reach and follower conversion. Treat cadence, timing, and visual choices as hypotheses. Review Instagram separately. [Account audit](../../audits/2026-11-19-linkedin-meme-reach.md)
 
 ## Invocation example
 

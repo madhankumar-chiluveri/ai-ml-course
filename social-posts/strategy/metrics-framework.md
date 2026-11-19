@@ -1,10 +1,17 @@
 # LinkedIn Metrics Framework
 
-Raw post outcomes belong in [`../data/linkedin-metrics.csv`](../data/linkedin-metrics.csv). This file defines how to record and interpret them; it does not duplicate the dataset.
+Store raw post outcomes in [`post-timing-snapshots.csv`](../data/post-timing-snapshots.csv). Use the platform column to keep LinkedIn and Instagram comparisons distinct.
+
+## Analytics source order
+
+1. Query the connected Buffer MCP first for every account analytics request. Report the source and refresh time with the figures.
+2. If Buffer lacks a required LinkedIn metric, date range, or timely update, evaluate a free, open-source custom LinkedIn MCP. Use authorized read access and verify the required fields against native analytics for a known post before relying on it.
+3. Use a native screenshot or export the account owner shares to resolve an immediate gap. Record unavailable metrics as `NA`.
 
 ## Snapshot policy
 
 - Record each published post at approximately 24 hours and 72 hours.
+- Record the provider’s refresh time. Set `planned_snapshot_hours` to `NA` for a cumulative pull outside the planned windows and record the observed age.
 - Use `NA` for unavailable data. Zero means a measured zero, not missing data.
 - Keep `post_id` stable across every snapshot and file.
 - Record the LinkedIn post ID or URL as soon as it is published.
@@ -19,7 +26,9 @@ Raw post outcomes belong in [`../data/linkedin-metrics.csv`](../data/linkedin-me
 | `format` | `text`, `single_image`, `document`, `video`, or `poll` |
 | `pillar` | `authority`, `build_proof`, `narrative`, or `community` |
 | `proof_type` | `benchmark`, `trace`, `demo`, `diagram`, `source_analysis`, or `none` |
-| `target_audience_comments` | Substantive comments from the intended audience |
+| `qualified_comments` | Substantive comments from the intended audience |
+| `profile_views` | Profile views LinkedIn attributes to this post, when available |
+| `reposts` | Reposts LinkedIn reports for this post, when available |
 | `followers_gained` | Followers attributable to the post when LinkedIn exposes the value; otherwise `NA` |
 
 ## Qualified-comment definition
@@ -33,6 +42,7 @@ comment rate          = comments / impressions × 1,000
 save rate             = saves / impressions × 1,000
 profile-view rate     = profile views / impressions × 1,000
 follow conversion     = followers gained / profile views × 100
+follows per 1,000     = followers gained / members reached × 1,000
 qualified-comment mix = target-audience comments / comments × 100
 ```
 
@@ -44,7 +54,7 @@ Do not calculate a rate when its denominator is missing or zero.
 - Change one major variable at a time where possible: topic, format, hook, CTA, or time.
 - Keep posting time controlled for a full week before interpreting time-of-day effects.
 - Compare medians as well as averages because one high-reach post can distort the mean.
-- Prefer qualified audience response, profile views, and follower conversion over raw impressions.
+- Review member reach alongside qualified audience response, profile views, and follower conversion. Compare follows per 1,000 reached across tested LinkedIn posts.
 - Store interpretation in the weekly retrospective or a dated audit, never in the CSV.
 
 ## Weekly review questions

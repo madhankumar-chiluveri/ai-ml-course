@@ -128,14 +128,20 @@ An explicit request to post or schedule a reviewed package authorizes its media-
 
 1. Push the final post package and related approved changes to the user's existing public GitHub repository. Use the established branch and exclude unrelated work. Confirm the push succeeded before using its URLs. Reuse already published media only when its bytes match the final files.
 2. Build direct public media URLs pinned to the pushed commit. Fetch every PDF, image, and document thumbnail without authentication; compare the downloaded bytes with the final local files. Record the commit and any expiry. Prefer stable repository URLs; use another public host only when project instructions authorize it and the user has not required a GitHub push first.
-3. Schedule through Buffer MCP. Attach the LinkedIn document with its title and cover thumbnail, and the Instagram pages in order, using each platform's canonical caption. Use the intended publishing date and timezone; select automatic publishing unless the user requested reminders.
+3. Schedule through Buffer MCP with each platform's chosen native format and canonical caption. For a single-image pair, attach the verified shared image and alt text. For a carousel pair, attach the LinkedIn PDF with its title and thumbnail, and the Instagram pages in order. Use the intended publishing date and timezone. Select automatic publishing unless the user requested reminders.
 4. Read both saved posts back. Verify account, caption, media type and order, intended time, timezone, status, and publishing mode. Record Buffer post IDs and the media commit in the post file; update the week plan and backlog, then push those scheduling records.
 
 If authentication, hosting, or scheduling fails, report the exact incomplete step and continue any independent work. Never claim a push or schedule succeeded without verification. Do not upload unrelated private files or switch accounts, repositories, dates, or publishing modes merely to bypass a failure.
 
 ### Measurement and iteration
 
+For this workspace, follow the [analytics source order](../../../social-posts/strategy/metrics-framework.md#analytics-source-order).
+
 After publication, record consistent 24-hour and 72-hour snapshots in the project's metrics dataset. Use `NA` for unavailable data; zero means measured zero. Update the weekly retrospective with interpretation and promote audience questions to the backlog. Do not declare a format, theme, hook, or posting-time winner from a single post.
+
+- Compare each format at matched ages. State the source and refresh time beside third-party totals. Prefer newer native figures for current totals. Label owner-reported figures and preserve earlier snapshots. Compare the median and range, including ordinary posts in the same format.
+- Track discovery and conversion together. Use LinkedIn member reach and post-attributed profile views and follows where available. Use native post analytics when the connected provider lacks those fields. Review Instagram results separately using its own snapshots.
+- After a reach spike, pair the next format test with an engineering proof post that gives new readers a concrete reason to follow. Confirm the follower signal before promoting a cadence or tactic.
 
 ## Hard rules
 
