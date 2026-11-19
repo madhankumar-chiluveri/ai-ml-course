@@ -9,8 +9,8 @@ buffer_verified_on: 2026-11-19
 buffer_organization: My organization
 buffer_linkedin_post_id: 6afeff11abf4ba608b76d082
 buffer_instagram_post_id: 6afeff11cac0791c5d8ca683
-media_url: https://jolly-rosette-21.beacon.host/LI-024-staging-test-email.png
-media_expires_at: 2026-11-20T19:21:37+05:30
+media_url: https://raw.githubusercontent.com/madhankumar-chiluveri/ai-ml-course/28ec5b5930480efd720c79f3df3724c846748752/social-posts/weeks/2026-11-16_to_2026-11-22/assets/LI-024-staging-test-email/LI-024-staging-test-email.png
+media_commit: 28ec5b5930480efd720c79f3df3724c846748752
 media_sha256: e908b59293163a5288a7dcd718f6a99f4a8c37dc8f2104f58c7e339de542a6d2
 timezone: Asia/Kolkata
 pillar: community
@@ -42,7 +42,7 @@ The comic is fictional. A staging agent can send real email if it uses productio
 
 Both posts are scheduled for automatic publishing on Friday, 20 November. Buffer read-back verified the accounts, captions, image, alt text, times, and the Instagram AI-generated disclosure.
 
-GitHub authentication was unavailable. Beacon serves the verified PNG until 7:21 PM IST on 20 November, about 22 minutes after the Instagram slot. A later retry may need a new media URL.
+Both entries use the commit-pinned GitHub image. The unauthenticated PNG download matched the local SHA-256. Buffer read-back confirmed the original post IDs and times after the image update.
 
 ## LinkedIn
 

@@ -11,5 +11,6 @@ status: active
 |---|---|---|---|---|
 | Tue 17 | [LI-022: Did the MCP tool succeed?](posts/01-tue-mcp-tool-errors.md) | LinkedIn document / Instagram carousel | LinkedIn 4 PM; Instagram 7 PM IST | Buffer scheduled; both posts and media verified. |
 | Wed 18 | [LI-023: The AI budget meeting](posts/02-wed-the-coding-agent-receipt.md) | Shared single-image meme | LinkedIn 4 PM, Instagram 6 PM IST | Buffer schedules and media verified |
+| Fri 20 | [LI-024 — It’s just a staging test](posts/03-fri-staging-test-email.md) | Shared single-image meme | LinkedIn 3 PM, Instagram 7 PM IST | Automatic Buffer schedules and GitHub image verified |
 
 The proposed times are starting hypotheses, not measured account-specific peaks.
