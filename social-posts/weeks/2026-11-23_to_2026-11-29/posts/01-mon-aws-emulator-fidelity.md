@@ -1,8 +1,17 @@
 ---
 post_id: LI-025
-status: review
+status: scheduled
+instagram_status: scheduled
 scheduled_at: 2026-11-23T22:00:00+05:30
 instagram_scheduled_at: 2026-11-23T19:00:00+05:30
+buffer_scheduling_status: scheduled_verified
+buffer_verified_on: 2026-11-22
+buffer_organization: My organization
+buffer_linkedin_post_id: 6b03274dd5eabfb8ccc7a740
+buffer_instagram_post_id: 6b03274fcc364169c1711ecc
+media_commit: 66b723e999fd80d9d0bfa401dbc8748afb74e517
+media_base_url: https://cdn.jsdelivr.net/gh/madhankumar-chiluveri/ai-ml-course@66b723e999fd80d9d0bfa401dbc8748afb74e517/social-posts/weeks/2026-11-23_to_2026-11-29/assets/LI-025-aws-emulator-fidelity
+media_expiry: no expiry configured
 timezone: Asia/Kolkata
 pillar: authority
 format: document
@@ -40,6 +49,12 @@ instagram_published_url:
 - [AWS engineering write-up](https://www.aboutamazon.com/news/aws/how-autonomous-ai-agents-built-aws-emulator), 11 November 2026. AWS engineer Matthew Goldberg describes validating checks against real AWS and replaying them against the emulator.
 - [AWS SQS test source](https://github.com/aws/aws-emulator-evaluation-suite/blob/4df2823bafface2ada35f482c07ff6668cc078e1/behavioral/sqs/check_visibility_timeout_natural_expiry.py) and [AWS Emulator v1.0.322 release](https://github.com/aws/aws-emulator/releases/tag/v1.0.322). On 22 November 2026, the downloaded release score marked the matching unit, sqs.visibility-timeout-natural-expiry, as pass. The two-second timeout is the test configuration. The diagram depicts the test and the published result.
 - [Hands-on LinkedIn post](https://pt.linkedin.com/posts/guilherme-benfica_awsgoldenjacket-goldenjacketbrazil-activity-7528226552715763713-w4h-) and [19 November AWS team AMA](https://www.reddit.com/r/aws/comments/1y08smf/were_the_team_behind_aws_emulator_a_local_aws/) informed topic selection.
+
+## Buffer scheduling
+
+Buffer read-back on 22 November confirmed automatic publication on Monday, 23 November. LinkedIn is set for 10 PM IST with the PDF and its cover. Instagram is set for 7 PM IST with all five pages in order, their alt text, and the AI-generated disclosure. Both captions matched the approved copy.
+
+The six public media files matched the local bytes. Buffer uses direct jsDelivr URLs pinned to the public GitHub commit above.
 
 ## LinkedIn
 

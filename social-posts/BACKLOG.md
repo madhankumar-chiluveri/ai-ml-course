@@ -44,7 +44,7 @@ deferred means the topic is valid but outside the active course phase.
 | ID | Working idea | Pillar | Audience problem | Source / evidence | Status |
 |---|---|---|---|---|---|
 | LI-018 | The model fits. Why is it still slow? | Authority | Memory capacity is mistaken for inference speed | User-selected GPU explainer, NVIDIA memory hierarchy and inference guides; source analysis, no benchmark | scheduled |
-| LI-025 | How AWS checked its AI-written emulator | Authority | How to verify code written by agents against an existing system | AWS SQS fidelity test and v1.0.322 release score | review |
+| LI-025 | How AWS checked its AI-written emulator | Authority | How to verify code written by agents against an existing system | AWS SQS fidelity test and v1.0.322 release score | scheduled |
 
 ## Deferred until their course phase is active
 
