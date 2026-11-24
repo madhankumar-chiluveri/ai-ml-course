@@ -28,7 +28,7 @@ deferred means the topic is valid but outside the active course phase.
 | LI-021 | The bug is serving its notice period | Community | A deployed fix can be hidden by an unchanged cached response | Fictional illustrated meme; Redis expiration documentation | Phase 0.15 | 1 | scheduled |
 | LI-022 | The MCP tool call returned. Did the tool succeed? | Authority | A delivered tool result can contain a tool failure | MCP SDK error handling documentation | Phase 0.7 / 0.8 | 1 | scheduled |
 | LI-024 | It’s just a staging test | Community | A staging email agent still has access to a real recipient list | Fictional comic grounded in test isolation and the Amazon SES mailbox simulator | Phase 0.5 | 1 | scheduled |
-| LI-026 | The user hit Stop. The AI agent kept working. | Community | Ending chat updates can leave a background job running | Fictional comic grounded in an offline Python cancellation demo | Phase 0.3 | 1 | review |
+| LI-026 | The user hit Stop. The AI agent kept working. | Community | Ending chat updates can leave a background job running | Fictional comic grounded in an offline Python cancellation demo | Phase 0.3 | 1 | scheduled |
 
 ## AI Update candidates
 
