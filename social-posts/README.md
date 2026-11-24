@@ -56,13 +56,13 @@ For each proposed publishing date, consult the [posting-time guide](strategy/pos
 ### Format rules
 
 - **Public credit and export quality:** use `madvibe.ai` on new social visuals. Export exact 4:5 PNGs at **2160 × 2700**. Keep native generated source and prompts; preserve vectors when code-native diagrams are selected. Generated artwork can use image-based carousel PDFs. Retain one final PNG per page; create lower-resolution copies only when requested. Enlarging a bitmap does not add image detail.
-- **Visual treatment:** use the local [style-ref-editorial skill](skills/style-ref-editorial/SKILL.md). For each post, announce and record the choice between image-generated character scenes and SVG cartoons and diagrams using the [content skill's format gate](../.agents/skills/linkedin-content-system/SKILL.md#4-format-and-theme-gate). Keep warm paper, readable type, pastel diagrams, and plum notes in either treatment. Saved internal references guide the visual identity.
+- **Visual treatment:** use the local [style-ref-editorial skill](skills/style-ref-editorial/SKILL.md). Generate artwork for each social post with image generation by default. Use SVG or code-drawn artwork only on explicit request. Include a character only when their action clarifies the idea or improves the story. Record the treatment and rationale; keep the light paper background, readable type, pastel diagrams, and plum notes.
 - **Generated PNG uploads:** apply the style skill's metadata-only preparation to every generated single-image post. Verify unchanged pixels, replace the older workspace copy, and keep one final PNG plus its prompt. Inspect the platform preview; labels and upload IDs cannot be guaranteed.
 - **Humour treatment:** use [engineering-humour](skills/engineering-humour/SKILL.md) for relatable technical frustrations and original visual punchlines. Choose the scene before the layout; use one image when the joke fits.
 - **AI update treatment:** use [ai-news-carousel](skills/ai-news-carousel/SKILL.md). Retain the editorial identity; the AI UPDATE label is optional. Omit publication and edition dates from artwork and public captions unless explicitly requested; keep source dates and verification timestamps in internal source notes. Choose the narrative, page count, and main visuals for the topic; there is no fixed slide sequence or required verdict.
 - **Single image:** default for one mental model, measured result, comparison, or architecture card.
 - **Document/carousel:** use for a sequence, explanation, comparison, visual story, roundup, or another topic that benefits from multiple pages.
-- **Text:** timely point of view, a personal learning narrative, or a concise field note.
+- **Caption:** pair a timely point of view, personal learning narrative, or concise field note with generated artwork unless the user requests text only.
 - **Native video:** 45–60 second working demo, failure reproduction, or trace walkthrough.
 - **Poll:** only when the choices expose a meaningful engineering decision.
 
@@ -143,7 +143,7 @@ Phase 0 topic or verified AI update → Chosen angle → LinkedIn + Instagram ca
 ```
 
 1. Use recent account data when available; identify the date and limits of saved audits when live data is unavailable.
-2. Select active-phase course ideas or a verified AI update, then place their IDs in a dated week. Check recent titles for duplicates.
+2. Research every post across public LinkedIn, Instagram, YouTube, and the wider web. Prioritize current topics with strong audience interest, standalone value, and verifiable claims. Look for two independent, dated attention signals before calling a topic trending. Check recent titles for duplicates, choose the format that fits the story, then place selected IDs in a dated week.
 3. Verify material claims when needed. Keep essential sources or limitations in the post file.
 4. Create the post file from [the post template](templates/post.md). Keep it focused on the selected asset and both captions.
 5. Record analytics in the CSV, not inside the post file.

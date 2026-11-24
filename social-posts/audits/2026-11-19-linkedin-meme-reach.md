@@ -23,7 +23,7 @@ Instagram recorded reach of 106 and 37 for the two posts, with zero attributed f
 
 ## Four-week test
 
-1. Publish one LinkedIn meme per week alongside an engineering proof post. Start with LI-024. Keep the meme slot consistent when possible. Use a technical post that answers a practical question raised by the joke.
+1. Publish one LinkedIn meme per week alongside an engineering proof post. Start with LI-024. Keep the meme slot consistent when possible. Choose the engineering proof for its standalone value to the reader.
 2. Capture 24-hour and 72-hour member reach, saves, reposts, post-attributed profile views, and post-attributed follows when available. Use follows per 1,000 members reached as the conversion measure. Record refresh time, audience fit, and `NA` for unavailable fields. [LinkedIn post analytics](https://www.linkedin.com/help/linkedin/answer/a525196/viewing-analytics-for-your-shared-posts)
 3. Try three to five manual comments per session, three days per week. Pick active threads about AI agents, MCP, evaluations, or AI product engineering. Add a firsthand result, specific trade-off, or implementation question. Record comment impressions and replies. Treat account-wide profile views and follower changes as directional. [Comment analytics](https://www.linkedin.com/help/linkedin/answer/a7436043) · [Authentic conversations](https://news.linkedin.com/2026/authentic-content-and-conversations)
 
