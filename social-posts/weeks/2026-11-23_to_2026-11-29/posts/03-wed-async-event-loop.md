@@ -1,8 +1,17 @@
 ---
 post_id: LI-008
-status: review
+status: scheduled
 scheduled_at: 2026-11-25T16:00:00+05:30
 instagram_scheduled_at: 2026-11-25T19:00:00+05:30
+buffer_scheduling_status: scheduled_verified
+buffer_verified_on: 2026-11-24
+buffer_organization: My organization
+buffer_linkedin_post_id: 6b05c48b3f48af62c2201a8e
+buffer_instagram_post_id: 6b05c49320f9e770f07b9f06
+media_url: https://cdn.jsdelivr.net/gh/madhankumar-chiluveri/ai-ml-course@d853d9b51ce22534b06de3893268fca4a5be4a09/social-posts/weeks/2026-11-23_to_2026-11-29/assets/LI-008-async-event-loop/LI-008-async-event-loop.png
+media_commit: d853d9b51ce22534b06de3893268fca4a5be4a09
+media_expiry: no expiry configured
+media_sha256: 378d764243cc724a22f59add6ca91274bfd294c1f1d92c9a9e70390287a1b5ec
 timezone: Asia/Kolkata
 pillar: build_proof
 format: single_image
@@ -30,7 +39,11 @@ instagram_published_url:
 
 On 24 November 2026, the linked course script ran locally on Python 3.14.4, FastAPI 0.141.1, Uvicorn 0.45.0, and HTTPX 0.28.1. Six clients concurrently sent requests to a single local Uvicorn server. Each handler used a 0.3-second simulated wait. One run measured 0.32 s, 1.82 s, and 0.32 s, respectively. This is an illustrative concurrency demonstration, not a production benchmark or a model latency measurement. [Python asyncio development guidance](https://docs.python.org/3/library/asyncio-dev.html) explains why blocking work delays other tasks on the event loop.
 
-The proposed publishing times are test slots; this post has not been scheduled.
+## Buffer scheduling
+
+Buffer read-back on 24 November confirmed automatic publishing on Wednesday, 25 November at 4 PM IST on LinkedIn and 7 PM IST on Instagram. Both saved posts matched their captions, image, and alt text. The Instagram post has its AI-generated disclosure enabled.
+
+The public jsDelivr URL is pinned to media commit `d853d9b51ce22534b06de3893268fca4a5be4a09`; its PNG matched the local SHA-256. No expiry is configured.
 
 ## LinkedIn
 

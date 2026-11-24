@@ -17,7 +17,7 @@ deferred means the topic is valid but outside the active course phase.
 | ID | Working idea | Pillar | Audience problem | Source / evidence | Source | Priority | Status |
 |---|---|---|---|---|---|---:|---|
 | LI-002 | Why I am beginning AI engineering with Phase 0 foundations | Narrative | Learners jump to frameworks without the systems judgment underneath them | Specific Phase 0-to-AI-product connections | Phase 0 course notes | 1 | scheduled |
-| LI-008 | One blocking function can freeze a streaming AI endpoint | Build proof | Agent latency is blamed only on the model | Concurrency proof and event-loop trace | Phase 0.3 / 0.9 | 2 | review |
+| LI-008 | One blocking function can freeze a streaming AI endpoint | Build proof | Agent latency is blamed only on the model | Concurrency proof and event-loop trace | Phase 0.3 / 0.9 | 2 | scheduled |
 | LI-009 | Retrying the same invalid request is not resilience | Authority | Agent tools amplify bad retry policies | Offline simulation; Buffer shows both platforms published it on 27 October | Phase 0.7 / 0.8 | 3 | published |
 | LI-011 | One AI product has at least three kinds of state | Authority | Postgres, pgvector, and Redis are treated as interchangeable | Storage-boundary architecture | Phase 0.15 | 3 | idea |
 | LI-012 | NGINX can make token streaming arrive all at once | Authority | Proxy buffering is mistaken for model latency | Illustrative diagnostic story, supported by NGINX documentation; no measured trace | Phase 0.12 | 3 | scheduled |

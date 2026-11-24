@@ -11,4 +11,4 @@ status: active
 |---|---|---|---|---|
 | Mon 23 | [LI-025 — How AWS checked its AI-written emulator](posts/01-mon-aws-emulator-fidelity.md) | LinkedIn document / Instagram carousel | LinkedIn 10 PM, Instagram 7 PM IST | Automatically scheduled in Buffer and verified |
 | Tue 24 | [LI-026 — The user hit Stop](posts/02-tue-agent-stop-button.md) | Shared single-image comic | LinkedIn 4 PM, Instagram 7 PM IST | Automatically scheduled in Buffer and verified |
-| Wed 25 | [LI-008 — Why did async make this slower?](posts/03-wed-async-event-loop.md) | Shared single-image result card | Proposed: LinkedIn 4 PM, Instagram 7 PM IST | Review; not scheduled |
+| Wed 25 | [LI-008 — Why did async make this slower?](posts/03-wed-async-event-loop.md) | Shared single-image result card | LinkedIn 4 PM, Instagram 7 PM IST | Automatically scheduled in Buffer and verified |
