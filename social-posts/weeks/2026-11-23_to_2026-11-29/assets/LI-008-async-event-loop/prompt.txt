@@ -1,0 +1,18 @@
+Use case: infographic-diagram. Create one complete, highly polished 4:5 social post for LinkedIn and Instagram, with the final text integrated into the illustration. The attached AWS carousel page is a style reference: use its light near-white #FEFDFA background, oversized clear black headline, hand-drawn black outlines, pastel objects, and subtle plum accents. Create an original composition, not a copy. No character: the mechanism is clearer without one.
+
+Topic: an illustrative local FastAPI experiment with six concurrent requests and a 0.3-second simulated wait each. A blocking sleep inside an async handler holds the single event loop and other requests wait. Keep the causal relationship technically accurate.
+
+Composition: large editorial headline at top; underneath, draw an expressive but precise software-architecture illustration of six small request packets approaching a single event loop, with a conspicuous blocking stop-bar preventing queued packets from advancing. Label the event loop and blocking call. Below, place a clean, large, elegantly typeset comparison with the three exact measured rows. Use visual spacing and small pastel accents; make the failure stand out softly in rose and the other outcomes in mint. A brief evidence footer states the limitation. Exact text, with spelling, case, punctuation, and timings preserved:
+
+"Why did async make this slower?"
+"6 requests · 0.3 s simulated wait each"
+"Blocking call"
+"Event loop"
+"Requests wait"
+"def + sleep: 0.32 s"
+"async + blocking sleep: 1.82 s"
+"async + awaited sleep: 0.32 s"
+"One local run · not a production benchmark"
+"madvibe.ai"
+
+Legibility is paramount: natural editorial sans-serif, distinct letters and spaces, no tiny or crowded labels, plenty of breathing room, safe outer margins, high contrast. Keep all text fully inside the frame. Do not invent facts, numbers, logos, or decorative robots. Deliver the complete coherent illustration, not a blank template or a plain table of rounded rectangles.

@@ -2,7 +2,7 @@
 
 ## Design intent
 
-Make dense technical ideas feel obvious at first glance. Combine editorial hierarchy with readable annotation and accurate technical relationships. For social posts, follow the recorded per-post choice between image-generated character scenes and SVG cartoons and diagrams; keep the visual identity consistent in either medium.
+Make dense technical ideas feel obvious at first glance. Combine editorial hierarchy with readable annotation and accurate technical relationships. For social posts, generate artwork with image generation by default. Include a character only when their action clarifies the idea or improves the story; use SVG only on explicit request.
 
 The source references in `C:\Users\madhankumar.ch\Downloads\style-ref` contribute only broad traits: an off-white paper field, oversized black headlines, pastel explanatory cards, thin ink outlines, and occasional handwritten notes. Do not copy their creator identity, handle, slide numbering pattern, exact compositions, or proprietary illustrations.
 

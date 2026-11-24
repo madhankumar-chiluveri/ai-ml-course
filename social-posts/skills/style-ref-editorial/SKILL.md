@@ -24,8 +24,8 @@ Bundled OFL fonts and their licenses live in `assets/fonts/` for reproducible of
 
 1. Take the topic, evidence, platform, and chosen format from the post brief. This skill controls visual treatment.
 2. Identify the physical mechanism or engineering decision. Make that the dominant diagram.
-3. Use warm paper, a heavy black headline, pastel surfaces, thin ink strokes, and restrained plum notes. Use the color tokens and contrast guidance in the design system.
-4. Follow the per-post visual decision from `linkedin-content-system`: image-generated character scenes or SVG cartoons and diagrams. Choose expressive generated scenes when human action carries the story; choose SVG when exact labels, geometry, or data paths carry the explanation. Reassess for each post and verify every word and technical relationship.
+3. Use a light near-white paper background (`#FEFDFA`), a heavy black headline, pastel surfaces, thin ink strokes, and restrained plum notes. Use the remaining color tokens and contrast guidance in the design system.
+4. Generate social artwork with image generation, including technical diagrams. Use SVG or code-drawn artwork only if the user explicitly requests it. Include characters only when their action clarifies the idea or improves the story. Verify every word and technical relationship.
 5. Use a readable sans-serif with clear gaps between letters and words. Choose normal-width type, open counters, and moderate weight. Avoid negative tracking, touching glyphs, compressed heavy headlines, and handwriting fonts unless explicitly requested. Inspect at feed size and regenerate cramped type.
 6. Vary composition with the information: a causal path, aligned comparison, timeline, branching decision, or trace.
 7. Use `madvibe.ai` as the public visual credit. Omit publication and edition dates from artwork and public captions unless explicitly requested; keep source dates and verification timestamps in internal source notes. Export the chosen assets and inspect their mobile readability and rendered boundaries.
@@ -81,4 +81,4 @@ The image remains AI-generated; metadata cleanup does not establish a different 
 
 ## Reusable prompt
 
-> Apply the style-ref-editorial skill to this approved brief. Honor its recorded choice of image-generated character scenes or SVG cartoons and diagrams; decide and explain the treatment first if missing. Use warm paper, clearly spaced normal-width editorial type, pastel diagrams, thin ink outlines, and readable plum notes. Preserve exact labels and the evidence boundary. Use madvibe.ai as the public credit. Return 2160 × 2700 PNGs, the selected carousel PDF, selected production source, and page-specific alt text.
+> Apply the style-ref-editorial skill to this approved brief. Generate the artwork with image generation; use a character only if their action clarifies the idea or improves the story. Use light near-white paper, clearly spaced normal-width editorial type, pastel diagrams, thin ink outlines, and readable plum notes. Preserve exact labels and the evidence boundary. Use madvibe.ai as the public credit. Return 2160 × 2700 PNGs, the selected carousel PDF, generation prompts, and page-specific alt text.

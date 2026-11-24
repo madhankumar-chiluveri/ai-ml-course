@@ -57,13 +57,13 @@ Read [references/post-archetypes.md](references/post-archetypes.md), then choose
 Read [references/topic-theme-router.md](references/topic-theme-router.md) before selecting a format or theme.
 
 - Choose one default native format from the information shape: finding, sequence, behavior, point of view, or meaningful choice.
-- Generate a visual only when it improves understanding or proves the claim.
+- Generate an image for every social post by default, including posts with a concise caption. An explicit user request for another format wins.
 - Prefer a real result card, chart, code/trace screenshot, annotated product screen, or architecture boundary over generic generated imagery.
 - For a character-led visual, specify who each character represents, their action and expression, and how they interact with the story's props or diagram. Use Mad and supporting characters when they clarify the idea; a decorative avatar is not a reason to add a visual.
-- Before creating each post, choose and announce its visual treatment: **image-generated character scenes** or **SVG cartoons and diagrams**. Decide again for each topic; do not inherit the previous post's treatment or default automatically to image generation.
-- Choose image-generated character scenes when expression, physical action, atmosphere, or a visual story carries the idea. Choose SVG cartoons and diagrams when exact labels, geometry, data paths, comparisons, or repeated editable elements carry the explanation. Both treatments can include purposeful characters; the distinction is the rendering method and the story's needs.
-- Judge the finished composition and established illustration quality, not just ease of typesetting. Technical labels alone do not justify SVG. Inspect the cover at feed size before extending the treatment; reject crude character approximations and switch methods when the artwork fails the chosen standard.
-- Record `visual_treatment` and a short `visual_rationale` in the post brief or front matter before production. Explain the choice briefly in chat. An explicit user choice wins; a justified text-only post records `visual_treatment: none` instead of forcing artwork.
+- Use image generation for social artwork by default, including diagrams and comparison cards. Use SVG or code-drawn artwork only when explicitly requested. Announce the treatment before production.
+- Include Mad or another character only when their action clarifies the concept or improves the story. Otherwise omit characters and let the subject carry the image.
+- Inspect the finished composition at full size and feed size. Check technical labels, facts, character anatomy, spacing, and readability; regenerate deficient artwork.
+- Record `visual_treatment` and a short `visual_rationale` in the post brief or front matter before production. Explain the choice briefly in chat. An explicit user choice wins.
 - Preserve the selected brand style in either treatment. Specify clear letter and word spacing; reject touching glyphs and overly compressed headings at mobile feed size.
 - If an asset is appropriate, read [references/visual-brand-system.md](references/visual-brand-system.md). Preserve a consistent personal design system while varying only the topic treatment.
 

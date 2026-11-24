@@ -12,7 +12,7 @@ The composition changes with the reasoning. A comparison aligns alternatives. A 
 
 | Role | Value |
 |---|---|
-| Paper | `#FFFCF0` |
+| Paper | `#FEFDFA` |
 | Ink | `#100F0F` |
 | Annotation plum | `#7C3154` |
 | Secondary text | `#575653` |
@@ -23,7 +23,7 @@ The composition changes with the reasoning. A comparison aligns alternatives. A 
 | Sky | `#DFF2FF` |
 | Quiet rule | `#DAD8CE` |
 
-These are production tokens inferred from the reference family. They are not sampled color measurements.
+The paper token matches the dominant background sampled from the LI-025 AWS emulator carousel cover. The other tokens are inferred from the reference family.
 Use ink for primary text and plum for restrained annotations or connectors. Check text contrast against its actual background; do not use color alone to convey meaning.
 
 ## Typography and geometry

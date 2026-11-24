@@ -22,7 +22,7 @@ Test whether a reproducible Phase 0 failure attracts full-stack engineers who ne
 | Day | Post ID and file | Pillar | Format | Goal | Status |
 |---|---|---|---|---|---|
 | Mon | Asset preparation | — | — | Preparation | complete |
-| Tue | [LI-008](posts/01-tue-async-made-endpoint-slower.md) | Build proof | Shared single-image result card | Saves and technical comments | review |
+| Tue | [LI-008](../2026-11-23_to_2026-11-29/posts/03-wed-async-event-loop.md) | Build proof | Shared single-image result card | Saves and technical comments | Moved to 25 November for review |
 | Wed | Comment and response day | Community | — | Discussion | planned |
 | Thu | Topic selection | — | — | Next proof | planned |
 | Fri | No inferred post | — | — | — | open |
