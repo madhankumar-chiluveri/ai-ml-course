@@ -1,6 +1,16 @@
 ---
 post_id: LI-027
-status: review
+status: scheduled
+scheduled_at: 2026-11-26T17:00:00+05:30
+instagram_scheduled_at: 2026-11-26T09:00:00+05:30
+buffer_scheduling_status: scheduled_verified
+buffer_verified_on: 2026-11-26
+buffer_organization: My organization
+buffer_linkedin_post_id: 6b07a6bf07071a60674ec0b9
+buffer_instagram_post_id: 6b07a6adb8e2338b85878650
+media_commit: 402513f591824e607d5bb5a9f5529676a0543dbc
+media_tag: media-li-027
+media_expiry: no expiry configured
 timezone: Asia/Kolkata
 pillar: authority
 content_series: ai_update
@@ -29,6 +39,10 @@ public_credit: madvibe.ai
 ## Source and limits
 
 [Architect Labs, Frostbite research](https://architectlabs.com/blog/frostbite), published 18 November 2026; checked 26 November 2026. Architect Labs reports a CPU design and a machine-checkable specification used across its design and verification workflow. Its power and performance figures are pre-silicon estimates. This is source analysis, not an independent test or a measurement on a manufactured Frostbite chip.
+
+## Buffer scheduling
+
+On 26 November, Buffer read-back confirmed automatic publishing at 9 AM IST on Instagram and 5 PM IST on LinkedIn. Both captions and media matched. Instagram's four images retained their order, alt text, and AI-generated disclosure. The LinkedIn document retained its title and cover. The public CDN URLs use the media commit above; anonymous downloads of the PDF and all four PNGs matched their local SHA-256 hashes. No expiry is configured. The dedicated media tag keeps the snapshot below the CDN's package limit.
 
 ## LinkedIn
 

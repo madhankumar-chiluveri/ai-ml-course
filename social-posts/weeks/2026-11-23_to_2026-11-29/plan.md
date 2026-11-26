@@ -12,5 +12,5 @@ status: active
 | Mon 23 | [LI-025 — How AWS checked its AI-written emulator](posts/01-mon-aws-emulator-fidelity.md) | LinkedIn document / Instagram carousel | LinkedIn 10 PM, Instagram 7 PM IST | Automatically scheduled in Buffer and verified |
 | Tue 24 | [LI-026 — The user hit Stop](posts/02-tue-agent-stop-button.md) | Shared single-image comic | LinkedIn 4 PM, Instagram 7 PM IST | Automatically scheduled in Buffer and verified |
 | Wed 25 | [LI-008 — Why did async make this slower?](posts/03-wed-async-event-loop.md) | Shared single-image result card | LinkedIn 4 PM, Instagram 7 PM IST | Automatically scheduled in Buffer and verified |
-| Thu 26 | [LI-027 — Frostbite: how AI agents designed a CPU](posts/04-thu-frostbite-ai-cpu.md) | LinkedIn document / Instagram carousel | Not scheduled | Prepared for review |
+| Thu 26 | [LI-027 — Frostbite: how AI agents designed a CPU](posts/04-thu-frostbite-ai-cpu.md) | LinkedIn document / Instagram carousel | LinkedIn 5 PM, Instagram 9 AM IST | Automatically scheduled in Buffer and verified |
 | Fri 27 | AI agent's knowledge base is still on the laptop | Shared single-image comic | Not scheduled | Idea reserved for Friday |
