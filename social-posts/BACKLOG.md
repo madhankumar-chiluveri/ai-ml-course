@@ -39,6 +39,7 @@ deferred means the topic is valid but outside the active course phase.
 | LI-019 | Can AI help prove your messages stay private? | Authority | Explain encryption and AI-assisted verification through a beginner-friendly example | Google DeepMind research, 10 November 2026 | archived |
 | LI-020 | How does AI help a robot pick up the right part? | Authority | Explain vision, instructions, and robot actions through one factory task | Google DeepMind research, 10 November 2026 | scheduled |
 | LI-023 | The AI budget meeting | Authority | Use a meme to explain the gap between token rates and the cost per coding attempt | Cognition FrontierCode 2.0 and first-party API prices, checked 18 November 2026 | scheduled |
+| LI-027 | Frostbite: how AI agents designed a CPU | Authority | Explain the shared specification and pre-silicon evidence limit | Architect Labs, 18 November 2026 | review |
 
 ## Approved standalone explainers
 
